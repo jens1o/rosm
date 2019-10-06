@@ -71,9 +71,26 @@ impl WayData {
     }
 }
 
-// TODO: Make this generic
-fn round_up_to(int: u32, target: u32) -> u32 {
-    if int % target == 0 {
+trait Zero {
+    fn zero() -> Self;
+}
+
+impl Zero for u32 {
+    fn zero() -> u32 {
+        0
+    }
+}
+
+fn round_up_to<T>(int: T, target: T) -> T
+where
+    T: std::cmp::PartialEq
+        + std::ops::Sub<Output = T>
+        + std::ops::Rem<Output = T>
+        + std::ops::Add<Output = T>
+        + Zero
+        + Copy,
+{
+    if int % target == T::zero() {
         return int;
     }
 
@@ -278,7 +295,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap();
 
     println!("Saved image successfully, cropping tinier pictures.");
-    'outer: for i in 0..(image_height / IMAGE_PART_SIZE) {
+    for i in 0..(image_height / IMAGE_PART_SIZE) {
         for j in 0..(image_width / IMAGE_PART_SIZE) {
             let x_pos = i * IMAGE_PART_SIZE;
             let y_pos = j * IMAGE_PART_SIZE;
@@ -292,7 +309,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .unwrap();
 
             drop(sub_image);
-            // break 'outer;
         }
     }
 
