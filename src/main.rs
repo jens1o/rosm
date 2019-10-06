@@ -97,11 +97,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut max_y = y_sample;
 
     for (_, x, y) in pixels.iter() {
-        min_x = cmp::min(*x, min_x);
-        max_x = cmp::max(*x, max_x);
+        min_x = cmp::min(x, min_x);
+        max_x = cmp::max(x, max_x);
 
-        min_y = cmp::min(*y, min_y);
-        max_y = cmp::max(*y, max_y);
+        min_y = cmp::min(y, min_y);
+        max_y = cmp::max(y, max_y);
     }
 
     dbg!(min_x, max_x);
