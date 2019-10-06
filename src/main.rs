@@ -163,7 +163,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
                     (node_a.lat * IMAGE_RESOLUTION, node_a.lon * IMAGE_RESOLUTION),
                     (node_b.lat * IMAGE_RESOLUTION, node_b.lon * IMAGE_RESOLUTION),
-                ) {
+                )
+                .map(|(x, y)| (x as u32, y as u32))
+                {
                     pixels.push((node_a.nid, x, y));
                     pixels.push((node_a.nid, x + 1, y + 1));
                     pixels.push((node_a.nid, x + 1, y - 1));
@@ -176,8 +178,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    pixels.sort();
-    pixels.dedup();
+    println!("Finished pixelating, drawing on canvas.");
 
     let min_x = pixels.iter().map(|(_, x, _y)| x).min().unwrap();
     let max_x = pixels.iter().map(|(_, x, _y)| x).max().unwrap();
@@ -193,7 +194,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     dbg!(image_width, image_height, image_pixels);
 
-    let mut image = image::ImageBuffer::new(image_width, image_height);
+    // order is changed to account for rotating by 270 degrees
+    let mut image = image::ImageBuffer::new(image_height, image_width);
 
     const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
     const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
@@ -206,6 +208,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     for (nid, pixel_x, pixel_y) in pixels
         .iter()
         .map(|(nid, pixel_x, pixel_y)| (nid, pixel_x - min_x, pixel_y - min_y))
+        // rotate by 270 degress
+        .map(|(nid, pixel_x, pixel_y)| (nid, pixel_y, image_width - 1 - pixel_x))
     {
         let pixel = image.get_pixel(pixel_x as u32, pixel_y as u32);
 
@@ -231,6 +235,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
     }
 
+    println!("Finished drawing, saving now.");
+
     image
         .save(format!(
             "test-{}.png",
@@ -240,6 +246,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .as_secs()
         ))
         .unwrap();
+
+    println!("Saved image successfully.");
 
     Ok(())
 }
