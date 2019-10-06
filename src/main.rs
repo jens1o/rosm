@@ -6,6 +6,7 @@ extern crate rand;
 mod data;
 mod extractor;
 
+use std::cmp;
 use std::error::Error;
 use std::fs;
 use std::time;
@@ -85,11 +86,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Finished pixelating, drawing on canvas.");
 
-    // TODO: Optimize performance with only one for loop
-    let min_x = pixels.iter().map(|(_, x, _y)| x).min().unwrap();
-    let max_x = pixels.iter().map(|(_, x, _y)| x).max().unwrap();
-    let min_y = pixels.iter().map(|(_, _x, y)| y).min().unwrap();
-    let max_y = pixels.iter().map(|(_, _x, y)| y).max().unwrap();
+    let pixel_sample = pixels
+        .iter()
+        .next()
+        .expect("At least one pixel need to be drawn!");
+
+    let mut min_x = pixel_sample.1;
+    let mut max_x = pixel_sample.1;
+    let mut min_y = pixel_sample.2;
+    let mut max_y = pixel_sample.2;
+
+    for (_, x, y) in pixels.iter() {
+        min_x = cmp::min(*x, min_x);
+        max_x = cmp::max(*x, max_x);
+
+        min_y = cmp::min(*y, min_y);
+        max_y = cmp::max(*y, max_y);
+    }
 
     dbg!(min_x, max_x);
     dbg!(min_y, max_y);
