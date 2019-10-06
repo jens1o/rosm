@@ -8,6 +8,8 @@ use std::error::Error;
 use std::time;
 use std::time::Instant;
 
+const IMAGE_RESOLUTION: f64 = 10000.0;
+
 /// Holds an extract of the data from the Protobuf-file,
 /// containing application-important data over nodes.
 #[derive(Debug)]
@@ -42,7 +44,10 @@ impl WayData {
         self.tags
             .iter()
             .find(|(k, v)| match (&k[..], &v[..]) {
-                ("highway", "motorway") | ("highway", "trunk") | ("highway", "secondary") => true,
+                ("highway", "motorway")
+                | ("highway", "trunk")
+                | ("highway", "secondary")
+                | ("highway", "motorway_link") => true,
                 _ => false,
             })
             .is_some()
@@ -155,11 +160,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         for node_list in nodes[..].windows(2) {
             if let [node_a, node_b] = node_list {
-                for (x, y) in line_drawing::Midpoint::<f64, i32>::new(
-                    (node_a.lat * 100.0, node_a.lon * 100.0),
-                    (node_b.lat * 100.0, node_b.lon * 100.0),
+                for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
+                    (node_a.lat * IMAGE_RESOLUTION, node_a.lon * IMAGE_RESOLUTION),
+                    (node_b.lat * IMAGE_RESOLUTION, node_b.lon * IMAGE_RESOLUTION),
                 ) {
                     pixels.push((node_a.nid, x, y));
+                    pixels.push((node_a.nid, x + 1, y + 1));
+                    pixels.push((node_a.nid, x + 1, y - 1));
+                    pixels.push((node_a.nid, x - 1, y + 1));
+                    pixels.push((node_a.nid, x - 1, y - 1));
                 }
             } else {
                 panic!("Windows iterator does not deliver expected size!");
@@ -178,7 +187,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     dbg!(min_x, max_x);
     dbg!(min_y, max_y);
 
-    let mut image = image::ImageBuffer::new((max_x - min_x) as u32 + 1, (max_y - min_y) as u32 + 1);
+    let image_width = (max_x - min_x) as u32 + 1;
+    let image_height = (max_y - min_y) as u32 + 1;
+    let image_pixels = image_width * image_height;
+
+    dbg!(image_width, image_height, image_pixels);
+
+    let mut image = image::ImageBuffer::new(image_width, image_height);
 
     const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
     const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
@@ -211,8 +226,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else if way_data.map(|way| way.is_highway()).unwrap_or(false) {
                 HIGHWAY_COLOR
             } else {
-                dbg!(way_data.map(|way| dbg!(&way.tags)));
-
                 NORMAL_COLOR
             },
         );
