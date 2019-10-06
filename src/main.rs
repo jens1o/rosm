@@ -10,6 +10,12 @@ use std::time::Instant;
 
 const IMAGE_RESOLUTION: f64 = 10000.0;
 
+const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
+const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
+const NORMAL_COLOR: image::Rgb<u8> = image::Rgb([255u8, 255u8, 255u8]);
+const RAILWAY_COLOR: image::Rgb<u8> = image::Rgb([146u8, 205u8, 0u8]);
+const BG_COLOR: image::Rgb<u8> = image::Rgb([0u8, 0u8, 0u8]);
+
 /// Holds an extract of the data from the Protobuf-file,
 /// containing application-important data over nodes.
 #[derive(Debug)]
@@ -48,6 +54,16 @@ impl WayData {
                 | ("highway", "trunk")
                 | ("highway", "secondary")
                 | ("highway", "motorway_link") => true,
+                _ => false,
+            })
+            .is_some()
+    }
+
+    pub fn is_railway(&self) -> bool {
+        self.tags
+            .iter()
+            .find(|(k, v)| match (&k[..], &v[..]) {
+                ("railway", "rail") => true,
                 _ => false,
             })
             .is_some()
@@ -167,6 +183,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .map(|(x, y)| (x as u32, y as u32))
                 {
                     pixels.push((node_a.nid, x, y));
+
+                    // make the line a bit thicker
                     pixels.push((node_a.nid, x + 1, y + 1));
                     pixels.push((node_a.nid, x + 1, y - 1));
                     pixels.push((node_a.nid, x - 1, y + 1));
@@ -197,11 +215,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     // order is changed to account for rotating by 270 degrees
     let mut image = image::ImageBuffer::new(image_height, image_width);
 
-    const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
-    const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
-    const NORMAL_COLOR: image::Rgb<u8> = image::Rgb([255u8, 255u8, 255u8]);
-    const BG_COLOR: image::Rgb<u8> = image::Rgb([0u8, 0u8, 0u8]);
-
     // TODO: Mark cycleways
     //
 
@@ -229,6 +242,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 WATER_COLOR
             } else if way_data.map(|way| way.is_highway()).unwrap_or(false) {
                 HIGHWAY_COLOR
+            } else if way_data.map(|way| way.is_railway()).unwrap_or(false) {
+                RAILWAY_COLOR
             } else {
                 NORMAL_COLOR
             },
