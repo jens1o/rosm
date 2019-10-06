@@ -86,15 +86,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Finished pixelating, drawing on canvas.");
 
-    let pixel_sample = pixels
+    let (_, x_sample, y_sample) = pixels
         .iter()
         .next()
         .expect("At least one pixel need to be drawn!");
 
-    let mut min_x = pixel_sample.1;
-    let mut max_x = pixel_sample.1;
-    let mut min_y = pixel_sample.2;
-    let mut max_y = pixel_sample.2;
+    let mut min_x = x_sample;
+    let mut max_x = x_sample;
+    let mut min_y = y_sample;
+    let mut max_y = y_sample;
 
     for (_, x, y) in pixels.iter() {
         min_x = cmp::min(*x, min_x);
