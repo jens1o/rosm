@@ -1,0 +1,13 @@
+[package]
+name = "rosm"
+version = "0.1.0"
+authors = ["Jens Hausdorf <mail@jens-hausdorf.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+osmpbf = "0.1"
+rand = "0.7.2"
+image = "0.22.3"
+line_drawing = "0.8.0"
