@@ -9,6 +9,7 @@ use std::time;
 use std::time::Instant;
 
 const IMAGE_RESOLUTION: f64 = 10000.0;
+const IMAGE_PART_SIZE: u32 = 1024;
 
 const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
 const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
@@ -68,6 +69,15 @@ impl WayData {
             })
             .is_some()
     }
+}
+
+// TODO: Make this generic
+fn round_up_to(int: u32, target: u32) -> u32 {
+    if int % target == 0 {
+        return int;
+    }
+
+    return (target - int % target) + int;
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -206,8 +216,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     dbg!(min_x, max_x);
     dbg!(min_y, max_y);
 
-    let image_width = (max_x - min_x) as u32 + 1;
-    let image_height = (max_y - min_y) as u32 + 1;
+    let image_width = round_up_to((max_x - min_x) as u32 + 1, IMAGE_PART_SIZE);
+    let image_height = round_up_to((max_y - min_y) as u32 + 1, IMAGE_PART_SIZE);
     let image_pixels = image_width * image_height;
 
     dbg!(image_width, image_height, image_pixels);
@@ -252,6 +262,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Finished drawing, saving now.");
 
+    // attempt to save memory by dropping any meta-data (as it is useless now)
+    drop(nid_to_node_data);
+    drop(uid_to_name);
+    drop(wid_to_way_data);
+
     image
         .save(format!(
             "test-{}.png",
@@ -262,7 +277,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         ))
         .unwrap();
 
-    println!("Saved image successfully.");
+    println!("Saved image successfully, cropping tinier pictures.");
+    'outer: for i in 0..(image_height / IMAGE_PART_SIZE) {
+        for j in 0..(image_width / IMAGE_PART_SIZE) {
+            let x_pos = i * IMAGE_PART_SIZE;
+            let y_pos = j * IMAGE_PART_SIZE;
+
+            let sub_image =
+                image::imageops::crop(&mut image, x_pos, y_pos, IMAGE_PART_SIZE, IMAGE_PART_SIZE);
+
+            sub_image
+                .to_image()
+                .save(format!("tiles/part-{}-{}.png", i, j))
+                .unwrap();
+
+            drop(sub_image);
+            // break 'outer;
+        }
+    }
 
     Ok(())
 }
