@@ -8,7 +8,6 @@ mod extractor;
 
 use std::cmp;
 use std::error::Error;
-use std::fs;
 use std::time;
 use std::time::Instant;
 
@@ -19,6 +18,8 @@ const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
 const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
 const NORMAL_COLOR: image::Rgb<u8> = image::Rgb([255u8, 255u8, 255u8]);
 const RAILWAY_COLOR: image::Rgb<u8> = image::Rgb([146u8, 205u8, 0u8]);
+const LONELY_NODE_COLOR: image::Rgb<u8> = image::Rgb([236u8, 78u8, 32u8]);
+const WAY_END_NODE_COLOR: image::Rgb<u8> = image::Rgb([255u8, 111u8, 255u8]);
 const BG_COLOR: image::Rgb<u8> = image::Rgb([0u8, 0u8, 0u8]);
 
 trait Zero {
@@ -84,12 +85,33 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    nid_to_node_data
+        .values()
+        // Filter out nodes we've already drawn through the ways
+        .filter(|node_data| node_data.way.is_none())
+        .for_each(|node_data| {
+            for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
+                (
+                    node_data.lat * IMAGE_RESOLUTION,
+                    node_data.lon * IMAGE_RESOLUTION,
+                ),
+                (
+                    node_data.lat * IMAGE_RESOLUTION,
+                    node_data.lon * IMAGE_RESOLUTION,
+                ),
+            )
+            .map(|(x, y)| (x as u32, y as u32))
+            {
+                pixels.push((node_data.nid, x, y));
+            }
+        });
+
     println!("Finished pixelating, drawing on canvas.");
 
     let (_, x_sample, y_sample) = pixels
         .iter()
         .next()
-        .expect("At least one pixel need to be drawn!");
+        .expect("At least one pixel needs to be drawn!");
 
     let mut min_x = x_sample;
     let mut max_x = x_sample;
@@ -128,8 +150,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         }
 
-        let way_data = nid_to_node_data
-            .get(nid)
+        let node_data = nid_to_node_data.get(nid);
+
+        let way_data = node_data
             .and_then(|node_data| node_data.way)
             .and_then(|wid| wid_to_way_data.get(&wid));
 
@@ -137,12 +160,22 @@ fn main() -> Result<(), Box<dyn Error>> {
             pixel_x as u32,
             pixel_y as u32,
             // TODO: Mark cycleways
-            if way_data.map(|way| way.is_waterway()).unwrap_or(false) {
+            if way_data
+                .map(|way| {
+                    way.refs.iter().nth(0).unwrap() == nid
+                        || way.refs.iter().nth_back(0).unwrap() == nid
+                })
+                .unwrap_or(false)
+            {
+                WAY_END_NODE_COLOR
+            } else if way_data.map(|way| way.is_waterway()).unwrap_or(false) {
                 WATER_COLOR
             } else if way_data.map(|way| way.is_highway()).unwrap_or(false) {
                 HIGHWAY_COLOR
             } else if way_data.map(|way| way.is_railway()).unwrap_or(false) {
                 RAILWAY_COLOR
+            } else if node_data.map(|node| node.way.is_none()).unwrap_or(false) {
+                LONELY_NODE_COLOR
             } else {
                 NORMAL_COLOR
             },
@@ -165,25 +198,42 @@ fn main() -> Result<(), Box<dyn Error>> {
         ))
         .unwrap();
 
-    println!("Saved image successfully, cropping tinier pictures.");
+    println!(
+        "Saved image successfully{}.",
+        if cfg!(create_tiles) {
+            ", cropping tinier tiles"
+        } else {
+            ""
+        }
+    );
 
-    // create folder if necessary
-    fs::create_dir_all("tiles/")?;
+    #[cfg(create_tiles)]
+    {
+        use std::fs;
 
-    for i in 0..(image_height / IMAGE_PART_SIZE) {
-        for j in 0..(image_width / IMAGE_PART_SIZE) {
-            let x_pos = i * IMAGE_PART_SIZE;
-            let y_pos = j * IMAGE_PART_SIZE;
+        // create folder if necessary
+        fs::create_dir_all("tiles/")?;
 
-            let sub_image =
-                image::imageops::crop(&mut image, x_pos, y_pos, IMAGE_PART_SIZE, IMAGE_PART_SIZE);
+        for i in 0..(image_height / IMAGE_PART_SIZE) {
+            for j in 0..(image_width / IMAGE_PART_SIZE) {
+                let x_pos = i * IMAGE_PART_SIZE;
+                let y_pos = j * IMAGE_PART_SIZE;
 
-            sub_image
-                .to_image()
-                .save(format!("tiles/part-{}-{}.png", i, j))
-                .unwrap();
+                let sub_image = image::imageops::crop(
+                    &mut image,
+                    x_pos,
+                    y_pos,
+                    IMAGE_PART_SIZE,
+                    IMAGE_PART_SIZE,
+                );
 
-            drop(sub_image);
+                sub_image
+                    .to_image()
+                    .save(format!("tiles/part-{}-{}.png", i, j))
+                    .unwrap();
+
+                drop(sub_image);
+            }
         }
     }
 
