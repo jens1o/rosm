@@ -72,25 +72,34 @@ fn main() -> Result<(), Box<dyn Error>> {
                 )
                 .map(|(x, y)| (x as u32, y as u32))
                 {
+                    // make the line a bit thicker
+
+                    let mut distance_to_origin_pixel = line_width as u32;
+
                     pixels.push((node_a.nid, x, y));
 
-                    if line_width >= 2 {
-                        // make the line a bit thicker
-                        pixels.push((node_a.nid, x + 1, y + 1));
-                        pixels.push((node_a.nid, x + 1, y - 1));
-                        pixels.push((node_a.nid, x - 1, y + 1));
-                        pixels.push((node_a.nid, x - 1, y - 1));
-                    }
-
-                    if line_width >= 3 {
-                        pixels.push((node_a.nid, x + 2, y + 2));
-                        pixels.push((node_a.nid, x + 2, y - 2));
-                        pixels.push((node_a.nid, x - 2, y + 2));
-                        pixels.push((node_a.nid, x - 2, y - 2));
-                    }
-
-                    if line_width >= 4 {
-                        unimplemented!("Line width {} is not yet defined!", line_width);
+                    while distance_to_origin_pixel > 1 {
+                        distance_to_origin_pixel -= 1;
+                        pixels.push((
+                            node_a.nid,
+                            x + distance_to_origin_pixel,
+                            y + distance_to_origin_pixel,
+                        ));
+                        pixels.push((
+                            node_a.nid,
+                            x + distance_to_origin_pixel,
+                            y - distance_to_origin_pixel,
+                        ));
+                        pixels.push((
+                            node_a.nid,
+                            x - distance_to_origin_pixel,
+                            y + distance_to_origin_pixel,
+                        ));
+                        pixels.push((
+                            node_a.nid,
+                            x - distance_to_origin_pixel,
+                            y - distance_to_origin_pixel,
+                        ));
                     }
                 }
             } else {
@@ -184,7 +193,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
     }
 
-    println!("Finished drawing, saving now.");
+    println!("Finished drawing, resizing and saving now.");
 
     // attempt to save memory by dropping any meta-data (as it is useless now)
     drop(nid_to_node_data);
