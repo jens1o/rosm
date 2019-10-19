@@ -14,14 +14,6 @@ use std::time::Instant;
 const IMAGE_RESOLUTION: f64 = 10000.0;
 const IMAGE_PART_SIZE: u32 = 1024;
 
-const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
-const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
-const NORMAL_COLOR: image::Rgb<u8> = image::Rgb([255u8, 255u8, 255u8]);
-const RAILWAY_COLOR: image::Rgb<u8> = image::Rgb([146u8, 205u8, 0u8]);
-const LONELY_NODE_COLOR: image::Rgb<u8> = image::Rgb([236u8, 78u8, 32u8]);
-const WAY_END_NODE_COLOR: image::Rgb<u8> = image::Rgb([255u8, 111u8, 255u8]);
-const BG_COLOR: image::Rgb<u8> = image::Rgb([0u8, 0u8, 0u8]);
-
 trait Zero {
     fn zero() -> Self;
 }
@@ -50,13 +42,22 @@ where
 
 fn main() -> Result<(), Box<dyn Error>> {
     let start_instant = Instant::now();
-    let (nid_to_node_data, wid_to_way_data, _) =
+    let (nid_to_node_data, mut wid_to_way_data, _) =
         extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"), false)?;
     println!("Pre-processing took {:.2?}.", start_instant.elapsed());
+
+    let pixelating_start = Instant::now();
 
     let mut pixels = Vec::new();
 
     for way in wid_to_way_data.values() {
+        let line_width = way.line_width();
+
+        // way is invisible
+        if line_width == 0 {
+            continue;
+        }
+
         let nodes = way
             .refs
             .iter()
@@ -73,11 +74,24 @@ fn main() -> Result<(), Box<dyn Error>> {
                 {
                     pixels.push((node_a.nid, x, y));
 
-                    // make the line a bit thicker
-                    pixels.push((node_a.nid, x + 1, y + 1));
-                    pixels.push((node_a.nid, x + 1, y - 1));
-                    pixels.push((node_a.nid, x - 1, y + 1));
-                    pixels.push((node_a.nid, x - 1, y - 1));
+                    if line_width >= 2 {
+                        // make the line a bit thicker
+                        pixels.push((node_a.nid, x + 1, y + 1));
+                        pixels.push((node_a.nid, x + 1, y - 1));
+                        pixels.push((node_a.nid, x - 1, y + 1));
+                        pixels.push((node_a.nid, x - 1, y - 1));
+                    }
+
+                    if line_width >= 3 {
+                        pixels.push((node_a.nid, x + 2, y + 2));
+                        pixels.push((node_a.nid, x + 2, y - 2));
+                        pixels.push((node_a.nid, x - 2, y + 2));
+                        pixels.push((node_a.nid, x - 2, y - 2));
+                    }
+
+                    if line_width >= 4 {
+                        unimplemented!("Line width {} is not yet defined!", line_width);
+                    }
                 }
             } else {
                 panic!("Windows iterator does not deliver expected size!");
@@ -106,7 +120,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         });
 
-    println!("Finished pixelating, drawing on canvas.");
+    println!(
+        "Finished pixelating in {:.2?}, drawing {} pixels on canvas.",
+        pixelating_start.elapsed(),
+        pixels.len()
+    );
 
     let (_, x_sample, y_sample) = pixels
         .iter()
@@ -146,7 +164,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let pixel = image.get_pixel(pixel_x as u32, pixel_y as u32);
 
-        if pixel != &BG_COLOR && pixel != &NORMAL_COLOR {
+        if pixel != &data::BG_COLOR && pixel != &data::NORMAL_COLOR {
             continue;
         }
 
@@ -154,31 +172,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let way_data = node_data
             .and_then(|node_data| node_data.way)
-            .and_then(|wid| wid_to_way_data.get(&wid));
+            .and_then(|wid| wid_to_way_data.get_mut(&wid));
 
         image.put_pixel(
             pixel_x as u32,
             pixel_y as u32,
             // TODO: Mark cycleways
-            if way_data
-                .map(|way| {
-                    way.refs.iter().nth(0).unwrap() == nid
-                        || way.refs.iter().nth_back(0).unwrap() == nid
-                })
-                .unwrap_or(false)
-            {
-                WAY_END_NODE_COLOR
-            } else if way_data.map(|way| way.is_waterway()).unwrap_or(false) {
-                WATER_COLOR
-            } else if way_data.map(|way| way.is_highway()).unwrap_or(false) {
-                HIGHWAY_COLOR
-            } else if way_data.map(|way| way.is_railway()).unwrap_or(false) {
-                RAILWAY_COLOR
-            } else if node_data.map(|node| node.way.is_none()).unwrap_or(false) {
-                LONELY_NODE_COLOR
-            } else {
-                NORMAL_COLOR
-            },
+            way_data
+                .map(|way| way.draw_color())
+                .unwrap_or(data::NORMAL_COLOR),
         );
     }
 
