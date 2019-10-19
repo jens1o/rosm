@@ -19,35 +19,26 @@ pub struct WayData {
 
 impl WayData {
     pub fn is_waterway(&self) -> bool {
-        self.tags
-            .iter()
-            .find(|(k, v)| match (&k[..], &v[..]) {
-                ("type", "waterway") | ("waterway", "river") | ("waterway", "canal") => true,
-                _ => false,
-            })
-            .is_some()
+        self.tags.iter().any(|(k, v)| match (&k[..], &v[..]) {
+            ("type", "waterway") | ("waterway", "river") | ("waterway", "canal") => true,
+            _ => false,
+        })
     }
 
     pub fn is_highway(&self) -> bool {
-        self.tags
-            .iter()
-            .find(|(k, v)| match (&k[..], &v[..]) {
-                ("highway", "motorway")
-                | ("highway", "trunk")
-                | ("highway", "secondary")
-                | ("highway", "motorway_link") => true,
-                _ => false,
-            })
-            .is_some()
+        self.tags.iter().any(|(k, v)| match (&k[..], &v[..]) {
+            ("highway", "motorway")
+            | ("highway", "trunk")
+            | ("highway", "secondary")
+            | ("highway", "motorway_link") => true,
+            _ => false,
+        })
     }
 
     pub fn is_railway(&self) -> bool {
-        self.tags
-            .iter()
-            .find(|(k, v)| match (&k[..], &v[..]) {
-                ("railway", "rail") => true,
-                _ => false,
-            })
-            .is_some()
+        self.tags.iter().any(|(k, v)| match (&k[..], &v[..]) {
+            ("railway", "rail") => true,
+            _ => false,
+        })
     }
 }
