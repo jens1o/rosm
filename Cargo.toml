@@ -8,6 +8,5 @@ edition = "2018"
 
 [dependencies]
 osmpbf = "0.1"
-rand = "0.7.2"
-image = "0.22.3"
+svg = "0.6.0"
 line_drawing = "0.8.0"

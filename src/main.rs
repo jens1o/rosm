@@ -1,7 +1,5 @@
-extern crate image;
-extern crate line_drawing;
 extern crate osmpbf;
-extern crate rand;
+extern crate svg;
 
 mod data;
 mod extractor;
@@ -10,17 +8,20 @@ use std::cmp;
 use std::error::Error;
 use std::time;
 use std::time::Instant;
+use svg::node::element::path::Data;
+use svg::node::element::Path;
+use svg::Document;
 
 const IMAGE_RESOLUTION: f64 = 10000.0;
 const IMAGE_PART_SIZE: u32 = 1024;
 
-const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
-const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
-const NORMAL_COLOR: image::Rgb<u8> = image::Rgb([255u8, 255u8, 255u8]);
-const RAILWAY_COLOR: image::Rgb<u8> = image::Rgb([146u8, 205u8, 0u8]);
-const LONELY_NODE_COLOR: image::Rgb<u8> = image::Rgb([236u8, 78u8, 32u8]);
-const WAY_END_NODE_COLOR: image::Rgb<u8> = image::Rgb([255u8, 111u8, 255u8]);
-const BG_COLOR: image::Rgb<u8> = image::Rgb([0u8, 0u8, 0u8]);
+// const WATER_COLOR: image::Rgb<u8> = image::Rgb([170u8, 211u8, 223u8]);
+// const HIGHWAY_COLOR: image::Rgb<u8> = image::Rgb([249u8, 178u8, 156u8]);
+// const NORMAL_COLOR: image::Rgb<u8> = image::Rgb([255u8, 255u8, 255u8]);
+// const RAILWAY_COLOR: image::Rgb<u8> = image::Rgb([146u8, 205u8, 0u8]);
+// const LONELY_NODE_COLOR: image::Rgb<u8> = image::Rgb([236u8, 78u8, 32u8]);
+// const WAY_END_NODE_COLOR: image::Rgb<u8> = image::Rgb([255u8, 111u8, 255u8]);
+// const BG_COLOR: image::Rgb<u8> = image::Rgb([0u8, 0u8, 0u8]);
 
 trait Zero {
     fn zero() -> Self;
@@ -53,189 +54,70 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (nid_to_node_data, wid_to_way_data, _) =
         extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"), false)?;
     println!("Pre-processing took {:.2?}.", start_instant.elapsed());
+    println!("Finished pixelating, drawing on canvas.");
 
-    let mut pixels = Vec::new();
+    let mut svg_document = Document::new();
 
-    for way in wid_to_way_data.values() {
-        let nodes = way
+    let mut min_lat: Option<i8> = None;
+    let mut min_lon: Option<i8> = None;
+    let mut max_lat: Option<i8> = None;
+    let mut max_lon: Option<i8> = None;
+
+    for way_data in wid_to_way_data
+        .values()
+        .filter(|way| way.is_waterway())
+        .take(10)
+    {
+        let mut drawn_way = Data::new();
+        let mut is_first = true;
+
+        for node in way_data
             .refs
             .iter()
             .map(|nid| nid_to_node_data.get(nid).unwrap())
-            .collect::<Vec<_>>();
-
-        for node_list in nodes[..].windows(2) {
-            if let [node_a, node_b] = node_list {
-                for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
-                    (node_a.lat * IMAGE_RESOLUTION, node_a.lon * IMAGE_RESOLUTION),
-                    (node_b.lat * IMAGE_RESOLUTION, node_b.lon * IMAGE_RESOLUTION),
-                )
-                .map(|(x, y)| (x as u32, y as u32))
-                {
-                    pixels.push((node_a.nid, x, y));
-
-                    // make the line a bit thicker
-                    pixels.push((node_a.nid, x + 1, y + 1));
-                    pixels.push((node_a.nid, x + 1, y - 1));
-                    pixels.push((node_a.nid, x - 1, y + 1));
-                    pixels.push((node_a.nid, x - 1, y - 1));
-                }
+        {
+            if let None = min_lat {
+                min_lat = Some(node.lat as i8);
+                min_lon = Some(node.lon as i8);
             } else {
-                panic!("Windows iterator does not deliver expected size!");
+                min_lat = Some(cmp::min(min_lat.unwrap(), node.lat as i8));
+                min_lon = Some(cmp::min(min_lon.unwrap(), node.lon as i8));
             }
-        }
-    }
 
-    nid_to_node_data
-        .values()
-        // Filter out nodes we've already drawn through the ways
-        .filter(|node_data| node_data.way.is_none())
-        .for_each(|node_data| {
-            for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
-                (
-                    node_data.lat * IMAGE_RESOLUTION,
-                    node_data.lon * IMAGE_RESOLUTION,
-                ),
-                (
-                    node_data.lat * IMAGE_RESOLUTION,
-                    node_data.lon * IMAGE_RESOLUTION,
-                ),
-            )
-            .map(|(x, y)| (x as u32, y as u32))
-            {
-                pixels.push((node_data.nid, x, y));
+            max_lat = cmp::max(max_lat, Some(node.lat as i8));
+            max_lon = cmp::max(max_lon, Some(node.lon as i8));
+
+            if is_first {
+                drawn_way = drawn_way.move_to((node.lat, node.lon));
+                is_first = false;
+                continue;
             }
-        });
 
-    println!("Finished pixelating, drawing on canvas.");
-
-    let (_, x_sample, y_sample) = pixels
-        .iter()
-        .next()
-        .expect("At least one pixel needs to be drawn!");
-
-    let mut min_x = x_sample;
-    let mut max_x = x_sample;
-    let mut min_y = y_sample;
-    let mut max_y = y_sample;
-
-    for (_, x, y) in pixels.iter() {
-        min_x = cmp::min(x, min_x);
-        max_x = cmp::max(x, max_x);
-
-        min_y = cmp::min(y, min_y);
-        max_y = cmp::max(y, max_y);
-    }
-
-    dbg!(min_x, max_x);
-    dbg!(min_y, max_y);
-
-    let image_width = round_up_to((max_x - min_x) as u32 + 1, IMAGE_PART_SIZE);
-    let image_height = round_up_to((max_y - min_y) as u32 + 1, IMAGE_PART_SIZE);
-    let image_pixels = image_width * image_height;
-
-    dbg!(image_width, image_height, image_pixels);
-
-    // order is changed to account for rotating by 270 degrees
-    let mut image = image::ImageBuffer::new(image_height, image_width);
-
-    for (nid, pixel_x, pixel_y) in pixels
-        .iter()
-        .map(|(nid, pixel_x, pixel_y)| (nid, pixel_x - min_x, pixel_y - min_y))
-        // rotate by 270 degress
-        .map(|(nid, pixel_x, pixel_y)| (nid, pixel_y, image_width - 1 - pixel_x))
-    {
-        let pixel = image.get_pixel(pixel_x as u32, pixel_y as u32);
-
-        if pixel != &BG_COLOR && pixel != &NORMAL_COLOR {
-            continue;
+            drawn_way = drawn_way.line_by((node.lat, node.lon));
         }
 
-        let node_data = nid_to_node_data.get(nid);
+        drawn_way = drawn_way.close();
 
-        let way_data = node_data
-            .and_then(|node_data| node_data.way)
-            .and_then(|wid| wid_to_way_data.get(&wid));
-
-        image.put_pixel(
-            pixel_x as u32,
-            pixel_y as u32,
-            // TODO: Mark cycleways
-            if way_data
-                .map(|way| {
-                    way.refs.iter().nth(0).unwrap() == nid
-                        || way.refs.iter().nth_back(0).unwrap() == nid
-                })
-                .unwrap_or(false)
-            {
-                WAY_END_NODE_COLOR
-            } else if way_data.map(|way| way.is_waterway()).unwrap_or(false) {
-                WATER_COLOR
-            } else if way_data.map(|way| way.is_highway()).unwrap_or(false) {
-                HIGHWAY_COLOR
-            } else if way_data.map(|way| way.is_railway()).unwrap_or(false) {
-                RAILWAY_COLOR
-            } else if node_data.map(|node| node.way.is_none()).unwrap_or(false) {
-                LONELY_NODE_COLOR
-            } else {
-                NORMAL_COLOR
-            },
+        svg_document = svg_document.add(
+            Path::new()
+                .set("fill", "blue")
+                .set("stroke", "blue")
+                .set("stroke-width", 1)
+                .set("d", drawn_way),
         );
     }
 
-    println!("Finished drawing, saving now.");
-
-    // attempt to save memory by dropping any meta-data (as it is useless now)
-    drop(nid_to_node_data);
-    drop(wid_to_way_data);
-
-    image
-        .save(format!(
-            "test-{}.png",
-            time::SystemTime::now()
-                .duration_since(time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
-        ))
-        .unwrap();
-
-    println!(
-        "Saved image successfully{}.",
-        if cfg!(create_tiles) {
-            ", cropping tinier tiles"
-        } else {
-            ""
-        }
+    svg_document = svg_document.set("width", "100%").set("height", "100%").set(
+        "viewBox",
+        (
+            min_lat.expect("No node processed!"),
+            min_lon.unwrap(),
+            max_lat.unwrap() + 1,
+            max_lon.unwrap() + 1,
+        ),
     );
 
-    #[cfg(create_tiles)]
-    {
-        use std::fs;
-
-        // create folder if necessary
-        fs::create_dir_all("tiles/")?;
-
-        for i in 0..(image_height / IMAGE_PART_SIZE) {
-            for j in 0..(image_width / IMAGE_PART_SIZE) {
-                let x_pos = i * IMAGE_PART_SIZE;
-                let y_pos = j * IMAGE_PART_SIZE;
-
-                let sub_image = image::imageops::crop(
-                    &mut image,
-                    x_pos,
-                    y_pos,
-                    IMAGE_PART_SIZE,
-                    IMAGE_PART_SIZE,
-                );
-
-                sub_image
-                    .to_image()
-                    .save(format!("tiles/part-{}-{}.png", i, j))
-                    .unwrap();
-
-                drop(sub_image);
-            }
-        }
-    }
+    svg::save("test.svg", &svg_document).unwrap();
 
     Ok(())
 }
