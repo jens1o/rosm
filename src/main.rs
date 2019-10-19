@@ -193,7 +193,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
     }
 
-    println!("Finished drawing, resizing and saving now.");
+    println!("Finished drawing, saving now.");
 
     // attempt to save memory by dropping any meta-data (as it is useless now)
     drop(nid_to_node_data);
