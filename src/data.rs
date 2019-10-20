@@ -29,7 +29,7 @@ pub struct WayData {
 impl WayData {
     pub fn line_width(&self) -> u8 {
         if self.is_waterway() || self.is_highway() {
-            3
+            5
         } else if self.is_primary_road() {
             2
         } else {
