@@ -85,10 +85,14 @@ pub fn extract_data_from_filepath(
             if let Some(node_data) = nid_to_node_data.get_mut(nid) {
                 node_data.way = Some(*wid);
             } else {
-                panic!("No node found for #{} (belonging to way #{})", nid, wid);
+                panic!("No node found for #{} (belonging to way #{})!", nid, wid);
             }
         });
     });
+
+    nid_to_node_data.shrink_to_fit();
+    wid_to_way_data.shrink_to_fit();
+    uid_to_name.shrink_to_fit();
 
     Ok((nid_to_node_data, wid_to_way_data, uid_to_name))
 }
