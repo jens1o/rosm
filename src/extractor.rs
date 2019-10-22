@@ -18,65 +18,62 @@ pub fn extract_data_from_filepath(
     let mut uid_to_name: HashMap<i32, String> = HashMap::new();
     let mut wid_to_way_data: HashMap<i64, WayData> = HashMap::new();
 
-    reader
-        .for_each(|element| {
-            if let osmpbf::Element::Node(_) = element {
-                panic!(
-                    "OSM-Nodes not supported (yet), use data extractions with DenseNodes instead!"
-                );
-            } else if let osmpbf::Element::DenseNode(node) = element {
-                if user_lookup {
-                    uid_to_name
-                        .entry(node.uid)
-                        .or_insert_with(|| node.user().unwrap().to_string());
-                }
-                nid_to_node_data.insert(
-                    node.id,
-                    NodeData {
-                        nid: node.id,
-                        uid: node.uid,
-                        tags: node
-                            .tags()
-                            .map(|(k, v)| (k.to_string(), v.to_string()))
-                            .collect::<Vec<_>>(),
-                        lat: node.lat(),
-                        lon: node.lon(),
-                        way: None,
-                    },
-                );
-            } else if let osmpbf::Element::Way(way) = element {
-                let way_info = way.info();
-                let wid = way.id();
+    reader.for_each(|element| {
+        if let osmpbf::Element::Node(_) = element {
+            panic!("OSM-Nodes not supported (yet), use data extractions with DenseNodes instead!");
+        } else if let osmpbf::Element::DenseNode(node) = element {
+            if user_lookup {
+                uid_to_name
+                    .entry(node.uid)
+                    .or_insert_with(|| node.user().unwrap().to_string());
+            }
 
-                if user_lookup {
-                    // add author to list of known authors if we have all metadata
-                    if let Some(uid) = way_info.uid() {
-                        // check whether we don't already know this user
-                        if let std::collections::hash_map::Entry::Vacant(vacant) =
-                            uid_to_name.entry(uid)
-                        {
-                            if let Some(Ok(user_name)) = way_info.user() {
-                                vacant.insert(user_name.to_owned());
-                            }
+            nid_to_node_data.insert(
+                node.id,
+                NodeData {
+                    nid: node.id,
+                    uid: node.uid,
+                    tags: node
+                        .tags()
+                        .map(|(k, v)| (k.to_string(), v.to_string()))
+                        .collect::<Vec<_>>(),
+                    lat: node.lat(),
+                    lon: node.lon(),
+                    way: None,
+                },
+            );
+        } else if let osmpbf::Element::Way(way) = element {
+            let way_info = way.info();
+            let wid = way.id();
+
+            if user_lookup {
+                // add author to list of known authors if we have all metadata
+                if let Some(uid) = way_info.uid() {
+                    // check whether we don't already know this user
+                    if let std::collections::hash_map::Entry::Vacant(vacant) =
+                        uid_to_name.entry(uid)
+                    {
+                        if let Some(Ok(user_name)) = way_info.user() {
+                            vacant.insert(user_name.to_owned());
                         }
                     }
                 }
-
-                wid_to_way_data.insert(
-                    wid,
-                    WayData {
-                        wid,
-                        tags: way
-                            .tags()
-                            .map(|(k, v)| (k.to_string(), v.to_string()))
-                            .collect::<Vec<_>>(),
-                        refs: way.refs().collect::<Vec<_>>(),
-                        draw_style: None,
-                    },
-                );
             }
-        })
-        .unwrap();
+
+            wid_to_way_data.insert(
+                wid,
+                WayData {
+                    wid,
+                    tags: way
+                        .tags()
+                        .map(|(k, v)| (k.to_string(), v.to_string()))
+                        .collect::<Vec<_>>(),
+                    refs: way.refs().collect::<Vec<_>>(),
+                    draw_style: None,
+                },
+            );
+        }
+    })?;
 
     wid_to_way_data.iter().for_each(|(wid, way_data)| {
         way_data.refs.iter().for_each(|nid| {
@@ -93,6 +90,10 @@ pub fn extract_data_from_filepath(
     nid_to_node_data.shrink_to_fit();
     wid_to_way_data.shrink_to_fit();
     uid_to_name.shrink_to_fit();
+
+    if !user_lookup {
+        debug_assert_eq!(uid_to_name.len(), 0);
+    }
 
     Ok((nid_to_node_data, wid_to_way_data, uid_to_name))
 }

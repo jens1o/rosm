@@ -32,8 +32,10 @@ impl WayData {
             5
         } else if self.is_primary_road() {
             2
-        } else {
+        } else if self.is_railway() {
             1
+        } else {
+            0
         }
     }
 

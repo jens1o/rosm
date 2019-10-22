@@ -45,15 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut painter = painter::PngPainter::default();
     let file_name = painter.paint(IMAGE_RESOLUTION, nid_to_node_data, wid_to_way_data);
 
-    println!(
-        "Saved image successfully to {}{}.",
-        file_name,
-        if cfg!(create_tiles) {
-            ", cropping tinier tiles.."
-        } else {
-            ""
-        }
-    );
+    println!("Saved image successfully to {}.", file_name);
 
     Ok(())
 }
