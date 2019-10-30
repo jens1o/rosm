@@ -10,3 +10,5 @@ edition = "2018"
 osmpbf = "0.1"
 image = { version = "0.22.3", default-features = false, features = ["png_codec"] }
 line_drawing = "0.8.0"
+cssparser = "^0.27"
+kuchiki = "^0.7"

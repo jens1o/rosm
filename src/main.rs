@@ -1,12 +1,14 @@
+extern crate cssparser;
 extern crate image;
 extern crate line_drawing;
 extern crate osmpbf;
 
 mod data;
 mod extractor;
+mod mapcss;
 mod painter;
 
-use crate::painter::Painter;
+// use crate::painter::Painter;
 use std::error::Error;
 
 const IMAGE_RESOLUTION: f64 = 10000.0;
@@ -39,13 +41,19 @@ where
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let (nid_to_node_data, wid_to_way_data, _) =
-        extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"), false)?;
+    let mapcss = "node[amenity=drinking_water],
+node[amenity=fountain]
+{ color:blue; width:15; }";
 
-    let mut painter = painter::PngPainter::default();
-    let file_name = painter.paint(IMAGE_RESOLUTION, nid_to_node_data, wid_to_way_data);
+    mapcss::parse_mapcss(mapcss);
 
-    println!("Saved image successfully to {}.", file_name);
+    // let (nid_to_node_data, wid_to_way_data, _) =
+    //     extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"), false)?;
+
+    // let mut painter = painter::PngPainter::default();
+    // let file_name = painter.paint(IMAGE_RESOLUTION, nid_to_node_data, wid_to_way_data);
+
+    // println!("Saved image successfully to {}.", file_name);
 
     Ok(())
 }
