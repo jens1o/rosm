@@ -1,14 +1,19 @@
+mod style;
+
 use cssparser::CowRcStr;
 use cssparser::Parser;
 use std::error::Error;
+use std::u8;
+use style::Size;
 
 #[derive(Debug)]
 pub enum MapCssError<'i> {
     InvalidSelector,
     CurrentColorInColor,
-    EmptyBorder,
     UnknownPropertyName(CowRcStr<'i>),
-    UnknownLengthUnit(CowRcStr<'i>),
+    // expected unit
+    InvalidUnit(&'i str),
+    OutOfRange,
 }
 
 pub type MapCssParseError<'i> = cssparser::ParseError<'i, MapCssError<'i>>;
@@ -16,7 +21,12 @@ pub type MapCssParseError<'i> = cssparser::ParseError<'i, MapCssError<'i>>;
 struct MapCssParser;
 
 #[derive(Debug)]
-pub enum MapCssPropertyDeclaration {}
+pub enum MapCssPropertyDeclaration {
+    ZIndex(u8),
+    // Colorcode
+    Color(cssparser::RGBA),
+    Width(Size),
+}
 
 #[derive(Debug)]
 struct MapCssStyleRule {
@@ -73,11 +83,17 @@ impl<'i> cssparser::DeclarationParser<'i> for PropertyDeclarationParser {
     fn parse_value<'t>(
         &mut self,
         name: CowRcStr<'i>,
-        input: &mut Parser<'i, 't>,
+        mut input: &mut Parser<'i, 't>,
     ) -> Result<Self::Declaration, cssparser::ParseError<'i, MapCssError<'i>>> {
-        dbg!(name);
-
-        Err(input.new_custom_error(MapCssError::UnknownPropertyName(name.clone())))
+        match name.to_ascii_lowercase().as_str() {
+            "color" => parse_rgba(&mut input)
+                .and_then(|rgba| Ok(vec![MapCssPropertyDeclaration::Color(rgba)])),
+            "width" => parse_size(&mut input)
+                .and_then(|width| Ok(vec![MapCssPropertyDeclaration::Width(width)])),
+            "z-index" => parse_z_index(&mut input)
+                .and_then(|z_index| Ok(vec![MapCssPropertyDeclaration::ZIndex(z_index)])),
+            _ => Err(input.new_custom_error(MapCssError::UnknownPropertyName(name.clone()))),
+        }
     }
 }
 
@@ -85,28 +101,29 @@ impl<'i> cssparser::AtRuleParser<'i> for PropertyDeclarationParser {
     type PreludeBlock = ();
     type PreludeNoBlock = ();
     type AtRule = Vec<MapCssPropertyDeclaration>;
-    type Error = MapCssParseError<'i>;
+    type Error = MapCssError<'i>;
 }
 
 pub fn parse_declarations<'i>(
     input: &mut Parser<'i, '_>,
 ) -> Result<Vec<MapCssPropertyDeclaration>, Box<dyn Error>> {
     let mut declarations = Vec::new();
-    let iter = cssparser::DeclarationListParser::new(input, PropertyDeclarationParser);
+    let mut iter = cssparser::DeclarationListParser::new(input, PropertyDeclarationParser);
 
-    dbg!(iter.next());
-    // for declaration_list in iter {
-    //     let declaration_list = match declaration_list {
-    //         Ok(l) => l,
-    //         Err(e) => {
-    //             eprintln!("CSS declaration dropped: {:?}", e);
-    //             continue;
-    //         }
-    //     };
-    //     for declaration in declaration_list {
-    //         declarations.push(declaration);
-    //     }
-    // }
+    for declaration_list in iter {
+        let declaration_list = match declaration_list {
+            Ok(l) => l,
+            Err(e) => {
+                eprintln!("CSS declaration dropped: {:?}", e);
+                continue;
+            }
+        };
+        for declaration in declaration_list {
+            dbg!(&declaration);
+            declarations.push(declaration);
+        }
+    }
+
     Ok(declarations)
 }
 
@@ -119,5 +136,46 @@ pub fn parse_mapcss(mapcss: &str) {
 
     while let Some(token) = rule_list_parser.next() {
         dbg!(token);
+    }
+}
+
+fn parse_color<'i>(input: &mut Parser<'i, '_>) -> Result<cssparser::Color, MapCssParseError<'i>> {
+    Ok(cssparser::Color::parse(input)?)
+}
+
+fn parse_rgba<'i>(input: &mut Parser<'i, '_>) -> Result<cssparser::RGBA, MapCssParseError<'i>> {
+    let color = parse_color(input)?;
+    match color {
+        cssparser::Color::RGBA(rgba) => Ok(rgba),
+        cssparser::Color::CurrentColor => {
+            Err(input.new_custom_error(MapCssError::CurrentColorInColor))
+        }
+    }
+}
+
+// TODO: parse eval(2*3)
+fn parse_size<'i>(input: &mut Parser<'i, '_>) -> Result<Size, MapCssParseError<'i>> {
+    let location = input.current_source_location();
+    match *input.next()? {
+        cssparser::Token::Number { value, .. } => return Ok(Size(value)),
+        ref t => Err(location.new_unexpected_token_error(t.clone())),
+    }
+}
+
+fn parse_z_index<'i>(input: &mut Parser<'i, '_>) -> Result<u8, MapCssParseError<'i>> {
+    let location = input.current_source_location();
+    match *input.next()? {
+        cssparser::Token::Number { int_value, .. } => {
+            if let Some(int_value) = int_value {
+                if int_value >= u8::min_value() as i32 && int_value <= u8::max_value() as i32 {
+                    return Ok(int_value as u8);
+                }
+
+                return Err(input.new_custom_error(MapCssError::OutOfRange));
+            }
+
+            Err(input.new_custom_error(MapCssError::InvalidUnit("px")))
+        }
+        ref t => Err(location.new_unexpected_token_error(t.clone())),
     }
 }

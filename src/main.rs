@@ -43,7 +43,13 @@ where
 fn main() -> Result<(), Box<dyn Error>> {
     let mapcss = "node[amenity=drinking_water],
 node[amenity=fountain]
-{ color:blue; width:15; }";
+{ color:blue; width:15; }
+node[amenity=fountain] {
+    z-index: 2;
+}
+node[amenity=drinking_water] {
+    z-index: 10;
+}";
 
     mapcss::parse_mapcss(mapcss);
 
