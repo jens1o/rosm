@@ -3,6 +3,8 @@ mod style;
 use cssparser::CowRcStr;
 use cssparser::Parser;
 use std::error::Error;
+use std::fmt;
+use std::rc::Rc;
 use std::u8;
 use style::Size;
 
@@ -29,9 +31,26 @@ pub enum MapCssPropertyDeclaration {
 }
 
 #[derive(Debug)]
-struct MapCssStyleRule {
-    selectors: kuchiki::Selectors,
+pub struct MapCssStyleRule {
+    pub selectors: kuchiki::Selectors,
     declarations: Vec<MapCssPropertyDeclaration>,
+}
+
+pub struct Rule {
+    selector_index: usize,
+    pub original_rule: Rc<MapCssStyleRule>,
+    specificity: kuchiki::Specificity,
+    source_order: usize,
+}
+
+impl fmt::Debug for Rule {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Rule {{ selector_index: {:?}, original_rule: {:?}, source_order: {:?}}}",
+            self.selector_index, self.original_rule, self.source_order
+        )
+    }
 }
 
 impl<'i> cssparser::AtRuleParser<'i> for MapCssParser {
@@ -108,7 +127,7 @@ pub fn parse_declarations<'i>(
     input: &mut Parser<'i, '_>,
 ) -> Result<Vec<MapCssPropertyDeclaration>, Box<dyn Error>> {
     let mut declarations = Vec::new();
-    let mut iter = cssparser::DeclarationListParser::new(input, PropertyDeclarationParser);
+    let iter = cssparser::DeclarationListParser::new(input, PropertyDeclarationParser);
 
     for declaration_list in iter {
         let declaration_list = match declaration_list {
@@ -119,7 +138,6 @@ pub fn parse_declarations<'i>(
             }
         };
         for declaration in declaration_list {
-            dbg!(&declaration);
             declarations.push(declaration);
         }
     }
@@ -127,16 +145,42 @@ pub fn parse_declarations<'i>(
     Ok(declarations)
 }
 
-pub fn parse_mapcss(mapcss: &str) {
+pub fn parse_mapcss(mapcss: &str) -> Vec<Rule> {
     let mut parser_input = cssparser::ParserInput::new(mapcss);
     let mut parser = cssparser::Parser::new(&mut parser_input);
 
-    let mut rule_list_parser =
-        cssparser::RuleListParser::new_for_stylesheet(&mut parser, MapCssParser);
+    let rule_list_parser = cssparser::RuleListParser::new_for_stylesheet(&mut parser, MapCssParser);
 
-    while let Some(token) = rule_list_parser.next() {
-        dbg!(token);
+    let mut mapcss_rules = Vec::new();
+
+    for result in rule_list_parser {
+        let rule = match result {
+            Ok(r) => r,
+            Err((error, string)) => {
+                eprintln!("Rule dropped: {:?}, {:?}", error, string);
+                continue;
+            }
+        };
+        mapcss_rules.push(Rc::new(rule));
     }
+
+    // Now sort each selector by (specificity, source_order).
+    let mut rules = Vec::new();
+
+    for (source_order, rule) in mapcss_rules.into_iter().enumerate() {
+        for (selector_index, selector) in rule.selectors.0.iter().enumerate() {
+            rules.push(Rule {
+                selector_index,
+                original_rule: rule.clone(),
+                specificity: selector.specificity(),
+                source_order,
+            });
+        }
+    }
+
+    rules.sort_by_key(|rule| (rule.specificity, rule.source_order));
+
+    rules
 }
 
 fn parse_color<'i>(input: &mut Parser<'i, '_>) -> Result<cssparser::Color, MapCssParseError<'i>> {

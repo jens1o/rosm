@@ -43,10 +43,11 @@ pub fn extract_data_from_filepath(
                 },
             );
         } else if let osmpbf::Element::Way(way) = element {
-            let way_info = way.info();
             let wid = way.id();
 
             if user_lookup {
+                let way_info = way.info();
+
                 // add author to list of known authors if we have all metadata
                 if let Some(uid) = way_info.uid() {
                     // check whether we don't already know this user

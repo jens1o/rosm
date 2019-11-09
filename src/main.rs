@@ -51,7 +51,12 @@ node[amenity=drinking_water] {
     z-index: 10;
 }";
 
-    mapcss::parse_mapcss(mapcss);
+    let parse_results = dbg!(mapcss::parse_mapcss(mapcss));
+
+    for parse_result in parse_results {
+        // TODO: Parse our elements into a "DOM"
+        // dbg!(parse_result.original_rule.selectors.matches("node"));
+    }
 
     // let (nid_to_node_data, wid_to_way_data, _) =
     //     extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"), false)?;
