@@ -33,7 +33,7 @@ pub enum MapCssPropertyDeclaration {
 #[derive(Debug)]
 pub struct MapCssStyleRule {
     pub selectors: kuchiki::Selectors,
-    declarations: Vec<MapCssPropertyDeclaration>,
+    pub declarations: Vec<MapCssPropertyDeclaration>,
 }
 
 pub struct Rule {

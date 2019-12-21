@@ -1,0 +1,14 @@
+/* basic styling */
+* {
+    width: 1;
+}
+way {
+    color: grey;
+}
+
+node[amenity=drinking_water],
+node[amenity=fountain]
+{
+    color: blue;
+    width: 15;
+}
