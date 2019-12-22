@@ -18,11 +18,12 @@ way[type=waterway], way[waterway=river], way[waterway=canal] {
 
 way[highway=motorway], way[highway=motorway_link], way[highway=trunk], way[highway=trunk_link] {
     color: #e892a2;
+    width: 3;
 }
 
 node[amenity=drinking_water],
 node[amenity=fountain]
 {
     color: blue;
-    width: 15;
+    width: 2;
 }

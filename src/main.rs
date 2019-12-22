@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data, _) =
-        extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"), false)?;
+        extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"), false)?;
     println!(
         "Extracting the data from the given PBF file took {:.2?}. ({} nodes, {} ways)",
         instant.elapsed(),

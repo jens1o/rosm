@@ -1,4 +1,4 @@
-use crate::data::{self, NodeData, ToNodeRef, WayData};
+use crate::data::{NodeData, ToNodeRef, WayData};
 use crate::mapcss::style::Size;
 use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
 use kuchiki::{Node, NodeDataRef};
@@ -40,7 +40,7 @@ impl Painter for PngPainter {
         &mut self,
         image_resolution_factor: f64,
         nid_to_node_data: HashMap<i64, NodeData>,
-        mut wid_to_way_data: HashMap<i64, WayData>,
+        wid_to_way_data: HashMap<i64, WayData>,
         mapcss_rules: Vec<MapCssRule>,
     ) -> String {
         let mut pixels = Vec::new();
