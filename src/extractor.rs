@@ -3,15 +3,7 @@ use std::collections::HashMap;
 
 pub fn extract_data_from_filepath(
     file_path: String,
-    user_lookup: bool,
-) -> Result<
-    (
-        HashMap<i64, NodeData>,
-        HashMap<i64, WayData>,
-        HashMap<i32, String>,
-    ),
-    osmpbf::Error,
-> {
+) -> Result<(HashMap<i64, NodeData>, HashMap<i64, WayData>), osmpbf::Error> {
     let reader = osmpbf::ElementReader::from_path(file_path)?;
 
     let mut nid_to_node_data: HashMap<i64, NodeData> = HashMap::new();
@@ -22,12 +14,6 @@ pub fn extract_data_from_filepath(
         if let osmpbf::Element::Node(_) = element {
             panic!("OSM-Nodes not supported (yet), use data extractions with DenseNodes instead!");
         } else if let osmpbf::Element::DenseNode(node) = element {
-            if user_lookup {
-                uid_to_name
-                    .entry(node.uid)
-                    .or_insert_with(|| node.user().unwrap().to_string());
-            }
-
             nid_to_node_data.insert(
                 node.id,
                 NodeData {
@@ -44,22 +30,6 @@ pub fn extract_data_from_filepath(
             );
         } else if let osmpbf::Element::Way(way) = element {
             let wid = way.id();
-
-            if user_lookup {
-                let way_info = way.info();
-
-                // add author to list of known authors if we have all metadata
-                if let Some(uid) = way_info.uid() {
-                    // check whether we don't already know this user
-                    if let std::collections::hash_map::Entry::Vacant(vacant) =
-                        uid_to_name.entry(uid)
-                    {
-                        if let Some(Ok(user_name)) = way_info.user() {
-                            vacant.insert(user_name.to_owned());
-                        }
-                    }
-                }
-            }
 
             wid_to_way_data.insert(
                 wid,
@@ -92,9 +62,5 @@ pub fn extract_data_from_filepath(
     wid_to_way_data.shrink_to_fit();
     uid_to_name.shrink_to_fit();
 
-    if !user_lookup {
-        debug_assert_eq!(uid_to_name.len(), 0);
-    }
-
-    Ok((nid_to_node_data, wid_to_way_data, uid_to_name))
+    Ok((nid_to_node_data, wid_to_way_data))
 }
