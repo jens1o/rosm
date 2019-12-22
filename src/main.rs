@@ -70,6 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Extracting data!");
 
     dbg!(std::mem::size_of::<crate::data::NodeData>());
+    dbg!(std::mem::size_of::<crate::data::WayData>());
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data) =

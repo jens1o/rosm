@@ -38,7 +38,6 @@ pub fn extract_data_from_filepath(
                         .map(|(k, v)| (k.to_string(), v.to_string()))
                         .collect::<Vec<_>>(),
                     refs: way.refs().collect::<Vec<_>>(),
-                    draw_style: None,
                 },
             );
         }

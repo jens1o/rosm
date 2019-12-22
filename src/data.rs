@@ -51,7 +51,6 @@ pub struct WayData {
     pub wid: i64,
     pub tags: Vec<(String, String)>,
     pub refs: Vec<i64>,
-    pub draw_style: Option<image::Rgb<u8>>,
 }
 
 impl ToNodeRef for WayData {
