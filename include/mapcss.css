@@ -1,9 +1,23 @@
 /* basic styling */
 * {
     width: 1;
+    z-index: 1;
 }
+
 way {
     color: grey;
+}
+node {
+    color: beige;
+}
+
+way[type=waterway], way[waterway=river], way[waterway=canal] {
+    width: 10;
+    color: #aad3df;
+}
+
+way[highway=motorway], way[highway=motorway_link], way[highway=trunk], way[highway=trunk_link] {
+    color: #e892a2;
 }
 
 node[amenity=drinking_water],

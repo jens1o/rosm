@@ -1,4 +1,4 @@
-mod style;
+pub mod style;
 
 use cssparser::CowRcStr;
 use cssparser::Parser;
@@ -36,14 +36,14 @@ pub struct MapCssStyleRule {
     pub declarations: Vec<MapCssPropertyDeclaration>,
 }
 
-pub struct Rule {
+pub struct MapCssRule {
     selector_index: usize,
     pub original_rule: Rc<MapCssStyleRule>,
     specificity: kuchiki::Specificity,
     source_order: usize,
 }
 
-impl fmt::Debug for Rule {
+impl fmt::Debug for MapCssRule {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -145,7 +145,7 @@ pub fn parse_declarations<'i>(
     Ok(declarations)
 }
 
-pub fn parse_mapcss(mapcss: &str) -> Vec<Rule> {
+pub fn parse_mapcss(mapcss: &str) -> Vec<MapCssRule> {
     let mut parser_input = cssparser::ParserInput::new(mapcss);
     let mut parser = cssparser::Parser::new(&mut parser_input);
 
@@ -169,7 +169,7 @@ pub fn parse_mapcss(mapcss: &str) -> Vec<Rule> {
 
     for (source_order, rule) in mapcss_rules.into_iter().enumerate() {
         for (selector_index, selector) in rule.selectors.0.iter().enumerate() {
-            rules.push(Rule {
+            rules.push(MapCssRule {
                 selector_index,
                 original_rule: rule.clone(),
                 specificity: selector.specificity(),

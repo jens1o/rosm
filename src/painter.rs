@@ -1,7 +1,26 @@
-use crate::data::{self, NodeData, WayData};
+use crate::data::{self, NodeData, ToNodeRef, WayData};
+use crate::mapcss::style::Size;
+use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
+use kuchiki::{Node, NodeDataRef};
 use std::cmp;
 use std::collections::HashMap;
 use std::time;
+
+pub struct RenderStyle {
+    z_index: u8,
+    color: cssparser::RGBA,
+    width: Size,
+}
+
+impl Default for RenderStyle {
+    fn default() -> Self {
+        RenderStyle {
+            color: cssparser::RGBA::new(255, 255, 255, 0),
+            z_index: 0,
+            width: Size(1.0),
+        }
+    }
+}
 
 pub trait Painter {
     fn paint(
@@ -9,6 +28,7 @@ pub trait Painter {
         image_resolution_factor: f64,
         nid_to_node_data: HashMap<i64, NodeData>,
         wid_to_way_data: HashMap<i64, WayData>,
+        mapcss_rules: Vec<MapCssRule>,
     ) -> String;
 }
 
@@ -21,14 +41,32 @@ impl Painter for PngPainter {
         image_resolution_factor: f64,
         nid_to_node_data: HashMap<i64, NodeData>,
         mut wid_to_way_data: HashMap<i64, WayData>,
+        mapcss_rules: Vec<MapCssRule>,
     ) -> String {
         let mut pixels = Vec::new();
+        let mut wid_to_render_style = HashMap::new();
+        let mut single_nid_to_render_style = HashMap::new();
 
         for way in wid_to_way_data.values() {
-            let line_width = way.line_width();
+            let way_ref_data = NodeDataRef::new_opt(way.node_ref(), Node::as_element).unwrap();
+            let mut render_style = RenderStyle::default();
+
+            for mapcss_rule in mapcss_rules.iter() {
+                if mapcss_rule.original_rule.selectors.matches(&way_ref_data) {
+                    for rule_declaration in &mapcss_rule.original_rule.declarations {
+                        use MapCssPropertyDeclaration::*;
+
+                        match rule_declaration {
+                            ZIndex(z_index) => render_style.z_index = *z_index,
+                            Color(color) => render_style.color = *color,
+                            Width(width) => render_style.width = *width,
+                        }
+                    }
+                }
+            }
 
             // way is invisible, so we don't need to calculate its pixels
-            if line_width == 0 {
+            if render_style.width.0 <= 0.0 {
                 continue;
             }
 
@@ -54,7 +92,7 @@ impl Painter for PngPainter {
                     {
                         // make the line a bit thicker
 
-                        let mut distance_to_origin_pixel = line_width as u32;
+                        let mut distance_to_origin_pixel = render_style.width.0 as u32;
 
                         pixels.push((node_a.nid, x, y));
 
@@ -86,6 +124,8 @@ impl Painter for PngPainter {
                     panic!("Windows iterator does not deliver expected size!");
                 }
             }
+
+            wid_to_render_style.insert(way.wid, render_style);
         }
 
         nid_to_node_data
@@ -93,6 +133,31 @@ impl Painter for PngPainter {
             // Filter out nodes we've already drawn through the ways
             .filter(|node_data| node_data.way.is_none())
             .for_each(|node_data| {
+                // match mapcss rules
+
+                let node_ref_data =
+                    NodeDataRef::new_opt(node_data.node_ref(), Node::as_element).unwrap();
+                let mut render_style = RenderStyle::default();
+
+                for mapcss_rule in mapcss_rules.iter() {
+                    if mapcss_rule.original_rule.selectors.matches(&node_ref_data) {
+                        for rule_declaration in &mapcss_rule.original_rule.declarations {
+                            use MapCssPropertyDeclaration::*;
+
+                            match rule_declaration {
+                                ZIndex(z_index) => render_style.z_index = *z_index,
+                                Color(color) => render_style.color = *color,
+                                Width(width) => render_style.width = *width,
+                            }
+                        }
+                    }
+                }
+
+                // node is invisible, don't draw it
+                if render_style.width.0 <= 0.0 {
+                    return;
+                }
+
                 for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
                     (
                         node_data.lat * image_resolution_factor,
@@ -105,12 +170,68 @@ impl Painter for PngPainter {
                 )
                 .map(|(x, y)| (x as u32, y as u32))
                 {
+                    let mut distance_to_origin_pixel = render_style.width.0 as u32;
+
                     pixels.push((node_data.nid, x, y));
+
+                    while distance_to_origin_pixel > 1 {
+                        distance_to_origin_pixel -= 1;
+                        pixels.push((
+                            node_data.nid,
+                            x + distance_to_origin_pixel,
+                            y + distance_to_origin_pixel,
+                        ));
+                        pixels.push((
+                            node_data.nid,
+                            x + distance_to_origin_pixel,
+                            y - distance_to_origin_pixel,
+                        ));
+                        pixels.push((
+                            node_data.nid,
+                            x - distance_to_origin_pixel,
+                            y + distance_to_origin_pixel,
+                        ));
+                        pixels.push((
+                            node_data.nid,
+                            x - distance_to_origin_pixel,
+                            y - distance_to_origin_pixel,
+                        ));
+                    }
                 }
+
+                single_nid_to_render_style.insert(node_data.nid, render_style);
             });
 
-        let (_, x_sample, y_sample) = pixels
+        // sort pixels by z-index (ascending)
+        pixels.sort_by(|a, b| {
+            let a_style_data = nid_to_node_data
+                .get(&a.0)
+                .and_then(|x| {
+                    if let Some(wid) = x.way {
+                        wid_to_render_style.get(&wid)
+                    } else {
+                        single_nid_to_render_style.get(&x.nid)
+                    }
+                })
+                .expect("No render style found for node when comparing z-indexes!");
+
+            let b_style_data = nid_to_node_data
+                .get(&b.0)
+                .and_then(|x| {
+                    if let Some(wid) = x.way {
+                        wid_to_render_style.get(&wid)
+                    } else {
+                        single_nid_to_render_style.get(&x.nid)
+                    }
+                })
+                .expect("No render style found for node when comparing z-indexes!");
+
+            a_style_data.z_index.cmp(&b_style_data.z_index)
+        });
+
+        let (_, x_sample, y_sample) = &pixels
             .iter()
+            .cloned()
             .next()
             .expect("At least one pixel needs to be drawn!");
 
@@ -145,26 +266,23 @@ impl Painter for PngPainter {
             // rotate by 270 degress
             .map(|(nid, pixel_x, pixel_y)| (nid, pixel_y, image_width - 1 - pixel_x))
         {
-            let pixel = image.get_pixel(pixel_x as u32, pixel_y as u32);
+            let render_style = nid_to_node_data
+                .get(&nid)
+                .and_then(|x| {
+                    if let Some(wid) = x.way {
+                        wid_to_render_style.get(&wid)
+                    } else {
+                        single_nid_to_render_style.get(&nid)
+                    }
+                })
+                .expect("No render style found for node!");
 
-            if pixel != &data::BG_COLOR && pixel != &data::NORMAL_COLOR {
-                continue;
-            }
+            let r = render_style.color.red;
+            let g = render_style.color.green;
+            let b = render_style.color.blue;
+            let a = render_style.color.alpha;
 
-            let node_data = nid_to_node_data.get(nid);
-
-            let way_data = node_data
-                .and_then(|node_data| node_data.way)
-                .and_then(|wid| wid_to_way_data.get_mut(&wid));
-
-            image.put_pixel(
-                pixel_x as u32,
-                pixel_y as u32,
-                // TODO: Mark cycleways
-                way_data
-                    .map(|way| way.draw_color())
-                    .unwrap_or(data::NORMAL_COLOR),
-            );
+            image.put_pixel(pixel_x as u32, pixel_y as u32, image::Rgba([r, g, b, a]));
         }
 
         // save image and return the filename
