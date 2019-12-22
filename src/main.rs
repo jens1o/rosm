@@ -3,6 +3,7 @@ extern crate image;
 extern crate line_drawing;
 extern crate markup5ever;
 extern crate osmpbf;
+extern crate winapi;
 
 mod data;
 mod extractor;
@@ -12,6 +13,10 @@ mod painter;
 use crate::painter::Painter;
 use std::error::Error;
 use std::time::Instant;
+#[cfg(windows)]
+use winapi::um::processthreadsapi::GetCurrentProcess;
+#[cfg(windows)]
+use winapi::um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
 
 const IMAGE_RESOLUTION: f64 = 10000.0;
 const IMAGE_PART_SIZE: u32 = 1024;
@@ -23,6 +28,23 @@ pub(crate) trait Zero {
 impl Zero for u32 {
     fn zero() -> u32 {
         0
+    }
+}
+
+pub(crate) fn print_peak_memory_usage() {
+    #[cfg(windows)]
+    unsafe {
+        let mut pmc = std::mem::zeroed::<PROCESS_MEMORY_COUNTERS>();
+        let cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
+
+        if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, cb) == 0 {
+            eprintln!("fail to get memory info of process");
+        }
+
+        println!(
+            "Peak memory usage: {} MB",
+            (pmc.PeakWorkingSetSize as u64) / 1024 / 1024
+        );
     }
 }
 
@@ -43,11 +65,17 @@ where
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    print_peak_memory_usage();
+
     println!("Extracting data!");
+
+    dbg!(std::mem::size_of::<crate::data::NodeData>());
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data) =
         extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"))?;
+
+    print_peak_memory_usage();
     println!(
         "Extracting the data from the given PBF file took {:.2?}. ({} nodes, {} ways)",
         instant.elapsed(),
@@ -58,6 +86,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Parsing mapcss.");
     let mapcss_rules = mapcss::parse_mapcss(include_str!("../include/mapcss.css"));
 
+    print_peak_memory_usage();
+
     let mut painter = painter::PngPainter::default();
     let file_name = painter.paint(
         IMAGE_RESOLUTION,
@@ -65,6 +95,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         wid_to_way_data,
         mapcss_rules,
     );
+
+    print_peak_memory_usage();
 
     println!("Saved image successfully to {}.", file_name);
 

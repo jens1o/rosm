@@ -19,7 +19,6 @@ pub trait ToNodeRef {
 #[derive(Debug)]
 pub struct NodeData {
     pub nid: i64,
-    pub uid: i32,
     pub lat: f64,
     pub lon: f64,
     pub tags: Vec<(String, String)>,

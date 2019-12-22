@@ -759,6 +759,7 @@ dependencies = [
  "line_drawing 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "markup5ever 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "osmpbf 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

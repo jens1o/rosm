@@ -7,7 +7,6 @@ pub fn extract_data_from_filepath(
     let reader = osmpbf::ElementReader::from_path(file_path)?;
 
     let mut nid_to_node_data: HashMap<i64, NodeData> = HashMap::new();
-    let mut uid_to_name: HashMap<i32, String> = HashMap::new();
     let mut wid_to_way_data: HashMap<i64, WayData> = HashMap::new();
 
     reader.for_each(|element| {
@@ -18,7 +17,6 @@ pub fn extract_data_from_filepath(
                 node.id,
                 NodeData {
                     nid: node.id,
-                    uid: node.uid,
                     tags: node
                         .tags()
                         .map(|(k, v)| (k.to_string(), v.to_string()))
@@ -60,7 +58,6 @@ pub fn extract_data_from_filepath(
 
     nid_to_node_data.shrink_to_fit();
     wid_to_way_data.shrink_to_fit();
-    uid_to_name.shrink_to_fit();
 
     Ok((nid_to_node_data, wid_to_way_data))
 }
