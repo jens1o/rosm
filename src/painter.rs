@@ -4,10 +4,11 @@ use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
 use kuchiki::{Node, NodeDataRef};
 use std::cmp;
 use std::collections::HashMap;
-use std::time;
+use std::time::{self, Instant};
 
+#[derive(Clone, Copy)]
 pub struct RenderStyle {
-    z_index: u8,
+    z_index: u16,
     color: cssparser::RGBA,
     width: Size,
 }
@@ -43,9 +44,9 @@ impl Painter for PngPainter {
         wid_to_way_data: HashMap<i64, WayData>,
         mapcss_rules: Vec<MapCssRule>,
     ) -> String {
-        let mut pixels = Vec::new();
-        let mut wid_to_render_style = HashMap::new();
-        let mut single_nid_to_render_style = HashMap::new();
+        // make a good guess for all the pixels
+        let mut pixels = Vec::with_capacity(wid_to_way_data.len() + nid_to_node_data.len());
+        let mut id_to_render_style = HashMap::with_capacity(nid_to_node_data.len());
 
         for way in wid_to_way_data.values() {
             let way_ref_data = NodeDataRef::new_opt(way.node_ref(), Node::as_element).unwrap();
@@ -73,6 +74,9 @@ impl Painter for PngPainter {
             let nodes = way
                 .refs
                 .iter()
+                .inspect(|nid| {
+                    id_to_render_style.insert(**nid, render_style);
+                })
                 .map(|nid| nid_to_node_data.get(nid).unwrap())
                 .collect::<Vec<_>>();
 
@@ -124,8 +128,6 @@ impl Painter for PngPainter {
                     panic!("Windows iterator does not deliver expected size!");
                 }
             }
-
-            wid_to_render_style.insert(way.wid, render_style);
         }
 
         nid_to_node_data
@@ -199,39 +201,32 @@ impl Painter for PngPainter {
                     }
                 }
 
-                single_nid_to_render_style.insert(node_data.nid, render_style);
+                id_to_render_style.insert(node_data.nid, render_style);
             });
 
         // sort pixels by z-index (ascending)
-        pixels.sort_by(|a, b| {
-            let a_style_data = nid_to_node_data
-                .get(&a.0)
-                .and_then(|x| {
-                    if let Some(wid) = x.way {
-                        wid_to_render_style.get(&wid)
-                    } else {
-                        single_nid_to_render_style.get(&x.nid)
-                    }
-                })
-                .expect("No render style found for node when comparing z-indexes!");
+        let instant = Instant::now();
+        pixels.sort_unstable_by(|a, b| {
+            let a_style_data = id_to_render_style.get(&a.0).unwrap_or_else(|| {
+                panic!(
+                    "No render style found for node #{} when comparing z-indexes!",
+                    a.0
+                )
+            });
 
-            let b_style_data = nid_to_node_data
-                .get(&b.0)
-                .and_then(|x| {
-                    if let Some(wid) = x.way {
-                        wid_to_render_style.get(&wid)
-                    } else {
-                        single_nid_to_render_style.get(&x.nid)
-                    }
-                })
-                .expect("No render style found for node when comparing z-indexes!");
+            let b_style_data = id_to_render_style.get(&b.0).unwrap_or_else(|| {
+                panic!(
+                    "No render style found for node #{} when comparing z-indexes!",
+                    b.0
+                )
+            });
 
             a_style_data.z_index.cmp(&b_style_data.z_index)
         });
+        println!("Sorting by z-index took {:.2?}", instant.elapsed());
 
         let (_, x_sample, y_sample) = &pixels
             .iter()
-            .cloned()
             .next()
             .expect("At least one pixel needs to be drawn!");
 
@@ -240,6 +235,7 @@ impl Painter for PngPainter {
         let mut min_y = y_sample;
         let mut max_y = y_sample;
 
+        let instant = Instant::now();
         for (_, x, y) in pixels.iter() {
             min_x = cmp::min(x, min_x);
             max_x = cmp::max(x, max_x);
@@ -250,12 +246,12 @@ impl Painter for PngPainter {
 
         dbg!(min_x, max_x);
         dbg!(min_y, max_y);
+        println!("Finding the min/max values took {:.2?}", instant.elapsed());
 
-        let image_width = crate::round_up_to((max_x - min_x) as u32 + 1, crate::IMAGE_PART_SIZE);
-        let image_height = crate::round_up_to((max_y - min_y) as u32 + 1, crate::IMAGE_PART_SIZE);
-        let image_pixels = image_width * image_height;
+        let image_width = crate::round_up_to((max_x - min_x) + 1, crate::IMAGE_PART_SIZE);
+        let image_height = crate::round_up_to((max_y - min_y) + 1, crate::IMAGE_PART_SIZE);
 
-        dbg!(image_width, image_height, image_pixels);
+        dbg!(image_width, image_height);
 
         // order is changed to account for rotating by 270 degrees
         let mut image = image::ImageBuffer::new(image_height, image_width);
@@ -266,23 +262,15 @@ impl Painter for PngPainter {
             // rotate by 270 degress
             .map(|(nid, pixel_x, pixel_y)| (nid, pixel_y, image_width - 1 - pixel_x))
         {
-            let render_style = nid_to_node_data
+            let render_style = id_to_render_style
                 .get(&nid)
-                .and_then(|x| {
-                    if let Some(wid) = x.way {
-                        wid_to_render_style.get(&wid)
-                    } else {
-                        single_nid_to_render_style.get(&nid)
-                    }
-                })
                 .expect("No render style found for node!");
 
             let r = render_style.color.red;
             let g = render_style.color.green;
             let b = render_style.color.blue;
-            let a = render_style.color.alpha;
 
-            image.put_pixel(pixel_x as u32, pixel_y as u32, image::Rgba([r, g, b, a]));
+            image.put_pixel(pixel_x, pixel_y, image::Rgb([r, g, b]));
         }
 
         // save image and return the filename

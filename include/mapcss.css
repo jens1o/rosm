@@ -11,14 +11,73 @@ node {
     color: beige;
 }
 
-way[type=waterway], way[waterway=river], way[waterway=canal] {
+way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain] {
     width: 10;
     color: #aad3df;
+    z-index: 100;
 }
 
-way[highway=motorway], way[highway=motorway_link], way[highway=trunk], way[highway=trunk_link] {
+way[waterway=canal] {
+    width: 5;
+}
+
+way[waterway=drain] {
+    width: 2;
+}
+
+way[highway] {
+    z-index: 1000;
+}
+
+way[railway] {
+    z-index: 10000;
+}
+
+/* most important road networks */
+way[highway=motorway], way[highway=motorway_link] {
     color: #e892a2;
+    width: 5;
+}
+way[highway=trunk], way[highway=trunk_link] {
+    width: 5;
+    color: #f9b29c;
+}
+
+way[highway=motorway_link], way[highway=trunk_link] {
     width: 3;
+}
+
+way[highway=primary] {
+    color: #fcd6a4;
+    width: 4;
+}
+
+way[highway=secondary] {
+    color: #f7fabf;
+    width: 3;
+}
+
+way[highway=residential] {
+    color: #ffffff;
+    width: 2;
+}
+
+way[highway=service] {
+    color: #fff;
+}
+
+way[highway=track] {
+    z-index: 10;
+    color: #ac8331;
+}
+
+way[power=line] {
+    z-index: 10000;
+    color: #8b8c8a;
+}
+
+way[railway=rail] {
+    color: #eeeeee;
 }
 
 node[amenity=drinking_water],
@@ -26,4 +85,13 @@ node[amenity=fountain]
 {
     color: blue;
     width: 2;
+}
+
+way[fixme], node[fixme] {
+    color: red;
+}
+
+/* TODO: Add a border around the bridge */
+way[bridge=yes] {
+    z-index: 10000;
 }

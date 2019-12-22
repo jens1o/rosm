@@ -5,7 +5,7 @@ use cssparser::Parser;
 use std::error::Error;
 use std::fmt;
 use std::rc::Rc;
-use std::u8;
+use std::u16;
 use style::Size;
 
 #[derive(Debug)]
@@ -24,7 +24,7 @@ struct MapCssParser;
 
 #[derive(Debug)]
 pub enum MapCssPropertyDeclaration {
-    ZIndex(u8),
+    ZIndex(u16),
     // Colorcode
     Color(cssparser::RGBA),
     Width(Size),
@@ -206,13 +206,13 @@ fn parse_size<'i>(input: &mut Parser<'i, '_>) -> Result<Size, MapCssParseError<'
     }
 }
 
-fn parse_z_index<'i>(input: &mut Parser<'i, '_>) -> Result<u8, MapCssParseError<'i>> {
+fn parse_z_index<'i>(input: &mut Parser<'i, '_>) -> Result<u16, MapCssParseError<'i>> {
     let location = input.current_source_location();
     match *input.next()? {
         cssparser::Token::Number { int_value, .. } => {
             if let Some(int_value) = int_value {
-                if int_value >= u8::min_value() as i32 && int_value <= u8::max_value() as i32 {
-                    return Ok(int_value as u8);
+                if int_value >= u16::min_value() as i32 && int_value <= u16::max_value() as i32 {
+                    return Ok(int_value as u16);
                 }
 
                 return Err(input.new_custom_error(MapCssError::OutOfRange));

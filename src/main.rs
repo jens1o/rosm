@@ -67,10 +67,10 @@ where
 fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
-    println!("Extracting data!");
-
     dbg!(std::mem::size_of::<crate::data::NodeData>());
     dbg!(std::mem::size_of::<crate::data::WayData>());
+
+    println!("Extracting data!");
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data) =
@@ -87,8 +87,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Parsing mapcss.");
     let mapcss_rules = mapcss::parse_mapcss(include_str!("../include/mapcss.css"));
 
+    println!("Now painting the picture!");
     print_peak_memory_usage();
 
+    let instant = Instant::now();
     let mut painter = painter::PngPainter::default();
     let file_name = painter.paint(
         IMAGE_RESOLUTION,
@@ -99,7 +101,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     print_peak_memory_usage();
 
-    println!("Saved image successfully to {}.", file_name);
+    println!(
+        "Saved image successfully to {} (took {:.2?}).",
+        file_name,
+        instant.elapsed()
+    );
 
     Ok(())
 }
