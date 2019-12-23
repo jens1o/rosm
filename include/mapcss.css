@@ -11,10 +11,18 @@ node {
     color: beige;
 }
 
+way[natural=water] {
+    color: #aad3df;
+}
+
 way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain] {
     width: 10;
     color: #aad3df;
     z-index: 100;
+}
+
+way[waterway=river] {
+    width: 7;
 }
 
 way[waterway=canal] {
@@ -77,7 +85,7 @@ way[power=line] {
 }
 
 way[railway=rail] {
-    color: #eeeeee;
+    color: #1f1d1d;
 }
 
 node[amenity=drinking_water],
@@ -87,11 +95,42 @@ node[amenity=fountain]
     width: 2;
 }
 
+way[amenity=parking] {
+    color: #eeeeee;
+}
+
+way[building] {
+    color: #d9d0c9;
+    z-index: 100;
+}
+
+way[amenity=school], way[amenity=university] {
+    color: #ffffe5;
+}
+
+way[leisure=park] {
+    color: #c8facc;
+}
+
+way[natural=bay] {
+    width: 0;
+}
+
+way[natural=wood], way[landuse=forest], way[landcover=trees] {
+    color: #add19e;
+    z-index: 100;
+}
+
+way[landuse=industrial] {
+    color: #ebdbe8;
+    z-index: 10;
+}
+
 way[fixme], node[fixme] {
     color: red;
 }
 
 /* TODO: Add a border around the bridge */
-way[bridge=yes] {
+way[bridge] {
     z-index: 10000;
 }

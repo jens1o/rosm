@@ -2,8 +2,8 @@ use crate::data::{NodeData, ToNodeRef, WayData};
 use crate::mapcss::style::Size;
 use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
 use kuchiki::{Node, NodeDataRef};
-use std::cmp;
-use std::collections::HashMap;
+use std::cmp::{self, Reverse};
+use std::collections::{BinaryHeap, HashMap};
 use std::time::{self, Instant};
 
 #[derive(Clone, Copy)]
@@ -44,11 +44,32 @@ impl Painter for PngPainter {
         wid_to_way_data: HashMap<i64, WayData>,
         mapcss_rules: Vec<MapCssRule>,
     ) -> String {
+        // TODO: Use the structs and parse different fill-color
+        enum RenderPixelType {
+            /// This is just a single node referencing its ID
+            Node(u32),
+            /// Represents a pixel of the border of this (either closed or open) way
+            WayBorder(u32),
+            /// This pixel represents a filling for the given (closed) way ID
+            Filling(u32),
+        }
+        struct RenderPixel {
+            render_type: RenderPixelType,
+            x: u32,
+            y: u32,
+        }
+
         // make a good guess for all the pixels
         let mut pixels = Vec::with_capacity(wid_to_way_data.len() + nid_to_node_data.len());
         let mut id_to_render_style = HashMap::with_capacity(nid_to_node_data.len());
 
+        // TODO: Refactor into several methods
         for way in wid_to_way_data.values() {
+            if way.refs.len() < 2 {
+                // ignore invalid ways
+                continue;
+            }
+
             let way_ref_data = NodeDataRef::new_opt(way.node_ref(), Node::as_element).unwrap();
             let mut render_style = RenderStyle::default();
 
@@ -80,6 +101,8 @@ impl Painter for PngPainter {
                 .map(|nid| nid_to_node_data.get(nid).unwrap())
                 .collect::<Vec<_>>();
 
+            let mut wall_pixels = Vec::new();
+
             for node_list in nodes[..].windows(2) {
                 if let [node_a, node_b] = node_list {
                     for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
@@ -98,7 +121,7 @@ impl Painter for PngPainter {
 
                         let mut distance_to_origin_pixel = render_style.width.0 as u32;
 
-                        pixels.push((node_a.nid, x, y));
+                        wall_pixels.push((node_a.nid, x, y));
 
                         while distance_to_origin_pixel > 1 {
                             distance_to_origin_pixel -= 1;
@@ -128,6 +151,77 @@ impl Painter for PngPainter {
                     panic!("Windows iterator does not deliver expected size!");
                 }
             }
+
+            // fill the way if there is a background color given
+            if way.is_closed() {
+                let (first_nid, _x_sample, y_sample) =
+                    &wall_pixels.iter().next().unwrap_or_else(|| {
+                        panic!("At least one pixel needs to be drawn (way #{})!", way.wid)
+                    });
+
+                let mut y_min = y_sample;
+                let mut y_max = y_sample;
+
+                let mut intersection_y_points: HashMap<u32, BinaryHeap<Reverse<u32>>> =
+                    HashMap::new();
+
+                for (_, x, y) in &wall_pixels {
+                    if y_max < y {
+                        y_max = y;
+                    }
+
+                    if y_min > y {
+                        y_min = y;
+                    }
+
+                    intersection_y_points
+                        .entry(*y)
+                        .or_default()
+                        .push(Reverse(*x));
+                }
+
+                debug_assert!(y_max > y_min);
+
+                let mut y = *y_min;
+
+                // dbg!(x, y, y_max);
+
+                while &y < y_max {
+                    // swapped as soon as an intersection is met
+                    let mut is_drawing = true;
+
+                    let current_heap = intersection_y_points
+                        .get_mut(&y)
+                        .expect("No intersection points?!");
+
+                    let Reverse(mut x) = match current_heap.pop() {
+                        Some(x) => x,
+                        None => break,
+                    };
+
+                    // dbg!(&current_heap);
+
+                    while let Some(Reverse(next_intersection)) = current_heap.pop() {
+                        loop {
+                            if is_drawing {
+                                pixels.push((*first_nid, x, y));
+                            }
+
+                            // dbg!(x, next_intersection);
+                            if x == next_intersection {
+                                is_drawing = !is_drawing;
+                                break;
+                            }
+
+                            x += 1;
+                        }
+                    }
+
+                    y += 1;
+                }
+            }
+
+            pixels.extend(wall_pixels);
         }
 
         nid_to_node_data

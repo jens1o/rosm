@@ -13,6 +13,7 @@ line_drawing = "^0.8.0"
 cssparser = "^0.27"
 markup5ever = "^0.8"
 kuchiki = "^0.7"
+geo = "^0.12"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["std", "psapi", "processthreadsapi"] }

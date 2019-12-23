@@ -53,6 +53,16 @@ pub struct WayData {
     pub refs: Vec<i64>,
 }
 
+impl WayData {
+    /// returns true if this way encloses an area (i.e. the first and the last node is the same)
+    #[inline]
+    pub fn is_closed(&self) -> bool {
+        debug_assert!(self.refs.len() > 2);
+
+        self.refs[0] == self.refs[self.refs.len() - 1]
+    }
+}
+
 impl ToNodeRef for WayData {
     fn node_ref_attributes(&self) -> Vec<(ExpandedName, Attribute)> {
         self.tags
