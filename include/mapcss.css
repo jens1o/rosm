@@ -48,7 +48,11 @@ way[highway] {
     z-index: 1000;
 }
 
-way[highway=proposed] {
+way[highway=proposed], way[highway=construction] {
+    width: 0;
+}
+
+way[boundary] {
     width: 0;
 }
 
@@ -69,8 +73,17 @@ way[aeroway=runway] {
 way[highway=motorway], way[highway=motorway_link] {
     color: #d18f9b;
     fill-color: #e892a2;
+    width: 4;
+}
+
+way[highway=motorway][lanes=3] {
     width: 5;
 }
+way[highway=motorway][lanes=4],
+way[highway=motorway][lanes=5] {
+    width: 6;
+}
+
 way[highway=trunk], way[highway=trunk_link] {
     color: #dda290;
     fill-color: #f9b29c;
@@ -189,6 +202,11 @@ way[landuse=landfill] {
     fill-color: #b6b592;
 }
 
+way[landuse=brownfield] {
+    color: #b3b398;
+    fill-color: #c7c7b4;
+}
+
 way[natural=bay] {
     width: 0;
 }
@@ -212,6 +230,11 @@ way[landuse=grass], way[landcover=grass], way[landuse=meadow], way[natural=scrub
 way[landuse=allotments] {
     color: #acc5a1;
     fill-color: #c9e1bf;
+}
+
+way[landuse=orchard] {
+    color: #aedfa3;
+    fill-color: #98b890;
 }
 
 way[natural=scrub], way[natural=heath] {
@@ -245,6 +268,10 @@ way[landuse=quarry] {
     fill-color: #c5c3c3;
 }
 
+way[landuse=military] {
+    color: #c5a49f;
+    fill-color: #f4d6d1;
+}
 
 way[barrier=fence] {
     color: #9c9e7b;
