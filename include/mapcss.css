@@ -136,6 +136,7 @@ node[highway=turning_circle] {
 
 way[highway=path] {
     color: #fa8173;
+    fill-color: #00000000;
 }
 
 way[power=line] {
@@ -162,7 +163,7 @@ way[amenity=parking] {
 way[building] {
     color: #c4bdb9;
     fill-color: #d9d0c9;
-    z-index: 100;
+    z-index: 1000;
 }
 
 way[amenity=school], way[amenity=university], way[amenity=research_institute], way[amenity=social_facility] {
@@ -185,6 +186,16 @@ way[leisure=park], way[leisure=playground] {
     color: #98db9d;
     fill-color: #c8facc;
     z-index: 10;
+}
+
+way[leisure=pitch], way[leisure=sports_centre], way[leisure=track] {
+    color: #7ead9b;
+    fill-color: #aae0cb;
+}
+
+way[highway=bridleway] {
+    color: #aecfba;
+    fill-color: #c2e8cf;
 }
 
 way[leisure=golf_course] {
@@ -282,7 +293,7 @@ way[man_made=embankment] {
     color: #817f80;
 }
 
-way[boundary=protected_area] {
+way[boundary=protected_area], way[leisure=nature_reserve] {
     color: #fa8173;
     fill-color: #fa9488;
 }
