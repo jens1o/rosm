@@ -56,7 +56,7 @@ pub struct WayData {
 
 impl WayData {
     /// returns true if this way encloses an area (i.e. the first and the last node is the same)
-    #[inline]
+    #[inline(always)]
     pub fn is_closed(&self) -> bool {
         debug_assert!(self.refs.len() > 2);
 

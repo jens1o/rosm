@@ -1,7 +1,11 @@
 /* basic styling */
-* {
+*:not(canvas) {
     width: 1;
     z-index: 1;
+}
+
+canvas {
+    background-color: #f1eee8;
 }
 
 way {
@@ -11,17 +15,17 @@ node {
     color: beige;
 }
 
-way[natural=water], way[landuse=reservoir] {
+way[natural=water], way[landuse=reservoir], way[landuse=basin] {
     color: #aad3df;
     fill-color: #aad3df;
     z-index: 10;
 }
 
-way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain] {
+way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain], way[waterway=stream] {
     width: 10;
     color: #aad3df;
     fill-color: #aad3df;
-    z-index: 100;
+    z-index: 1000;
 }
 
 way[waterway=river] {
@@ -36,8 +40,16 @@ way[waterway=drain] {
     width: 2;
 }
 
+way[waterway=stream] {
+    width: 1;
+}
+
 way[highway] {
     z-index: 1000;
+}
+
+way[highway=proposed] {
+    width: 0;
 }
 
 way[railway] {
@@ -47,19 +59,22 @@ way[railway] {
 }
 
 way[aeroway=runway] {
-    width: 10;
-    color: #bbbbcc;
+    width: 5;
+    color: #a9a9ad;
+    z-index: 100;
     fill-color: #bbbbcc;
 }
 
 /* most important road networks */
 way[highway=motorway], way[highway=motorway_link] {
-    color: #e892a2;
+    color: #d18f9b;
+    fill-color: #e892a2;
     width: 5;
 }
 way[highway=trunk], way[highway=trunk_link] {
+    color: #dda290;
+    fill-color: #f9b29c;
     width: 5;
-    color: #f9b29c;
 }
 
 way[highway=motorway_link], way[highway=trunk_link] {
@@ -67,28 +82,43 @@ way[highway=motorway_link], way[highway=trunk_link] {
 }
 
 way[highway=primary] {
-    color: #fcd6a4;
+    color: #e2c39a;
+    fill-color: #fcd6a4;
     width: 4;
 }
 
 way[highway=secondary] {
-    color: #f7fabf;
+    color: #dcdfaf;
+    fill-color: #f7fabf;
     width: 3;
 }
 
+way[highway=tertiary],
 way[highway=residential] {
     color: #ffffff;
     fill-color: #e1e1e1;
     width: 2;
 }
 
+node[highway=traffic_mirror] {
+    width: 0;
+}
+
 way[highway=service], way[highway=unclassified] {
-    color: #fff;
+    color: #cecaca;
+    fill-color: #fff;
 }
 
 way[highway=track] {
     z-index: 10;
-    color: #ac8331;
+    color: #99752d;
+    fill-color: #ac8331;
+}
+
+node[highway=turning_circle] {
+    color: #99752d;
+    fill-color: #ac8331;
+    width: 3;
 }
 
 way[highway=path] {
@@ -122,9 +152,14 @@ way[building] {
     z-index: 100;
 }
 
-way[amenity=school], way[amenity=university], way[amenity=research_institute] {
+way[amenity=school], way[amenity=university], way[amenity=research_institute], way[amenity=social_facility] {
     color: #55551c;
     fill-color: #ffffe5;
+}
+
+way[highway=services] {
+    color: #caafaf;
+    fill-color: #efc8c8;
 }
 
 way[power] {
@@ -137,6 +172,11 @@ way[leisure=park], way[leisure=playground] {
     color: #98db9d;
     fill-color: #c8facc;
     z-index: 10;
+}
+
+way[leisure=golf_course] {
+    color: #9cc49c;
+    fill-color: #b5e3b5;
 }
 
 way[landuse=construction] {
@@ -153,6 +193,11 @@ way[natural=bay] {
     width: 0;
 }
 
+way[natural=tree_row] {
+    color: #94b883;
+    fill-color: #a7ce95;
+}
+
 way[natural=wood], way[landuse=forest], way[landcover=trees] {
     color: #9bc489;
     fill-color: #add19e;
@@ -160,14 +205,33 @@ way[natural=wood], way[landuse=forest], way[landcover=trees] {
 }
 
 way[landuse=grass], way[landcover=grass], way[landuse=meadow], way[natural=scrub] {
-    z-index: 100;
     color: #9bbd7c;
     fill-color: #cdebb0;
+}
+
+way[landuse=allotments] {
+    color: #acc5a1;
+    fill-color: #c9e1bf;
 }
 
 way[natural=scrub], way[natural=heath] {
     color: #b5b882;
     fill-color: #d6d99f;
+}
+
+way[landuse=farmland] {
+    color: #cdcfb0;
+    fill-color: #eef0d5;
+}
+
+way[landuse=farmyard] {
+    color: #c2b199;
+    fill-color: #f5dcba;
+}
+
+way[landuse=commercial] {
+    color: #e2caca;
+    fill-color: #f2dad9;
 }
 
 way[landuse=industrial] {
@@ -176,12 +240,36 @@ way[landuse=industrial] {
     z-index: 10;
 }
 
-way[fixme], node[fixme] {
-    color: red;
+way[landuse=quarry] {
+    color: #a7a2a2;
+    fill-color: #c5c3c3;
 }
 
-/* TODO: Add a border around the bridge */
+
+way[barrier=fence] {
+    color: #9c9e7b;
+    fill-color: #00000000;
+}
+
+way[man_made=embankment] {
+    color: #817f80;
+}
+
+way[boundary=protected_area] {
+    color: #fa8173;
+    fill-color: #fa9488;
+}
+
+way[tourism=camp_site] {
+    color: #b2c59a;
+    fill-color: #def6c0;
+}
+
+/*way[fixme], node[fixme] {
+    color: red;
+}*/
+
 way[bridge] {
     z-index: 10000;
-    color: black;
+    color: #6e6e6e;
 }
