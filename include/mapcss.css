@@ -13,11 +13,14 @@ node {
 
 way[natural=water] {
     color: #aad3df;
+    fill-color: #aad3df;
+    z-index: 10;
 }
 
 way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain] {
     width: 10;
     color: #aad3df;
+    fill-color: #aad3df;
     z-index: 100;
 }
 
@@ -39,6 +42,12 @@ way[highway] {
 
 way[railway] {
     z-index: 10000;
+}
+
+way[aeroway=runway] {
+    width: 10;
+    color: #bbbbcc;
+    fill-color: #bbbbcc;
 }
 
 /* most important road networks */
@@ -67,6 +76,7 @@ way[highway=secondary] {
 
 way[highway=residential] {
     color: #ffffff;
+    fill-color: #e1e1e1;
     width: 2;
 }
 
@@ -97,19 +107,30 @@ node[amenity=fountain]
 
 way[amenity=parking] {
     color: #eeeeee;
+    fill-color: #eeeeee;
 }
 
 way[building] {
     color: #d9d0c9;
+    fill-color: #d9d0c9;
     z-index: 100;
 }
 
-way[amenity=school], way[amenity=university] {
-    color: #ffffe5;
+way[amenity=school], way[amenity=university], way[amenity=research_institute] {
+    color: #55551c;
+    fill-color: #ffffe5;
+}
+
+way[power] {
+    color: #cdb6c9;
+    fill-color: #e2cbde;
+    z-index: 1000;
 }
 
 way[leisure=park] {
     color: #c8facc;
+    fill-color: #c8facc;
+    z-index: 10;
 }
 
 way[natural=bay] {
@@ -134,4 +155,5 @@ way[fixme], node[fixme] {
 /* TODO: Add a border around the bridge */
 way[bridge] {
     z-index: 10000;
+    color: black;
 }

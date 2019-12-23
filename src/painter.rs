@@ -153,6 +153,8 @@ impl Painter for PngPainter {
                             y,
                         });
 
+                        // TODO: Don't draw an X, but fill everything out and make it solid
+                        // by making it kind of like filling an area
                         while distance_to_origin_pixel > 1 {
                             distance_to_origin_pixel -= 1;
                             pixels.push(RenderPixel {
@@ -182,7 +184,7 @@ impl Painter for PngPainter {
                 }
             }
 
-            // fill the way if there is a background color given
+            // fill the way if the way is closed
             if way.is_closed() {
                 let RenderPixel { y: y_sample, .. } =
                     &wall_pixels.iter().next().unwrap_or_else(|| {
