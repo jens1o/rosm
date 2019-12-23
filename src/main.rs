@@ -18,7 +18,7 @@ use winapi::um::processthreadsapi::GetCurrentProcess;
 #[cfg(windows)]
 use winapi::um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
 
-const IMAGE_RESOLUTION: f64 = 10000.0;
+const IMAGE_RESOLUTION: f64 = 11000.0;
 const IMAGE_PART_SIZE: u32 = 512;
 
 pub(crate) trait Zero {

@@ -2,6 +2,7 @@ use crate::data::{NodeData, ToNodeRef, WayData};
 use crate::mapcss::style::Size;
 use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
 use kuchiki::{Node, NodeDataRef};
+use rayon::prelude::*;
 use std::cmp::{self, Reverse};
 use std::collections::{BinaryHeap, HashMap};
 use std::num::NonZeroI64;
@@ -81,10 +82,12 @@ impl Painter for PngPainter {
 
         // make a good guess for all the pixels
         let mut pixels: Vec<RenderPixel> =
-            Vec::with_capacity(wid_to_way_data.len() + nid_to_node_data.len());
+            Vec::with_capacity((wid_to_way_data.len() + nid_to_node_data.len()) * 12);
         // TODO: Refactor into two lists as the IDs are not unique (both a way and a node MAY have the same ID)
         let mut id_to_render_style: HashMap<ElementIDType, RenderStyle> =
             HashMap::with_capacity(nid_to_node_data.len());
+
+        println!("Preparing to draw the ways");
 
         // TODO: Refactor into several methods
         for way in wid_to_way_data.values() {
@@ -129,7 +132,7 @@ impl Painter for PngPainter {
 
             let mut wall_pixels = Vec::new();
 
-            for node_list in nodes[..].windows(2) {
+            nodes[..].windows(2).for_each(|node_list| {
                 if let [node_a, node_b] = node_list {
                     for (x, y) in line_drawing::Midpoint::<f64, i64>::new(
                         (
@@ -182,7 +185,7 @@ impl Painter for PngPainter {
                 } else {
                     panic!("Windows iterator does not deliver expected size!");
                 }
-            }
+            });
 
             // fill the way if the way is closed
             if way.is_closed() {
@@ -197,7 +200,7 @@ impl Painter for PngPainter {
                 let mut intersection_y_points: HashMap<u32, BinaryHeap<Reverse<u32>>> =
                     HashMap::new();
 
-                for RenderPixel { x, y, .. } in &wall_pixels {
+                for RenderPixel { x, y, .. } in wall_pixels.iter() {
                     if y_max < y {
                         y_max = y;
                     }
@@ -216,8 +219,6 @@ impl Painter for PngPainter {
 
                 let mut y = *y_min;
 
-                // dbg!(x, y, y_max);
-
                 while &y < y_max {
                     // swapped as soon as an intersection is met
                     let mut is_drawing = true;
@@ -230,8 +231,6 @@ impl Painter for PngPainter {
                         Some(x) => x,
                         None => break,
                     };
-
-                    // dbg!(&current_heap);
 
                     while let Some(Reverse(next_intersection)) = current_heap.pop() {
                         loop {
@@ -259,6 +258,7 @@ impl Painter for PngPainter {
             pixels.extend(wall_pixels);
         }
 
+        println!("Finished preparing of ways. Now preparing to draw any other nodes.");
         nid_to_node_data
             .values()
             // Filter out nodes we've already drawn through the ways
@@ -339,8 +339,10 @@ impl Painter for PngPainter {
             });
 
         // sort pixels by z-index (ascending)
+        println!("Now sorting by z-index.");
         let instant = Instant::now();
-        pixels.sort_unstable_by(|a, b| {
+        // TODO: Remove all pixels where another pixel on the same position has a higher z-index
+        pixels.par_sort_unstable_by(|a, b| {
             let a_style_data = id_to_render_style
                 .get(&a.render_type.id())
                 .unwrap_or_else(|| {
@@ -355,7 +357,7 @@ impl Painter for PngPainter {
                 .unwrap_or_else(|| {
                     panic!(
                         "No render style found for element {:?} when comparing z-indexes!",
-                        a.render_type.id()
+                        b.render_type.id()
                     )
                 });
 
@@ -398,6 +400,9 @@ impl Painter for PngPainter {
         // order is changed to account for rotating by 270 degrees
         let mut image = image::ImageBuffer::new(image_height, image_width);
 
+        println!("Now drawing {} pixels to canvas.", pixels.len());
+        let instant = Instant::now();
+
         for (id, render_pixel, pixel_x, pixel_y) in pixels
             .iter()
             .map(|render_pixel| {
@@ -437,6 +442,12 @@ impl Painter for PngPainter {
 
             image.put_pixel(pixel_x, pixel_y, image::Rgb([r, g, b]));
         }
+
+        println!("Drawing took {:.2?}", instant.elapsed());
+
+        // release some memory asap
+        drop(pixels);
+        drop(id_to_render_style);
 
         // save image and return the filename
         let file_name = format!(

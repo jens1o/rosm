@@ -11,7 +11,7 @@ node {
     color: beige;
 }
 
-way[natural=water] {
+way[natural=water], way[landuse=reservoir] {
     color: #aad3df;
     fill-color: #aad3df;
     z-index: 10;
@@ -42,6 +42,8 @@ way[highway] {
 
 way[railway] {
     z-index: 10000;
+    color: #e4b0db;
+    fill-color: #e4b0db;
 }
 
 way[aeroway=runway] {
@@ -80,13 +82,17 @@ way[highway=residential] {
     width: 2;
 }
 
-way[highway=service] {
+way[highway=service], way[highway=unclassified] {
     color: #fff;
 }
 
 way[highway=track] {
     z-index: 10;
     color: #ac8331;
+}
+
+way[highway=path] {
+    color: #fa8173;
 }
 
 way[power=line] {
@@ -111,7 +117,7 @@ way[amenity=parking] {
 }
 
 way[building] {
-    color: #d9d0c9;
+    color: #c4bdb9;
     fill-color: #d9d0c9;
     z-index: 100;
 }
@@ -127,10 +133,20 @@ way[power] {
     z-index: 1000;
 }
 
-way[leisure=park] {
-    color: #c8facc;
+way[leisure=park], way[leisure=playground] {
+    color: #98db9d;
     fill-color: #c8facc;
     z-index: 10;
+}
+
+way[landuse=construction] {
+    color: #afaf95;
+    fill-color: #c7c7b4;
+}
+
+way[landuse=landfill] {
+    color: #9e9d77;
+    fill-color: #b6b592;
 }
 
 way[natural=bay] {
@@ -138,8 +154,20 @@ way[natural=bay] {
 }
 
 way[natural=wood], way[landuse=forest], way[landcover=trees] {
-    color: #add19e;
+    color: #9bc489;
+    fill-color: #add19e;
     z-index: 100;
+}
+
+way[landuse=grass], way[landcover=grass], way[landuse=meadow], way[natural=scrub] {
+    z-index: 100;
+    color: #9bbd7c;
+    fill-color: #cdebb0;
+}
+
+way[natural=scrub], way[natural="heath"] {
+    color: #b5b882;
+    fill-color: #d6d99f;
 }
 
 way[landuse=industrial] {
