@@ -165,7 +165,7 @@ way[landuse=grass], way[landcover=grass], way[landuse=meadow], way[natural=scrub
     fill-color: #cdebb0;
 }
 
-way[natural=scrub], way[natural="heath"] {
+way[natural=scrub], way[natural=heath] {
     color: #b5b882;
     fill-color: #d6d99f;
 }
