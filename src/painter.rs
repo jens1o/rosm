@@ -4,12 +4,14 @@ use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
 use kuchiki::{Node, NodeDataRef};
 use std::cmp::{self, Reverse};
 use std::collections::{BinaryHeap, HashMap};
+use std::num::NonZeroI64;
 use std::time::{self, Instant};
 
 #[derive(Clone, Copy)]
 pub struct RenderStyle {
     z_index: u16,
     color: cssparser::RGBA,
+    fill_color: cssparser::RGBA,
     width: Size,
 }
 
@@ -17,6 +19,7 @@ impl Default for RenderStyle {
     fn default() -> Self {
         RenderStyle {
             color: cssparser::RGBA::new(255, 255, 255, 0),
+            fill_color: cssparser::RGBA::new(0, 0, 0, 0),
             z_index: 0,
             width: Size(1.0),
         }
@@ -27,8 +30,8 @@ pub trait Painter {
     fn paint(
         &mut self,
         image_resolution_factor: f64,
-        nid_to_node_data: HashMap<i64, NodeData>,
-        wid_to_way_data: HashMap<i64, WayData>,
+        nid_to_node_data: HashMap<NonZeroI64, NodeData>,
+        wid_to_way_data: HashMap<NonZeroI64, WayData>,
         mapcss_rules: Vec<MapCssRule>,
     ) -> String;
 }
@@ -40,28 +43,48 @@ impl Painter for PngPainter {
     fn paint(
         &mut self,
         image_resolution_factor: f64,
-        nid_to_node_data: HashMap<i64, NodeData>,
-        wid_to_way_data: HashMap<i64, WayData>,
+        nid_to_node_data: HashMap<NonZeroI64, NodeData>,
+        wid_to_way_data: HashMap<NonZeroI64, WayData>,
         mapcss_rules: Vec<MapCssRule>,
     ) -> String {
-        // TODO: Use the structs and parse different fill-color
+        #[derive(PartialEq, Eq, Hash, Debug)]
+        enum ElementIDType {
+            Way(NonZeroI64),
+            Node(NonZeroI64),
+            // TODO: Relation(i64),
+        };
         enum RenderPixelType {
             /// This is just a single node referencing its ID
-            Node(u32),
+            Node(NonZeroI64),
             /// Represents a pixel of the border of this (either closed or open) way
-            WayBorder(u32),
+            WayBorder(NonZeroI64),
             /// This pixel represents a filling for the given (closed) way ID
-            Filling(u32),
+            Filling(NonZeroI64),
         }
+
+        impl RenderPixelType {
+            pub fn id(&self) -> ElementIDType {
+                use RenderPixelType::*;
+                match *self {
+                    Node(id) => ElementIDType::Node(id),
+                    WayBorder(id) => ElementIDType::Node(id),
+                    Filling(id) => ElementIDType::Way(id),
+                }
+            }
+        }
+
         struct RenderPixel {
-            render_type: RenderPixelType,
-            x: u32,
-            y: u32,
+            pub render_type: RenderPixelType,
+            pub x: u32,
+            pub y: u32,
         }
 
         // make a good guess for all the pixels
-        let mut pixels = Vec::with_capacity(wid_to_way_data.len() + nid_to_node_data.len());
-        let mut id_to_render_style = HashMap::with_capacity(nid_to_node_data.len());
+        let mut pixels: Vec<RenderPixel> =
+            Vec::with_capacity(wid_to_way_data.len() + nid_to_node_data.len());
+        // TODO: Refactor into two lists as the IDs are not unique (both a way and a node MAY have the same ID)
+        let mut id_to_render_style: HashMap<ElementIDType, RenderStyle> =
+            HashMap::with_capacity(nid_to_node_data.len());
 
         // TODO: Refactor into several methods
         for way in wid_to_way_data.values() {
@@ -79,9 +102,10 @@ impl Painter for PngPainter {
                         use MapCssPropertyDeclaration::*;
 
                         match rule_declaration {
-                            ZIndex(z_index) => render_style.z_index = *z_index,
                             Color(color) => render_style.color = *color,
+                            FillColor(fill_color) => render_style.fill_color = *fill_color,
                             Width(width) => render_style.width = *width,
+                            ZIndex(z_index) => render_style.z_index = *z_index,
                         }
                     }
                 }
@@ -92,11 +116,13 @@ impl Painter for PngPainter {
                 continue;
             }
 
+            id_to_render_style.insert(ElementIDType::Way(way.wid), render_style);
+
             let nodes = way
                 .refs
                 .iter()
                 .inspect(|nid| {
-                    id_to_render_style.insert(**nid, render_style);
+                    id_to_render_style.insert(ElementIDType::Node(**nid), render_style);
                 })
                 .map(|nid| nid_to_node_data.get(nid).unwrap())
                 .collect::<Vec<_>>();
@@ -121,30 +147,34 @@ impl Painter for PngPainter {
 
                         let mut distance_to_origin_pixel = render_style.width.0 as u32;
 
-                        wall_pixels.push((node_a.nid, x, y));
+                        wall_pixels.push(RenderPixel {
+                            render_type: RenderPixelType::WayBorder(node_a.nid),
+                            x,
+                            y,
+                        });
 
                         while distance_to_origin_pixel > 1 {
                             distance_to_origin_pixel -= 1;
-                            pixels.push((
-                                node_a.nid,
-                                x + distance_to_origin_pixel,
-                                y + distance_to_origin_pixel,
-                            ));
-                            pixels.push((
-                                node_a.nid,
-                                x + distance_to_origin_pixel,
-                                y - distance_to_origin_pixel,
-                            ));
-                            pixels.push((
-                                node_a.nid,
-                                x - distance_to_origin_pixel,
-                                y + distance_to_origin_pixel,
-                            ));
-                            pixels.push((
-                                node_a.nid,
-                                x - distance_to_origin_pixel,
-                                y - distance_to_origin_pixel,
-                            ));
+                            pixels.push(RenderPixel {
+                                render_type: RenderPixelType::WayBorder(node_a.nid),
+                                x: x + distance_to_origin_pixel,
+                                y: y + distance_to_origin_pixel,
+                            });
+                            pixels.push(RenderPixel {
+                                render_type: RenderPixelType::WayBorder(node_a.nid),
+                                x: x + distance_to_origin_pixel,
+                                y: y - distance_to_origin_pixel,
+                            });
+                            pixels.push(RenderPixel {
+                                render_type: RenderPixelType::WayBorder(node_a.nid),
+                                x: x - distance_to_origin_pixel,
+                                y: y + distance_to_origin_pixel,
+                            });
+                            pixels.push(RenderPixel {
+                                render_type: RenderPixelType::WayBorder(node_a.nid),
+                                x: x - distance_to_origin_pixel,
+                                y: y - distance_to_origin_pixel,
+                            });
                         }
                     }
                 } else {
@@ -154,7 +184,7 @@ impl Painter for PngPainter {
 
             // fill the way if there is a background color given
             if way.is_closed() {
-                let (first_nid, _x_sample, y_sample) =
+                let RenderPixel { y: y_sample, .. } =
                     &wall_pixels.iter().next().unwrap_or_else(|| {
                         panic!("At least one pixel needs to be drawn (way #{})!", way.wid)
                     });
@@ -165,7 +195,7 @@ impl Painter for PngPainter {
                 let mut intersection_y_points: HashMap<u32, BinaryHeap<Reverse<u32>>> =
                     HashMap::new();
 
-                for (_, x, y) in &wall_pixels {
+                for RenderPixel { x, y, .. } in &wall_pixels {
                     if y_max < y {
                         y_max = y;
                     }
@@ -204,10 +234,13 @@ impl Painter for PngPainter {
                     while let Some(Reverse(next_intersection)) = current_heap.pop() {
                         loop {
                             if is_drawing {
-                                pixels.push((*first_nid, x, y));
+                                pixels.push(RenderPixel {
+                                    render_type: RenderPixelType::Filling(way.wid),
+                                    x,
+                                    y,
+                                });
                             }
 
-                            // dbg!(x, next_intersection);
                             if x == next_intersection {
                                 is_drawing = !is_drawing;
                                 break;
@@ -241,9 +274,10 @@ impl Painter for PngPainter {
                             use MapCssPropertyDeclaration::*;
 
                             match rule_declaration {
-                                ZIndex(z_index) => render_style.z_index = *z_index,
                                 Color(color) => render_style.color = *color,
+                                FillColor(fill_color) => render_style.fill_color = *fill_color,
                                 Width(width) => render_style.width = *width,
+                                ZIndex(z_index) => render_style.z_index = *z_index,
                             }
                         }
                     }
@@ -268,58 +302,70 @@ impl Painter for PngPainter {
                 {
                     let mut distance_to_origin_pixel = render_style.width.0 as u32;
 
-                    pixels.push((node_data.nid, x, y));
+                    pixels.push(RenderPixel {
+                        render_type: RenderPixelType::Node(node_data.nid),
+                        x,
+                        y,
+                    });
 
                     while distance_to_origin_pixel > 1 {
                         distance_to_origin_pixel -= 1;
-                        pixels.push((
-                            node_data.nid,
-                            x + distance_to_origin_pixel,
-                            y + distance_to_origin_pixel,
-                        ));
-                        pixels.push((
-                            node_data.nid,
-                            x + distance_to_origin_pixel,
-                            y - distance_to_origin_pixel,
-                        ));
-                        pixels.push((
-                            node_data.nid,
-                            x - distance_to_origin_pixel,
-                            y + distance_to_origin_pixel,
-                        ));
-                        pixels.push((
-                            node_data.nid,
-                            x - distance_to_origin_pixel,
-                            y - distance_to_origin_pixel,
-                        ));
+                        pixels.push(RenderPixel {
+                            render_type: RenderPixelType::Node(node_data.nid),
+                            x: x + distance_to_origin_pixel,
+                            y: y + distance_to_origin_pixel,
+                        });
+                        pixels.push(RenderPixel {
+                            render_type: RenderPixelType::Node(node_data.nid),
+                            x: x + distance_to_origin_pixel,
+                            y: y - distance_to_origin_pixel,
+                        });
+                        pixels.push(RenderPixel {
+                            render_type: RenderPixelType::Node(node_data.nid),
+                            x: x - distance_to_origin_pixel,
+                            y: y + distance_to_origin_pixel,
+                        });
+                        pixels.push(RenderPixel {
+                            render_type: RenderPixelType::Node(node_data.nid),
+                            x: x - distance_to_origin_pixel,
+                            y: y - distance_to_origin_pixel,
+                        });
                     }
                 }
 
-                id_to_render_style.insert(node_data.nid, render_style);
+                id_to_render_style.insert(ElementIDType::Node(node_data.nid), render_style);
             });
 
         // sort pixels by z-index (ascending)
         let instant = Instant::now();
         pixels.sort_unstable_by(|a, b| {
-            let a_style_data = id_to_render_style.get(&a.0).unwrap_or_else(|| {
-                panic!(
-                    "No render style found for node #{} when comparing z-indexes!",
-                    a.0
-                )
-            });
+            let a_style_data = id_to_render_style
+                .get(&a.render_type.id())
+                .unwrap_or_else(|| {
+                    panic!(
+                        "No render style found for element {:?} when comparing z-indexes!",
+                        a.render_type.id()
+                    )
+                });
 
-            let b_style_data = id_to_render_style.get(&b.0).unwrap_or_else(|| {
-                panic!(
-                    "No render style found for node #{} when comparing z-indexes!",
-                    b.0
-                )
-            });
+            let b_style_data = id_to_render_style
+                .get(&b.render_type.id())
+                .unwrap_or_else(|| {
+                    panic!(
+                        "No render style found for element {:?} when comparing z-indexes!",
+                        a.render_type.id()
+                    )
+                });
 
             a_style_data.z_index.cmp(&b_style_data.z_index)
         });
         println!("Sorting by z-index took {:.2?}", instant.elapsed());
 
-        let (_, x_sample, y_sample) = &pixels
+        let RenderPixel {
+            x: x_sample,
+            y: y_sample,
+            ..
+        } = &pixels
             .iter()
             .next()
             .expect("At least one pixel needs to be drawn!");
@@ -330,7 +376,7 @@ impl Painter for PngPainter {
         let mut max_y = y_sample;
 
         let instant = Instant::now();
-        for (_, x, y) in pixels.iter() {
+        for RenderPixel { x, y, .. } in pixels.iter() {
             min_x = cmp::min(x, min_x);
             max_x = cmp::max(x, max_x);
 
@@ -350,19 +396,42 @@ impl Painter for PngPainter {
         // order is changed to account for rotating by 270 degrees
         let mut image = image::ImageBuffer::new(image_height, image_width);
 
-        for (nid, pixel_x, pixel_y) in pixels
+        for (id, render_pixel, pixel_x, pixel_y) in pixels
             .iter()
-            .map(|(nid, pixel_x, pixel_y)| (nid, pixel_x - min_x, pixel_y - min_y))
+            .map(|render_pixel| {
+                (
+                    render_pixel.render_type.id(),
+                    render_pixel,
+                    render_pixel.x - min_x,
+                    render_pixel.y - min_y,
+                )
+            })
             // rotate by 270 degress
-            .map(|(nid, pixel_x, pixel_y)| (nid, pixel_y, image_width - 1 - pixel_x))
+            .map(|(id, render_pixel, pixel_x, pixel_y)| {
+                (id, render_pixel, pixel_y, image_width - 1 - pixel_x)
+            })
         {
             let render_style = id_to_render_style
-                .get(&nid)
-                .expect("No render style found for node!");
+                .get(&id)
+                .expect("No render style found for element!");
 
-            let r = render_style.color.red;
-            let g = render_style.color.green;
-            let b = render_style.color.blue;
+            let r;
+            let g;
+            let b;
+
+            if let RenderPixelType::Filling(_) = render_pixel.render_type {
+                let cssparser::RGBA {
+                    red, green, blue, ..
+                } = render_style.fill_color;
+
+                r = red;
+                g = green;
+                b = blue;
+            } else {
+                r = render_style.color.red;
+                g = render_style.color.green;
+                b = render_style.color.blue;
+            }
 
             image.put_pixel(pixel_x, pixel_y, image::Rgb([r, g, b]));
         }

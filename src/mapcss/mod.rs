@@ -25,8 +25,8 @@ struct MapCssParser;
 #[derive(Debug)]
 pub enum MapCssPropertyDeclaration {
     ZIndex(u16),
-    // Colorcode
     Color(cssparser::RGBA),
+    FillColor(cssparser::RGBA),
     Width(Size),
 }
 
@@ -107,6 +107,8 @@ impl<'i> cssparser::DeclarationParser<'i> for PropertyDeclarationParser {
         match name.to_ascii_lowercase().as_str() {
             "color" => parse_rgba(&mut input)
                 .and_then(|rgba| Ok(vec![MapCssPropertyDeclaration::Color(rgba)])),
+            "fill-color" => parse_rgba(&mut input)
+                .and_then(|rgba| Ok(vec![MapCssPropertyDeclaration::FillColor(rgba)])),
             "width" => parse_size(&mut input)
                 .and_then(|width| Ok(vec![MapCssPropertyDeclaration::Width(width)])),
             "z-index" => parse_z_index(&mut input)

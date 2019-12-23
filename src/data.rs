@@ -1,5 +1,6 @@
 use kuchiki::{Attribute, ExpandedName, NodeRef};
 use markup5ever::{LocalName, Namespace, QualName};
+use std::num::NonZeroI64;
 
 pub trait ToNodeRef {
     fn node_ref(&self) -> NodeRef {
@@ -18,11 +19,11 @@ pub trait ToNodeRef {
 /// containing application-important data over nodes.
 #[derive(Debug)]
 pub struct NodeData {
-    pub nid: i64,
+    pub nid: NonZeroI64,
     pub lat: f64,
     pub lon: f64,
     pub tags: Vec<(String, String)>,
-    pub way: Option<i64>,
+    pub way: Option<NonZeroI64>,
 }
 
 impl ToNodeRef for NodeData {
@@ -48,9 +49,9 @@ impl ToNodeRef for NodeData {
 
 #[derive(Debug)]
 pub struct WayData {
-    pub wid: i64,
+    pub wid: NonZeroI64,
     pub tags: Vec<(String, String)>,
-    pub refs: Vec<i64>,
+    pub refs: Vec<NonZeroI64>,
 }
 
 impl WayData {

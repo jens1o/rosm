@@ -123,6 +123,7 @@ way[natural=wood], way[landuse=forest], way[landcover=trees] {
 
 way[landuse=industrial] {
     color: #ebdbe8;
+    fill-color: pink;
     z-index: 10;
 }
 

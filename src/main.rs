@@ -69,6 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     dbg!(std::mem::size_of::<crate::data::NodeData>());
     dbg!(std::mem::size_of::<crate::data::WayData>());
+    dbg!(std::mem::size_of::<crate::painter::RenderStyle>());
 
     println!("Extracting data!");
 

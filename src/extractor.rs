@@ -1,22 +1,25 @@
 use crate::data::{NodeData, WayData};
 use std::collections::HashMap;
+use std::num::NonZeroI64;
 
 pub fn extract_data_from_filepath(
     file_path: String,
-) -> Result<(HashMap<i64, NodeData>, HashMap<i64, WayData>), osmpbf::Error> {
+) -> Result<(HashMap<NonZeroI64, NodeData>, HashMap<NonZeroI64, WayData>), osmpbf::Error> {
     let reader = osmpbf::ElementReader::from_path(file_path)?;
 
-    let mut nid_to_node_data: HashMap<i64, NodeData> = HashMap::new();
-    let mut wid_to_way_data: HashMap<i64, WayData> = HashMap::new();
+    let mut nid_to_node_data: HashMap<NonZeroI64, NodeData> = HashMap::new();
+    let mut wid_to_way_data: HashMap<NonZeroI64, WayData> = HashMap::new();
 
     reader.for_each(|element| {
+        // TODO: Parse relations
         if let osmpbf::Element::Node(_) = element {
             panic!("OSM-Nodes not supported (yet), use data extractions with DenseNodes instead!");
         } else if let osmpbf::Element::DenseNode(node) = element {
             nid_to_node_data.insert(
-                node.id,
+                NonZeroI64::new(node.id).expect("Node id must not zero!"),
                 NodeData {
-                    nid: node.id,
+                    // unwrap is safe because we would panic in inserting the key into this hashmap already
+                    nid: NonZeroI64::new(node.id).unwrap(),
                     tags: node
                         .tags()
                         .map(|(k, v)| (k.to_string(), v.to_string()))
@@ -30,14 +33,17 @@ pub fn extract_data_from_filepath(
             let wid = way.id();
 
             wid_to_way_data.insert(
-                wid,
+                NonZeroI64::new(wid).expect("Way id must not be zero!"),
                 WayData {
-                    wid,
+                    wid: NonZeroI64::new(wid).unwrap(),
                     tags: way
                         .tags()
                         .map(|(k, v)| (k.to_string(), v.to_string()))
                         .collect::<Vec<_>>(),
-                    refs: way.refs().collect::<Vec<_>>(),
+                    refs: way
+                        .refs()
+                        .map(|x| NonZeroI64::new(x).expect("Node id must not be zero"))
+                        .collect::<Vec<_>>(),
                 },
             );
         }
