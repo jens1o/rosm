@@ -71,6 +71,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     dbg!(std::mem::size_of::<crate::data::WayData>());
     dbg!(std::mem::size_of::<crate::painter::RenderStyle>());
 
+    println!("Parsing mapcss.");
+    let mapcss_rules = mapcss::parse_mapcss(include_str!("../include/mapcss.css"));
+
     println!("Extracting data!");
 
     let instant = Instant::now();
@@ -84,9 +87,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         nid_to_node_data.len(),
         wid_to_way_data.len()
     );
-
-    println!("Parsing mapcss.");
-    let mapcss_rules = mapcss::parse_mapcss(include_str!("../include/mapcss.css"));
 
     println!("Now painting the picture!");
     print_peak_memory_usage();
