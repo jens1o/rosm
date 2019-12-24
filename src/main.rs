@@ -71,6 +71,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     dbg!(std::mem::size_of::<crate::data::NodeData>());
     dbg!(std::mem::size_of::<crate::data::WayData>());
     dbg!(std::mem::size_of::<crate::painter::RenderStyle>());
+    dbg!(std::mem::size_of::<crate::painter::RenderPixelGuard>());
+    dbg!(std::mem::size_of::<
+        std::collections::HashMap<(u32, u32), crate::painter::RenderPixelGuard>,
+    >());
 
     println!("Parsing mapcss.");
     let mapcss_rules = mapcss::parse_mapcss(include_str!("../include/mapcss.css"));
@@ -79,7 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
-        extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
+        extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"))?;
 
     print_peak_memory_usage();
     println!(

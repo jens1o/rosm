@@ -53,14 +53,14 @@ pub trait Painter {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone)]
-enum ElementIDType {
+pub enum ElementIDType {
     Way(NonZeroI64),
     Node(NonZeroI64),
     Relation(NonZeroI64),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Copy, Clone)]
-enum RelationOrWayID {
+pub enum RelationOrWayID {
     Relation(NonZeroI64),
     Way(NonZeroI64),
 }
@@ -76,7 +76,7 @@ impl RelationOrWayID {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Copy, Clone)]
-enum RenderPixelType {
+pub enum RenderPixelType {
     /// This pixel represents a filling for the given (closed) way ID
     Filling(RelationOrWayID),
     /// Represents a pixel of the border of this (either closed or open) way
@@ -97,13 +97,35 @@ impl RenderPixelType {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Copy, Clone)]
-struct RenderPixel {
+pub struct RenderPixel {
     // DO NOT change the order of the struct properties, as they are relevant to the ordering
     // we want the highest z-index only
     pub z_index: u16,
     pub render_type: RenderPixelType,
-    pub x: u32,
-    pub y: u32,
+}
+
+#[derive(Default)]
+pub struct RenderPixelGuard {
+    current_pixel: Option<RenderPixel>,
+}
+
+impl RenderPixelGuard {
+    pub fn update_pixel(&mut self, new_pixel: RenderPixel) {
+        match &self.current_pixel {
+            None => self.current_pixel = Some(new_pixel),
+            Some(pixel) => {
+                if pixel.z_index <= new_pixel.z_index {
+                    self.current_pixel = Some(new_pixel);
+                }
+            }
+        }
+    }
+
+    pub fn get_pixel(&self) -> &RenderPixel {
+        self.current_pixel
+            .as_ref()
+            .expect("Trying to get Pixel that has not been initalized yet!")
+    }
 }
 
 #[derive(Default)]
@@ -119,8 +141,8 @@ impl Painter for PngPainter {
         mapcss_rules: Vec<MapCssRule>,
     ) -> String {
         // make a good guess for all the pixels
-        let mut pixels: Vec<RenderPixel> =
-            Vec::with_capacity((wid_to_way_data.len() + nid_to_node_data.len()) * 12);
+        let mut pixels: HashMap<(u32, u32), RenderPixelGuard> =
+            HashMap::with_capacity((wid_to_way_data.len() + nid_to_node_data.len()) * 12);
         let mut id_to_render_style: HashMap<ElementIDType, RenderStyle> =
             HashMap::with_capacity(nid_to_node_data.len());
 
@@ -148,7 +170,7 @@ impl Painter for PngPainter {
                 .map(|nid| nid_to_node_data.get(nid).unwrap())
                 .collect::<Vec<_>>();
 
-            let mut wall_pixels: Vec<RenderPixel> = Vec::new();
+            let mut wall_pixels: HashMap<(u32, u32), RenderPixelGuard> = HashMap::new();
 
             nodes[..].windows(2).for_each(|node_list| {
                 if let [node_a, node_b] = node_list {
@@ -168,102 +190,111 @@ impl Painter for PngPainter {
 
                         let mut distance_to_origin_pixel = render_style.width.0 as u32;
 
-                        wall_pixels.push(RenderPixel {
-                            render_type: if render_style.width.0 < 1.0 {
-                                RenderPixelType::WayBorder(way.wid)
-                            } else {
-                                RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                            },
-                            z_index: render_style.z_index,
-                            x,
-                            y,
-                        });
+                        wall_pixels
+                            .entry((x, y))
+                            .or_default()
+                            .update_pixel(RenderPixel {
+                                render_type: if render_style.width.0 < 1.0 {
+                                    RenderPixelType::WayBorder(way.wid)
+                                } else {
+                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                },
+                                z_index: render_style.z_index,
+                            });
 
                         // true when we are at the most outern position
                         let mut is_border = true;
 
                         while distance_to_origin_pixel > 1 {
                             distance_to_origin_pixel -= 1;
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x: x + distance_to_origin_pixel,
-                                y,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x,
-                                y: y + distance_to_origin_pixel,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x: x - distance_to_origin_pixel,
-                                y,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x,
-                                y: y - distance_to_origin_pixel,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x: x - distance_to_origin_pixel,
-                                y: y - distance_to_origin_pixel,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x: x - distance_to_origin_pixel,
-                                y: y + distance_to_origin_pixel,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x: x + distance_to_origin_pixel,
-                                y: y - distance_to_origin_pixel,
-                            });
-                            pixels.push(RenderPixel {
-                                render_type: if is_border {
-                                    RenderPixelType::WayBorder(node_a.nid)
-                                } else {
-                                    RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
-                                },
-                                z_index: render_style.z_index,
-                                x: x + distance_to_origin_pixel,
-                                y: y + distance_to_origin_pixel,
-                            });
+                            pixels
+                                .entry((x + distance_to_origin_pixel, y))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x, y + distance_to_origin_pixel))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x - distance_to_origin_pixel, y))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x, y - distance_to_origin_pixel))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x - distance_to_origin_pixel, y - distance_to_origin_pixel))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x - distance_to_origin_pixel, y + distance_to_origin_pixel))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x + distance_to_origin_pixel, y - distance_to_origin_pixel))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
+                            pixels
+                                .entry((x + distance_to_origin_pixel, y + distance_to_origin_pixel))
+                                .or_default()
+                                .update_pixel(RenderPixel {
+                                    render_type: if is_border {
+                                        RenderPixelType::WayBorder(node_a.nid)
+                                    } else {
+                                        RenderPixelType::Filling(RelationOrWayID::Way(way.wid))
+                                    },
+                                    z_index: render_style.z_index,
+                                });
 
                             if is_border {
                                 is_border = false;
@@ -277,7 +308,7 @@ impl Painter for PngPainter {
 
             // fill the way if the way is closed
             if way.is_closed() {
-                let RenderPixel { y, .. } = &wall_pixels.iter().next().unwrap_or_else(|| {
+                let (_x, y) = &wall_pixels.keys().next().unwrap_or_else(|| {
                     panic!("At least one pixel needs to be drawn (way #{})?!", way.wid)
                 });
 
@@ -287,7 +318,7 @@ impl Painter for PngPainter {
                 let mut intersection_y_points: HashMap<u32, BinaryHeap<Reverse<u32>>> =
                     HashMap::new();
 
-                for RenderPixel { x, y, .. } in wall_pixels.iter() {
+                for (x, y) in wall_pixels.keys() {
                     if y_max < y {
                         y_max = y;
                     }
@@ -322,13 +353,11 @@ impl Painter for PngPainter {
                     while let Some(Reverse(next_intersection)) = current_heap.pop() {
                         loop {
                             if is_drawing {
-                                pixels.push(RenderPixel {
+                                pixels.entry((x, y)).or_default().update_pixel(RenderPixel {
                                     render_type: RenderPixelType::Filling(RelationOrWayID::Way(
                                         way.wid,
                                     )),
                                     z_index: render_style.z_index,
-                                    x,
-                                    y,
                                 });
                             }
 
@@ -377,11 +406,9 @@ impl Painter for PngPainter {
                 )
                 .map(|(x, y)| (x as u32, y as u32))
                 {
-                    pixels.push(RenderPixel {
+                    pixels.entry((x, y)).or_default().update_pixel(RenderPixel {
                         render_type: RenderPixelType::Node(node_data.nid),
                         z_index: render_style.z_index,
-                        x,
-                        y,
                     });
 
                     pixels.extend(get_distance_to_origin_pixels(
@@ -395,8 +422,8 @@ impl Painter for PngPainter {
                 }
             });
 
-        let RenderPixel { x, y, .. } = pixels
-            .iter()
+        let (x, y) = pixels
+            .keys()
             .copied()
             .next()
             .expect("At least one pixel needs to be drawn!");
@@ -407,7 +434,7 @@ impl Painter for PngPainter {
         let mut max_y = y;
 
         let instant = Instant::now();
-        for RenderPixel { x, y, .. } in pixels.iter() {
+        for (x, y) in pixels.keys() {
             min_x = cmp::min(*x, min_x);
             max_x = cmp::max(*x, max_x);
 
@@ -418,13 +445,6 @@ impl Painter for PngPainter {
         dbg!(min_x, max_x);
         dbg!(min_y, max_y);
         println!("Finding the min/max values took {:.2?}", instant.elapsed());
-
-        // sort pixels by z-index (ascending)
-        println!("Now sorting by z-index.");
-        let instant = Instant::now();
-        // TODO: Remove all pixels where another pixel on the same position has a higher z-index
-        pixels.par_sort_unstable_by(|a, b| a.z_index.cmp(&b.z_index));
-        println!("Sorting by z-index took {:.2?}", instant.elapsed());
 
         let image_width = crate::round_up_to((max_x - min_x) + 1, crate::IMAGE_PART_SIZE);
         let image_height = crate::round_up_to((max_y - min_y) + 1, crate::IMAGE_PART_SIZE);
@@ -474,13 +494,9 @@ impl Painter for PngPainter {
 
         for (id, render_pixel, pixel_x, pixel_y) in pixels
             .iter()
-            .map(|pixel| {
-                (
-                    pixel.render_type.id(),
-                    pixel,
-                    pixel.x - min_x,
-                    pixel.y - min_y,
-                )
+            .map(|((x, y), pixel_guard)| {
+                let pixel = pixel_guard.get_pixel();
+                (pixel.render_type.id(), pixel, x - min_x, y - min_y)
             })
             // rotate by 270 degress
             .map(|(id, render_pixel, pixel_x, pixel_y)| {
@@ -569,59 +585,80 @@ fn get_distance_to_origin_pixels(
     mut distance_to_origin_pixel: u32,
     render_pixel_type: RenderPixelType,
     z_index: u16,
-) -> Vec<RenderPixel> {
-    let mut pixels = Vec::with_capacity(distance_to_origin_pixel as usize * 8);
+) -> HashMap<(u32, u32), RenderPixelGuard> {
+    let mut pixels: HashMap<(u32, u32), RenderPixelGuard> =
+        HashMap::with_capacity(distance_to_origin_pixel as usize * 8);
 
     while distance_to_origin_pixel > 1 {
         distance_to_origin_pixel -= 1;
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x + distance_to_origin_pixel,
-            y: start_y,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x,
-            y: start_y + distance_to_origin_pixel,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x - distance_to_origin_pixel,
-            y: start_y,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x,
-            y: start_y - distance_to_origin_pixel,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x - distance_to_origin_pixel,
-            y: start_y - distance_to_origin_pixel,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x - distance_to_origin_pixel,
-            y: start_y + distance_to_origin_pixel,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x + distance_to_origin_pixel,
-            y: start_y - distance_to_origin_pixel,
-        });
-        pixels.push(RenderPixel {
-            render_type: render_pixel_type.clone(),
-            z_index,
-            x: start_x + distance_to_origin_pixel,
-            y: start_y + distance_to_origin_pixel,
-        });
+        pixels
+            .entry((start_x + distance_to_origin_pixel, start_y))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((start_x, start_y + distance_to_origin_pixel))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((start_x - distance_to_origin_pixel, start_y))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((start_x, start_y - distance_to_origin_pixel))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((
+                start_x - distance_to_origin_pixel,
+                start_y - distance_to_origin_pixel,
+            ))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((
+                start_x - distance_to_origin_pixel,
+                start_y + distance_to_origin_pixel,
+            ))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((
+                start_x + distance_to_origin_pixel,
+                start_y - distance_to_origin_pixel,
+            ))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
+        pixels
+            .entry((
+                start_x + distance_to_origin_pixel,
+                start_y + distance_to_origin_pixel,
+            ))
+            .or_default()
+            .update_pixel(RenderPixel {
+                render_type: render_pixel_type.clone(),
+                z_index,
+            });
     }
 
     pixels
