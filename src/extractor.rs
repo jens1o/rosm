@@ -77,7 +77,7 @@ pub fn extract_data_from_filepath(
                 },
             );
         } else if let osmpbf::Element::Way(way) = element {
-            let wid = way.id();
+            let wid = NonZeroI64::new(way.id()).expect("Way id must not be zero!");
             let ref_len = way.refs().len();
 
             // ignore invalid ways
@@ -96,9 +96,9 @@ pub fn extract_data_from_filepath(
             }
 
             wid_to_way_data.insert(
-                NonZeroI64::new(wid).expect("Way id must not be zero!"),
+                wid,
                 WayData {
-                    wid: NonZeroI64::new(wid).unwrap(),
+                    wid,
                     tags: way
                         .tags()
                         .map(|(k, v)| (k.to_string(), v.to_string()))

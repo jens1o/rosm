@@ -56,7 +56,7 @@ pub trait Painter {
 enum ElementIDType {
     Way(NonZeroI64),
     Node(NonZeroI64),
-    Relation(i64),
+    Relation(NonZeroI64),
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Copy, Clone)]
