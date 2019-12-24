@@ -21,7 +21,7 @@ way[natural=water], way[landuse=reservoir], way[landuse=basin] {
     z-index: 10;
 }
 
-way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain], way[waterway=stream] {
+way[type=waterway], way[waterway=river], way[waterway=canal], way[waterway=drain], way[waterway=stream], way[waterway=ditch] {
     width: 10;
     color: #aad3df;
     fill-color: #aad3df;
@@ -40,7 +40,7 @@ way[waterway=drain] {
     width: 2;
 }
 
-way[waterway=stream] {
+way[waterway=stream], way[waterway=ditch] {
     width: 1;
 }
 
@@ -134,7 +134,7 @@ node[highway=turning_circle] {
     width: 3;
 }
 
-way[highway=path] {
+way[highway=path], way[highway=footway] {
     color: #fa8173;
     fill-color: #00000000;
 }

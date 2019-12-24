@@ -67,6 +67,7 @@ where
 fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
+    dbg!(std::mem::size_of::<crate::data::RelationData>());
     dbg!(std::mem::size_of::<crate::data::NodeData>());
     dbg!(std::mem::size_of::<crate::data::WayData>());
     dbg!(std::mem::size_of::<crate::painter::RenderStyle>());
@@ -77,8 +78,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Extracting data!");
 
     let instant = Instant::now();
-    let (nid_to_node_data, wid_to_way_data) =
-        extractor::extract_data_from_filepath(String::from("regbez-karlsruhe.osm.pbf"))?;
+    let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
+        extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
 
     print_peak_memory_usage();
     println!(
@@ -97,6 +98,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         IMAGE_RESOLUTION,
         nid_to_node_data,
         wid_to_way_data,
+        rid_to_relation_data,
         mapcss_rules,
     );
 

@@ -15,6 +15,26 @@ pub trait ToNodeRef {
     fn node_ref_local_name(&self) -> LocalName;
 }
 
+#[derive(Debug)]
+pub enum RelationMemberType {
+    Relation(NonZeroI64),
+    Node(NonZeroI64),
+    Way(NonZeroI64),
+}
+
+#[derive(Debug)]
+pub struct RelationMember {
+    pub member_type: RelationMemberType,
+    pub role: String,
+}
+
+#[derive(Debug)]
+pub struct RelationData {
+    pub rid: NonZeroI64,
+    pub tags: Vec<(String, String)>,
+    pub members: Vec<RelationMember>,
+}
+
 /// Holds an extract of the data from the Protobuf-file,
 /// containing application-important data over nodes.
 #[derive(Debug)]
