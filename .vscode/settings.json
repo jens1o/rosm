@@ -1,5 +1,6 @@
 {
     "css.lint.validProperties": [
         "fill-color"
-    ]
+    ],
+    "css.validate": false
 }

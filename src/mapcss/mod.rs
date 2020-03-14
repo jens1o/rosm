@@ -1,3 +1,4 @@
+pub mod selectors;
 pub mod style;
 
 use cssparser::CowRcStr;
@@ -75,8 +76,10 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for MapCssParser {
     ) -> Result<Self::Prelude, MapCssParseError<'i>> {
         let location = input.current_source_location();
         let position = input.position();
+        // advance until cssparser tries to parse a selector-kind of thing
         while input.next().is_ok() {}
-        kuchiki::Selectors::compile(input.slice_from(position))
+
+        kuchiki::Selectors::compile(dbg!(input.slice_from(position)))
             .map_err(|()| location.new_custom_error(MapCssError::InvalidSelector))
     }
 
