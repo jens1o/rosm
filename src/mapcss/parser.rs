@@ -310,6 +310,17 @@ fn handle_declaration(
         };
     }
 
+    macro_rules! to_bool {
+        () => {
+            // TODO: Catch error
+            match inner.as_span().as_str() {
+                "true" | "1" => true,
+                "false" | "0" => false,
+                _ => panic!(),
+            }
+        };
+    }
+
     macro_rules! to_color {
         () => {
             // TODO: Catch error
@@ -321,11 +332,34 @@ fn handle_declaration(
         };
     }
 
+    macro_rules! maybe_url_to_string {
+        () => {
+            // TODO: Catch error
+            if inner_rule == Rule::url {
+                let url_string = inner.into_inner().as_str();
+                url_string[1..url_string.len() - 1].to_owned()
+            } else if inner_rule == Rule::double_quoted_string
+                || inner_rule == Rule::single_quoted_string
+            {
+                let as_str = inner.as_span().as_str();
+                as_str[1..as_str.len() - 1].to_owned()
+            } else {
+                inner.as_span().as_str().to_owned()
+            }
+        };
+    }
+
+    use crate::mapcss::declaration::{
+        LinecapDeclarationVariant, LinejoinDeclarationVariant, TextPositionDeclarationVariant,
+    };
+
     Ok(match declaration_name.to_ascii_lowercase().as_str() {
         "title" => MapCssDeclaration::Title(to_text!()),
         "version" => MapCssDeclaration::Version(to_text!()),
         "description" => MapCssDeclaration::Description(to_text!()),
         "acknowledgement" => MapCssDeclaration::Acknowledgement(to_text!()),
+
+        "allow_overlap" => MapCssDeclaration::AllowOverlap(to_bool!()),
 
         "dashes" => {
             // TODO: Make sure that the syntax is right
@@ -343,6 +377,15 @@ fn handle_declaration(
 
         "text" => MapCssDeclaration::Text(to_text!()),
         "text-color" => MapCssDeclaration::TextColor(to_color!()),
+        "text-position" => MapCssDeclaration::TextPosition(match inner.as_span().as_str() {
+            "center" => TextPositionDeclarationVariant::Center,
+            "line" => TextPositionDeclarationVariant::Line,
+            _ => panic!(),
+        }),
+        "text-spacing" => MapCssDeclaration::TextSpacing(to_int!()),
+        "text-halo-color" => MapCssDeclaration::TextHaloColor(to_color!()),
+        "text-halo-radius" => MapCssDeclaration::TextHaloRadius(to_int!()),
+        "text-wrap-width" => MapCssDeclaration::TextWrapWidth(to_int!()),
 
         "background-color" => MapCssDeclaration::BackgroundColor(to_color!()),
         "color" => MapCssDeclaration::Color(to_color!()),
@@ -350,8 +393,28 @@ fn handle_declaration(
         "font-color" => MapCssDeclaration::FontColor(to_color!()),
         "font-family" => MapCssDeclaration::FontFamily(to_text!()),
 
+        "linecap" => MapCssDeclaration::Linecap(match inner.as_span().as_str() {
+            "none" => LinecapDeclarationVariant::None,
+            "round" => LinecapDeclarationVariant::Round,
+            "square" => LinecapDeclarationVariant::Square,
+            _ => panic!(),
+        }),
+
+        "linejoin" => MapCssDeclaration::Linejoin(match inner.as_span().as_str() {
+            "round" => LinejoinDeclarationVariant::Round,
+            "miter" => LinejoinDeclarationVariant::Miter,
+            "bevel" => LinejoinDeclarationVariant::Bevel,
+            _ => panic!(),
+        }),
+
         "fill-opacity" => MapCssDeclaration::FillOpacity(to_float!()),
         "fill-color" => MapCssDeclaration::FillColor(to_color!()),
+        "fill-image" => MapCssDeclaration::FillImage(maybe_url_to_string!()),
+
+        "icon-image" => MapCssDeclaration::IconImage(maybe_url_to_string!()),
+
+        "pattern-image" => MapCssDeclaration::PatternImage(maybe_url_to_string!()),
+
         "opacity" => MapCssDeclaration::Opacity(to_float!()),
         "width" => MapCssDeclaration::Width(to_float!()),
 

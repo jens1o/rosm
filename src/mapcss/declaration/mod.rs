@@ -16,10 +16,20 @@ pub enum MapCssDeclaration {
     Description(String),
     Acknowledgement(String),
 
+    Linecap(LinecapDeclarationVariant),
+    Linejoin(LinejoinDeclarationVariant),
+
+    AllowOverlap(bool),
+
     Dashes(Vec<IntSize>),
 
     Text(String),
     TextColor(RGBA),
+    TextPosition(TextPositionDeclarationVariant),
+    TextHaloColor(RGBA),
+    TextHaloRadius(IntSize),
+    TextWrapWidth(IntSize),
+    TextSpacing(IntSize),
 
     BackgroundColor(RGBA),
     Color(RGBA),
@@ -27,10 +37,52 @@ pub enum MapCssDeclaration {
     FontColor(RGBA),
     FontFamily(String),
 
+    IconImage(String),
+    PatternImage(String),
+
     Opacity(FloatSize),
     FillOpacity(FloatSize),
     FillColor(RGBA),
+    FillImage(String),
     Width(FloatSize),
 
     ZIndex(FloatSize),
+}
+
+#[derive(Debug)]
+pub enum LinecapDeclarationVariant {
+    None,
+    Round,
+    Square,
+}
+
+impl Default for LinecapDeclarationVariant {
+    fn default() -> Self {
+        LinecapDeclarationVariant::None
+    }
+}
+
+#[derive(Debug)]
+pub enum LinejoinDeclarationVariant {
+    Round,
+    Miter,
+    Bevel,
+}
+
+impl Default for LinejoinDeclarationVariant {
+    fn default() -> Self {
+        LinejoinDeclarationVariant::Round
+    }
+}
+
+#[derive(Debug)]
+pub enum TextPositionDeclarationVariant {
+    Center,
+    Line,
+}
+
+impl Default for TextPositionDeclarationVariant {
+    fn default() -> Self {
+        TextPositionDeclarationVariant::Center
+    }
 }

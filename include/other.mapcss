@@ -1,0 +1,3098 @@
+canvas {
+	background-color: #f1eee8;
+	default-points: false;
+	default-lines: false;
+}
+
+/* ===== Landuse ===== */
+
+/* Z-Index for all landusages */
+area[leisure],
+area[tourism],
+area[landuse],
+area[natural],
+area[military],
+area[tourism],
+area[power],
+area[amenity],
+area[aeroway],
+area[highway] {
+	z-index: -6;
+}
+
+/* Line opacity for all areas */
+area {
+	opacity: 0.4;
+}
+
+area|z13-[leisure=playground] {
+    fill-color: #ccfff1;
+    color: #666666;
+    width: 0.3;
+}
+
+area|z13-[tourism=camp_site],
+area|z13-[tourism=caravan_site],
+area|z13-[tourism=picnic_site] {
+    fill-color: #ccff99;
+    fill-opacity: 0.5;
+    color: #666666;
+    width: 0.3;
+}
+
+area|z10-[tourism=attraction] {
+    fill-color: #f2caea;
+}
+
+area|z11-[landuse=quarry] {
+    fill-image: "symbols/quarry2.png";
+    color: gray;
+    width: 0.5;
+}
+
+area|z10-12[landuse=vineyard] {
+    fill-color: #abdf96;
+}
+
+area|z10-[landuse=orchard] {
+    fill-image: "symbols/orchard.png";
+}
+
+area|z13-[landuse=vineyard] {
+    fill-image: "symbols/vineyard.png";
+}
+
+area|z10-14[landuse=cemetery],
+area|z10-14[landuse=grave_yard],
+area|z10-14[amenity=grave_yard] {
+    fill-color: #aacbaf;
+}
+
+area|z10-[landuse=residential] {
+    fill-color: #dddddd;
+}
+
+area|z12-[landuse=garages] {
+    fill-color: #999966;
+    fill-opacity: 0.2;
+}
+
+area|z10-[military=barracks] {
+    fill-color: #ff8f8f;
+}
+
+area|z10-13[landuse=field],
+area|z10-13[natural=field] {
+    fill-color: #666600;
+    fill-opacity: 0.2;
+}
+
+area|z14-[landuse=field],
+area|z14-[natural=field] {
+    fill-color: #666600;
+    fill-opacity: 0.2;
+    color: #666600;
+    opacity: 0.4;
+    width: 0.3;
+}
+
+area|z9-10[military=danger_area] {
+    fill-color: pink;
+    fill-opacity: 0.3;
+}
+
+area|z11-[military=danger_area] {
+    fill-image: "symbols/danger.png";
+}
+
+area|z14-[landuse=cemetery][religion=jewish],
+area|z14-[landuse=grave_yard][religion=jewish],
+area|z14-[amenity=grave_yard][religion=jewish] {
+    fill-image: "symbols/cemetery_jewish.18.png";
+}
+
+area|z14-[landuse=cemetery][religion=christian],
+area|z14-[landuse=grave_yard][religion=christian],
+area|z14-[amenity=grave_yard][religion=christian] {
+    fill-image: "symbols/grave_yard.png";
+}
+
+area|z14-[landuse=cemetery][religion!=christian][religion!=jewish],
+area|z14-[landuse=grave_yard][religion!=christian][religion!=jewish],
+area|z14-[amenity=grave_yard][religion!=christian][religion!=jewish] {
+    fill-image: "symbols/grave_yard_generic.png";
+}
+
+area|z10-[landuse=meadow],
+area|z10-[landuse=grass] {
+    fill-color: #cfeca8;
+}
+
+area|z10-[leisure=park],
+area|z10-[leisure=recreation_ground] {
+    fill-color: #b6fdb6;
+    fill-opacity: 0.6;
+}
+
+area|z10-[tourism=zoo] {
+    fill-image: "symbols/zoo.png";
+}
+
+area|z10-[leisure=common] {
+    fill-color: #cfeca8;
+}
+
+area|z10-[leisure=garden] {
+    fill-color: #cfeca8;
+}
+
+area|z10-[leisure=golf_course] {
+    fill-color: #b5e3b5;
+}
+
+area|z10-13[landuse=allotments] {
+    fill-color: #e5c7ab;
+}
+
+area|z14-[landuse=allotments] {
+    fill-image: "symbols/allotments.png";
+}
+
+area|z8-13[landuse=forest] {
+    fill-color: #8dc56c;
+}
+
+area|z14-[landuse=forest] {
+    fill-image: "symbols/forest.png";
+}
+
+area|z9-[landuse=farmyard] {
+    fill-color: #ddbf92;
+}
+
+area|z9-[landuse=farm],
+area|z9-[landuse=farmland] {
+    fill-color: #ead8bd;
+}
+
+area|z10-[landuse=recreation_ground],
+area|z10-[landuse=conservation] {
+    fill-color: #cfeca8;
+}
+
+area|z11-[landuse=village_green] {
+    fill-color: #cfeca8;
+}
+
+area|z10-[landuse=retail] {
+    fill-color: #f1dada;
+}
+
+area|z15-[landuse=retail] {
+    color: red;
+    width: 0.3;
+	opacity: 0.4;
+}
+
+area|z10-[landuse=industrial],
+area|z10-[landuse=railway] {
+    fill-color: #dfd1d6;
+}
+
+area|z10-11[power=station],
+area|z10-11[power=generator] {
+    fill-color: #bbbbbb;
+}
+
+area|z12-[power=station],
+area|z12-[power=generator] {
+    fill-color: #bbbbbb;
+    color: #555555;
+    width: 0.4;
+}
+
+area|z13-[power=sub_station] {
+    fill-color: #bbbbbb;
+    color: #555555;
+    width: 0.4;
+}
+
+area|z10-[landuse=commercial] {
+    fill-color: #efc8c8;
+}
+
+area|z10-[landuse=brownfield],
+area|z10-[landuse=landfill],
+area|z10-[landuse=greenfield],
+area|z10-[landuse=construction] {
+    fill-color: #9d9d6c;
+    fill-opacity: 0.7;
+}
+
+area|z8-[natural=wood],
+area|z8-[landuse=wood] {
+    fill-color: #aed1a0;
+}
+
+area|z8-[natural=desert] {
+    fill-color: #e3b57a;
+}
+
+area|z10-[natural=sand] {
+    fill-color: #ffdf88;
+}
+
+area|z10-[natural=heath] {
+    fill-color: #d6d99f;
+}
+
+area|z10-13[natural=scrub] {
+    fill-color: #b5e3b5;
+}
+
+area|z14-[natural=scrub] {
+    fill-image: "symbols/scrub.png";
+}
+
+area|z10-[amenity=university],
+area|z10-[amenity=college],
+area|z10-[amenity=school],
+area|z10-[amenity=hospital],
+area|z10-[amenity=kindergarten] {
+    fill-color: #f0f0d8;
+}
+
+area|z12-[amenity=university],
+area|z12-[amenity=college],
+area|z12-[amenity=school],
+area|z12-[amenity=hospital],
+area|z12-[amenity=kindergarten] {
+    color: brown;
+    width: 0.3;
+}
+
+area|z10-[amenity=parking] {
+    fill-color: #f7efb7;
+}
+
+area|z15-[amenity=parking] {
+    color: #eeeed1;
+    width: 0.3;
+}
+
+area|z12-[aeroway=apron] {
+    fill-color: #e9d1ff;
+}
+
+area|z12-[aeroway=aerodrome] {
+    fill-color: #cccccc;
+    fill-opacity: 0.2;
+    color: #555555;
+    width: 0.2;
+}
+
+area|z13-[natural=beach] {
+    fill-image: "symbols/beach.png";
+}
+
+area|z14-[highway=services],
+area|z14-[highway=rest_area] {
+    fill-color: #efc8c8;
+}
+
+area|z10-[leisure=sports_centre],
+area|z10-[leisure=stadium] {
+    fill-color: #33cc99;
+}
+
+area|z10-[leisure=track] {
+    fill-color: #74dcba;
+    color: #888888;
+    width: 0.5;
+}
+
+area|z10-[leisure=pitch] {
+    fill-color: #8ad3af;
+    color: #888888;
+    width: 0.5;
+}
+
+/* ===== Water ==== */
+
+/* Z-Index for all Water */
+area[waterway],
+area[natural=water],
+area[natural=lake],
+area[natural=mud],
+area[natural=bay],
+area[natural=land],
+area[landuse=basin],
+area[landuse=reservoir],
+way[waterway] {
+	z-index: -5;
+}
+
+area|z9-[waterway=dock],
+area|z9-[waterway=mill_pond],
+area|z9-[waterway=canal] {
+    fill-color: #b5d0d0;
+}
+
+area|z7-[landuse=basin] {
+    fill-color: #b5d0d0;
+}
+
+area|z6-[natural=lake],
+area|z6-[natural=water],
+area|z6-[landuse=reservoir],
+area|z6-[waterway=riverbank],
+area|z6-[landuse=water],
+area|z6-[natural=bay] {
+    fill-color: #b5d0d0;
+}
+
+area|z13-[natural=mud] {
+    fill-image: "symbols/mud.png";
+}
+
+area|z10-[natural=land] {
+    fill-color: #f2efe9;
+}
+
+way|z8[waterway=river] {
+    color: #b5d0d0;
+    width: 0.7;
+}
+
+way|z9[waterway=river] {
+    color: #b5d0d0;
+    width: 1.2;
+}
+
+way|z10-11[waterway=river] {
+    color: #b5d0d0;
+    width: 1.6;
+}
+
+way|z12[waterway=river] {
+    color: #b5d0d0;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+}
+
+way|z13[waterway=river] {
+    color: #b5d0d0;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+}
+
+way|z14[waterway=river] {
+    color: #b5d0d0;
+    linecap: round;
+    linejoin: round;
+    width: 5;
+}
+
+way|z15-16[waterway=river] {
+    color: #b5d0d0;
+    linecap: round;
+    linejoin: round;
+    width: 6;
+}
+
+way|z17[waterway=river] {
+    color: #b5d0d0;
+    linecap: round;
+    linejoin: round;
+    width: 10;
+}
+
+way|z18-[waterway=river] {
+    color: #b5d0d0;
+    linecap: round;
+    linejoin: round;
+    width: 12;
+}
+
+/* ===== Water Overlays ===== */
+
+area|z13-[natural=marsh],
+area|z13-[natural=wetland] {
+    fill-image: "symbols/marsh.png";
+    z-index: -3;  /* Custom Z-index for this overlay */
+}
+
+way|z13-[waterway][name] {
+	z-index: -3;
+	text-color: white;
+	text-position: line;
+	font-size: 10;
+	text: name;
+	text-color: #6699cc;
+    text-halo-radius: 1;
+	text-halo-color: white;
+    text-position: line;
+}
+
+/* ===== Landuse - Buildings ===== */
+
+/* Z-Index for all Buildings */
+area[building],
+area[aeroway=terminal] {
+	z-index: -4;
+}
+
+area|z12-[building] {
+	fill-color: #bca9a9;
+	fill-opacity: 0.9;
+}
+
+area|z16-[building!=residential][building!=house][building!=garage][building!=garages][building!=detached][building!=terrace][building!=apartments][building][building!=no][building!=station][building!=supermarket][railway!=station][amenity!=place_of_worship] {
+    color: #330066;
+    width: 0.2;
+}
+
+area|z12-[aeroway=terminal] {
+    fill-color: #cc99ff;
+}
+
+area|z14-[aeroway=terminal] {
+    color: #330066;
+    width: 0.2;
+}
+
+/* ==== Railways === */
+way|z12-14[railway=rail]												{ color: darkgray;  z-index: 3; width: 1; }
+way|z15-[railway=rail]												{ color: darkgray;  z-index: 3; width: 1; dashes: 5,3; }
+
+/* ===== Roads (highway=*) ===== */
+way[highway] {
+	z-index: 3;
+}
+
+way[highway][bridge][bridge!=no] {
+	z-index: 2000;  // z-index hack for bridges
+}
+
+way|z12[highway=motorway_link] {
+    color: #809bc0;
+    width: 0.5;
+	casing-color: #506077;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z13-14[highway=motorway_link] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: #506077;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z15-16[highway=motorway_link] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 6.5;
+	casing-color: #506077;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z17-[highway=motorway_link] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 9;
+	casing-color: #506077;
+    casing-linejoin: round;
+    casing-width: 1;
+}
+
+way|z12[highway=trunk_link] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 2.5;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13-14[highway=trunk_link] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 7;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z15-16[highway=trunk_link] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z17-[highway=trunk_link] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 15.5;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z12[highway=primary_link] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 2.5;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13-14[highway=primary_link] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 7;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z15-16[highway=primary_link] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z17-[highway=primary_link] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 15.5;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z12[highway=secondary_link] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13-14[highway=secondary_link] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 8;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z15-16[highway=secondary_link] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z17-[highway=secondary_link] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 15.5;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13[highway=tertiary_link] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 4.5;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z14[highway=tertiary_link] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 6;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z15-16[highway=tertiary_link] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 9.4;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.8;
+}
+
+way|z17-[highway=tertiary_link] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 13;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 1.5;
+}
+
+way|z12[highway=motorway] {
+    color: #809bc0;
+    width: 2;
+	casing-color: #506077;
+    casing-linejoin: round;
+	casing-width: 0.5;
+}
+
+way|z13-14[highway=motorway] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 5;
+	casing-color: #506077;
+    casing-linejoin: round;
+	casing-width: 0.75;
+}
+
+way|z15-16[highway=motorway] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 8.5;
+	casing-color: #506077;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z17-[highway=motorway] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #506077;
+    casing-linejoin: round;
+    casing-width: 1;
+}
+
+way|z12[highway=trunk] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 2.5;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13-14[highway=trunk] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 7;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z15-16[highway=trunk] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z17-[highway=trunk] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 15.5;
+	casing-color: #477147;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z11-12[highway=primary] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 2.5;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13-14[highway=primary] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 7;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z15-16[highway=primary] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z17-[highway=primary] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 15.5;
+	casing-color: #8d4346;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z12[highway=secondary] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z13-14[highway=secondary] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 8;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z15-16[highway=secondary] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 11;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z17-[highway=secondary] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 15.5;
+	casing-color: #a37b48;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z10-12[highway=tertiary],
+way|z10-12[highway=residential],
+way|z10-12[highway=unclassified],
+way|z10-12[highway=road] {
+    color: #bbbbbb;
+    width: 1;
+}
+
+way|z13[highway=road] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z14[highway=road] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z15[highway=road] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 6.5;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z16[highway=road] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 9.4;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.8;
+}
+
+way|z17-[highway=road] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 13;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 1.5;
+}
+
+way|z13[highway=residential],
+way|z13[highway=unclassified] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z14[highway=residential],
+way|z14[highway=unclassified] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z15[highway=residential],
+way|z15[highway=unclassified] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 6.5;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z16[highway=residential],
+way|z16[highway=unclassified] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 9.4;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.8;
+}
+
+way|z17-[highway=residential],
+way|z17-[highway=unclassified] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 13;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 1.5;
+}
+
+way|z12-13[highway=living_street] {
+    color: #cccccc;
+    linecap: round;
+    linejoin: round;
+    width: 1.5;
+	casing-color: white;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z14[highway=living_street] {
+    color: #cccccc;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: white;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z15[highway=living_street] {
+    color: #cccccc;
+    linecap: round;
+    linejoin: round;
+    width: 4.7;
+	casing-color: white;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.65;
+}
+
+way|z16[highway=living_street] {
+    color: #cccccc;
+    linecap: round;
+    linejoin: round;
+    width: 7.4;
+	casing-color: white;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.8;
+}
+
+way|z17-[highway=living_street] {
+    color: #cccccc;
+    linecap: round;
+    linejoin: round;
+    width: 13;
+	casing-color: white;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z13[highway=tertiary] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 4.5;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z14[highway=tertiary] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 6;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.75;
+}
+
+way|z15-16[highway=tertiary] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 9.4;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.8;
+}
+
+way|z17-[highway=tertiary] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 13;
+	casing-color: #bbbbbb;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 1.5;
+}
+
+way|z13[highway=service][service!=parking_aisle][service!=drive-through][service!=driveway] {
+    color: #bbbbbb;
+    width: 1;
+}
+
+way|z14-15[highway=service][service!=parking_aisle][service!=drive-through][service!=driveway] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.25;
+}
+
+way|z16-[highway=service][service!=parking_aisle][service!=drive-through][service!=driveway] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 6;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z16-[highway=service][service=parking_aisle],
+way|z16-[highway=service][service=drive-through],
+way|z16-[highway=service][service=driveway] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: #999999;
+    casing-linecap: round;
+    casing-linejoin: round;
+    casing-width: 0.5;
+}
+
+way|z5-6[highway=motorway],
+way|z5-6[highway=motorway_link] {
+    color: #809bc0;
+    width: 0.5;
+}
+
+way|z7-8[highway=motorway],
+way|z7-8[highway=motorway_link] {
+    color: #809bc0;
+    width: 1;
+}
+
+way|z9[highway=motorway],
+way|z9[highway=motorway_link] {
+    color: #809bc0;
+    width: 1.4;
+}
+
+way|z10[highway=motorway],
+way|z10[highway=motorway_link] {
+    color: #809bc0;
+    width: 2;
+}
+
+way|z11[highway=motorway],
+way|z11[highway=motorway_link] {
+    color: #809bc0;
+    width: 2.5;
+}
+
+way|z5-6[highway=trunk],
+way|z5-6[highway=trunk_link] {
+    color: #a9dba9;
+    width: 0.4;
+}
+
+way|z7-8[highway=trunk],
+way|z7-8[highway=trunk_link] {
+    color: #97d397;
+    width: 1;
+}
+
+way|z9-10[highway=trunk],
+way|z9-10[highway=trunk_link] {
+    color: #97d397;
+    width: 2;
+}
+
+way|z11[highway=trunk],
+way|z11[highway=trunk_link] {
+    color: #97d397;
+    width: 2.5;
+}
+
+way|z7-8[highway=primary],
+way|z7-8[highway=primary_link] {
+    color: #ec989a;
+    width: 0.5;
+}
+
+way|z9[highway=primary],
+way|z9[highway=primary_link] {
+    color: #ec989a;
+    width: 1.2;
+}
+
+way|z10[highway=primary],
+way|z10[highway=primary_link] {
+    color: #ec989a;
+    width: 2;
+}
+
+way|z11[highway=primary],
+way|z11[highway=primary_link] {
+    color: #ec989a;
+    width: 2.5;
+}
+
+way|z9-10[highway=secondary],
+way|z9-10[highway=secondary_link] {
+    color: #fecc8b;
+    width: 1;
+}
+
+way|z11[highway=secondary],
+way|z11[highway=secondary_link] {
+    color: #fecc8b;
+    width: 2;
+}
+
+
+/* ---- Bridges ---- */
+way|z12[highway=motorway][bridge][bridge!=no],
+way|z12[highway=motorway_link][bridge][bridge!=no] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: #506077;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z13-14[highway=motorway][bridge][bridge!=no],
+way|z13-14[highway=motorway_link][bridge][bridge!=no] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 5.5;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z15-16[highway=motorway][bridge][bridge!=no],
+way|z15-16[highway=motorway_link][bridge][bridge!=no] {
+    color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 7.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=motorway][bridge][bridge!=no],
+way|z17-[highway=motorway_link][bridge][bridge!=no] {
+	color: #809bc0;
+    linecap: round;
+    linejoin: round;
+    width: 10;
+    casing-color: black;
+    casing-width: 1;
+	casing-linecap: none;
+}
+
+way|z12[highway=trunk][bridge][bridge!=no],
+way|z12[highway=trunk_link][bridge][bridge!=no] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: #477147;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z13-14[highway=trunk][bridge][bridge!=no],
+way|z13-14[highway=trunk_link][bridge][bridge!=no], {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 7;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z15-16[highway=trunk][bridge][bridge!=no],
+way|z15-16[highway=trunk_link][bridge][bridge!=no] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 9.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=trunk][bridge][bridge!=no],
+way|z17-[highway=trunk_link][bridge][bridge!=no] {
+    color: #a9dba9;
+    linecap: round;
+    linejoin: round;
+    width: 14.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z12[highway=primary][bridge][bridge!=no],
+way|z12[highway=primary_link][bridge][bridge!=no] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 3;
+	casing-color: #8d4346;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z13-14[highway=primary][bridge][bridge!=no],
+way|z13-14[highway=primary_link][bridge][bridge!=no] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 7;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z15-16[highway=primary][bridge][bridge!=no],
+way|z15-16[highway=primary_link][bridge][bridge!=no] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 9.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=primary][bridge][bridge!=no],
+way|z17-[highway=primary_link][bridge][bridge!=no] {
+    color: #ec989a;
+    linecap: round;
+    linejoin: round;
+    width: 14.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z13-14[highway=secondary][bridge][bridge!=no],
+way|z13-14[highway=secondary_link][bridge][bridge!=no] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 9;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z15-16[highway=secondary][bridge][bridge!=no],
+way|z15-16[highway=secondary_link][bridge][bridge!=no] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 10.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=secondary][bridge][bridge!=no],
+way|z17-[highway=secondary_link][bridge][bridge!=no] {
+    color: #fed7a5;
+    linecap: round;
+    linejoin: round;
+    width: 14.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z14[highway=tertiary][bridge][bridge!=no],
+way|z14[highway=tertiary_link][bridge][bridge!=no] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 6;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z15-16[highway=tertiary][bridge][bridge!=no],
+way|z15-16[highway=tertiary_link][bridge][bridge!=no] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 9.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=tertiary][bridge][bridge!=no],
+way|z17-[highway=tertiary_link][bridge][bridge!=no] {
+    color: #ffffb3;
+    linecap: round;
+    linejoin: round;
+    width: 14;
+	casing-color: black;
+    casing-width: 1;
+	casing-linecap: none;
+}
+
+way|z14[highway=road][bridge][bridge!=no] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 3.5;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z15[highway=road][bridge][bridge!=no] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 7.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z16[highway=road][bridge][bridge!=no] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 9.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=road][bridge][bridge!=no] {
+    color: #dddddd;
+    linecap: round;
+    linejoin: round;
+    width: 14;
+	casing-color: black;
+    casing-width: 1;
+	casing-linecap: none;
+}
+
+way|z14[highway=residential][bridge][bridge!=no],
+way|z14[highway=unclassified][bridge][bridge!=no] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 3.5;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z15[highway=residential][bridge][bridge!=no],
+way|z15[highway=unclassified][bridge][bridge!=no] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 7.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z16[highway=residential][bridge][bridge!=no],
+way|z16[highway=unclassified][bridge][bridge!=no] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 9.5;
+	casing-color: black;
+    casing-width: 0.75;
+	casing-linecap: none;
+}
+
+way|z17-[highway=residential][bridge][bridge!=no],
+way|z17-[highway=unclassified][bridge][bridge!=no] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 14;
+	casing-color: black;
+    casing-width: 1;
+	casing-linecap: none;
+}
+
+way|z14-15[highway=service][bridge][bridge!=no] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 2;
+	casing-color: black;
+    casing-width: 0.5;
+	casing-linecap: none;
+}
+
+way|z16-[highway=service][bridge][bridge!=no] {
+    color: white;
+    linecap: round;
+    linejoin: round;
+    width: 6;
+	casing-color: black;
+    casing-width: 1;
+	casing-linecap: none;
+}
+
+/* ===== Placenames ====== */
+node|z9-10[place=city][captial][capital!=no],
+node|z9-10[place=metropolis][captial][capital!=no],
+node|z9-10[place=town][captial][capital!=no] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z11-14[place=city][captial][capital!=no],
+node|z11-14[place=metropolis][captial][capital!=no],
+node|z11-14[place=town][captial][capital!=no] {
+    font-family: DejaVu Sans;
+    font-size: 14;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z9-10[place=city],
+node|z9-10[place=metropolis] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z11-14[place=city],
+node|z11-14[place=metropolis] {
+    font-family: DejaVu Sans;
+    font-size: 14;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z9-10[place=town],
+node|z9-10[place=large_town],
+node|z9-10[place=small_town] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    max-width: 20;
+	text-halo-color: white;
+}
+
+node|z11-13[place=town],
+node|z11-13[place=large_town],
+node|z11-13[place=small_town] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    max-width: 20;
+	text-halo-color: white;
+}
+
+node|z14-[place=town],
+node|z14-[place=large_town],
+node|z14-[place=small_town] {
+    font-family: DejaVu Sans;
+    font-size: 14;
+    text: name;
+    text-color: #777777;
+    text-halo-radius: 1;
+    max-width: 20;
+	text-halo-color: white;
+}
+
+node|z12-13[place=suburb] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z14-[place=suburb] {
+    font-family: DejaVu Sans;
+    font-size: 13;
+    text: name;
+    text-color: #777777;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z12-14[place=village],
+node|z12-14[place=large_village] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z15-[place=village],
+node|z15-[place=large_village] {
+    font-family: DejaVu Sans;
+    font-size: 12;
+    text: name;
+    text-color: #777777;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z14-15[place=hamlet],
+node|z14-15[place=locality],
+node|z14-15[place=isolated_dwelling],
+node|z14-15[place=farm] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z16-[place=hamlet],
+node|z16-[place=locality],
+node|z16-[place=isolated_dwelling],
+node|z16-[place=farm] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: #777777;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+
+/* ===== Icons ===== */
+
+node|z14-15[railway=level_crossing] {
+    icon-image: "symbols/level_crossing.png";
+}
+
+node|z16-[railway=level_crossing] {
+    icon-image: "symbols/level_crossing2.png";
+}
+
+node|z15-[man_made=lighthouse] {
+    icon-image: "symbols/lighthouse.p.20.png";
+}
+
+node|z11-[natural=peak] {
+    icon-image: "symbols/peak.png";
+}
+
+node|z11-[natural=volcano] {
+    icon-image: "symbols/volcano.png";
+}
+
+node|z15-[natural=cave_entrance] {
+    icon-image: "symbols/poi_cave.p.16.png";
+}
+
+node|z14-[natural=spring] {
+    icon-image: "symbols/spring.png";
+}
+
+node|z16[natural=tree] {
+    icon-image: "symbols/tree.png";
+}
+
+node|z17-[natural=tree] {
+    icon-image: "symbols/tree2.png";
+}
+
+node|z15-[man_made=power_wind],
+node|z15-[power=generator][power_source=wind] {
+    icon-image: "symbols/power_wind.png";
+}
+
+node|z16-[man_made=windmill] {
+    icon-image: "symbols/windmill.png";
+}
+
+node|z17-[man_made=mast] {
+    icon-image: "symbols/communications.p.20.png";
+}
+
+node|z15-[highway=mini_roundabout] {
+    icon-image: "symbols/mini_round.png";
+}
+
+node|z15-[highway=gate],
+node|z15-[barrier=gate] {
+    icon-image: "symbols/gate2.png";
+}
+
+node|z16-[barrier=lift_gate] {
+    icon-image: "symbols/liftgate.png";
+}
+
+node|z16-[barrier=bollard],
+node|z16-[barrier=block] {
+    icon-image: "symbols/bollard.png";
+}
+
+area|z14-15[railway=level_crossing] {
+    icon-image: "symbols/level_crossing.png";
+}
+
+area|z16-[railway=level_crossing] {
+    icon-image: "symbols/level_crossing2.png";
+}
+
+area|z15-[man_made=lighthouse] {
+    icon-image: "symbols/lighthouse.p.20.png";
+}
+
+area|z11-[natural=peak] {
+    icon-image: "symbols/peak.png";
+}
+
+area|z11-[natural=volcano] {
+    icon-image: "symbols/volcano.png";
+}
+
+area|z15-[natural=cave_entrance] {
+    icon-image: "symbols/poi_cave.p.16.png";
+}
+
+area|z14-[natural=spring] {
+    icon-image: "symbols/spring.png";
+}
+
+area|z16[natural=tree] {
+    icon-image: "symbols/tree.png";
+}
+
+area|z17-[natural=tree] {
+    icon-image: "symbols/tree2.png";
+}
+
+area|z15-[man_made=power_wind],
+area|z15-[power=generator][power_source=wind] {
+    icon-image: "symbols/power_wind.png";
+}
+
+area|z16-[man_made=windmill] {
+    icon-image: "symbols/windmill.png";
+}
+
+area|z17-[man_made=mast] {
+    icon-image: "symbols/communications.p.20.png";
+}
+
+area|z15-[highway=mini_roundabout] {
+    icon-image: "symbols/mini_round.png";
+}
+
+area|z15-[highway=gate],
+area|z15-[barrier=gate] {
+    icon-image: "symbols/gate2.png";
+}
+
+area|z16-[barrier=lift_gate] {
+    icon-image: "symbols/liftgate.png";
+}
+
+area|z16-[barrier=bollard],
+area|z16-[barrier=block] {
+    icon-image: "symbols/bollard.png";
+}
+
+node|z13-[tourism=alpine_hut] {
+    icon-image: "symbols/alpinehut.p.16.png";
+}
+
+node|z16-[amenity=shelter] {
+    icon-image: "symbols/shelter2.p.16.png";
+}
+
+node|z17-[amenity=atm] {
+    icon-image: "symbols/atm2.p.16.png";
+}
+
+node|z17-[amenity=bank] {
+    icon-image: "symbols/bank2.p.16.png";
+}
+
+node|z17-[amenity=bar] {
+    icon-image: "symbols/bar.p.20.png";
+}
+
+node|z17-[amenity=bicycle_rental] {
+    icon-image: "symbols/rental_bicycle.p.20.png";
+}
+
+node|z16[amenity=bus_stop],
+node|z16[highway=bus_stop] {
+    icon-image: "symbols/bus_stop_small.png";
+}
+
+node|z17-[amenity=bus_stop],
+node|z17-[highway=bus_stop] {
+    icon-image: "symbols/bus_stop.p.12.png";
+}
+
+node|z16-[amenity=bus_station] {
+    icon-image: "symbols/bus_station.n.16.png";
+}
+
+node|z17-[highway=traffic_signals] {
+    icon-image: "symbols/traffic_light.png";
+}
+
+node|z17-[amenity=cafe] {
+    icon-image: "symbols/cafe.p.16.png";
+}
+
+node|z16-[tourism=camp_site] {
+    icon-image: "symbols/camping.n.16.png";
+}
+
+node|z16-[highway=ford] {
+    icon-image: "symbols/transport_ford.p.16.png";
+}
+
+node|z16-[tourism=caravan_site] {
+    icon-image: "symbols/caravan_park.p.24.png";
+}
+
+node|z16-[amenity=car_sharing] {
+    icon-image: "symbols/car_share.p.16.png";
+}
+
+node|z17-[tourism=chalet] {
+    icon-image: "symbols/chalet.p.16.png";
+}
+
+node|z17-[amenity=cinema] {
+    icon-image: "symbols/cinema.p.24.png";
+}
+
+node|z17-[amenity=fire_station] {
+    icon-image: "symbols/firestation.p.16.png";
+}
+
+node|z17-[amenity=fuel] {
+    icon-image: "symbols/fuel.p.16.png";
+}
+
+node|z17-[tourism=guest_house] {
+    icon-image: "symbols/guest_house.p.16.png";
+}
+
+node|z17-[tourism=bed_and_breakfast] {
+    icon-image: "symbols/bandb.p.20.png";
+}
+
+node|z15-[amenity=hospital] {
+    icon-image: "symbols/hospital.p.16.png";
+}
+
+node|z17-[tourism=hostel] {
+    icon-image: "symbols/hostel.p.20.png";
+}
+
+node|z17-[tourism=hotel] {
+    icon-image: "symbols/hotel2.p.20.png";
+}
+
+node|z17-[tourism=motel] {
+    icon-image: "symbols/motel.p.20.png";
+}
+
+node|z16-[tourism=information] {
+    icon-image: "symbols/information.p.16.png";
+}
+
+node|z17-[amenity=embassy] {
+    icon-image: "symbols/embassy.png";
+}
+
+node|z17-[amenity=library] {
+    icon-image: "symbols/library.p.20.png";
+}
+
+node|z17-[amenity=courthouse] {
+    icon-image: "symbols/amenity_court.p.20.png";
+}
+
+node|z15-[waterway=lock],
+node|z15-[lock=yes] {
+    icon-image: "symbols/lock_gate.png";
+}
+
+node|z17-[man_made=mast] {
+    icon-image: "symbols/communications.p.20.png";
+}
+
+node|z17-[tourism=museum] {
+    icon-image: "symbols/museum.p.16.png";
+}
+
+node|z15-[amenity=parking][access=public],
+node|z15-[amenity=parking][access=yes],
+node|z15-[amenity=parking][!access] {
+    icon-image: "symbols/parking.p.16.png";
+}
+
+node|z15-[amenity=parking][access][access!=public][access!=yes] {
+    icon-image: "symbols/parking_private.p.16.png";
+}
+
+node|z17-[amenity=pharmacy] {
+    icon-image: "symbols/pharmacy.p.16.png";
+}
+
+node|z16-[amenity=place_of_worship][religion=christian] {
+    icon-image: "symbols/christian3.p.14.png";
+}
+
+node|z16-[amenity=place_of_worship][religion=muslim] {
+    icon-image: "symbols/islamic3.p.16.png";
+}
+
+node|z16-[amenity=place_of_worship][religion=sikh] {
+    icon-image: "symbols/sikh3.p.16.png";
+}
+
+node|z16-[amenity=place_of_worship][religion=jewish] {
+    icon-image: "symbols/jewish3.p.16.png";
+}
+
+node|z16-[amenity=place_of_worship][religion!=christian][religion!=muslim][religion!=sikh][religion!=jewish] {
+    icon-image: "symbols/place_of_worship3.p.16.png";
+}
+
+node|z17-[amenity=police] {
+    icon-image: "symbols/police.p.16.png";
+}
+
+node|z17-[amenity=post_box] {
+    icon-image: "symbols/post_box.p.16.png";
+}
+
+node|z17-[amenity=post_office] {
+    icon-image: "symbols/post_office.p.16.png";
+}
+
+node|z16-[amenity=pub] {
+    icon-image: "symbols/pub.p.16.png";
+}
+
+node|z16-[amenity=biergarten] {
+    icon-image: "symbols/biergarten.p.16.png";
+}
+
+node|z16-[amenity=recycling] {
+    icon-image: "symbols/recycling.p.16.png";
+}
+
+node|z17-[amenity=restaurant] {
+    icon-image: "symbols/restaurant.p.16.png";
+}
+
+node|z17-[amenity=fast_food] {
+    icon-image: "symbols/fast_food.png";
+}
+
+node|z17-[amenity=telephone] {
+    icon-image: "symbols/telephone.p.16.png";
+}
+
+node|z17-[amenity=emergency_phone] {
+    icon-image: "symbols/sosphone.png";
+}
+
+node|z17-[amenity=theatre] {
+    icon-image: "symbols/theatre.p.20.png";
+}
+
+node|z17-[amenity=toilets] {
+    icon-image: "symbols/toilets.p.20.png";
+}
+
+node|z17-[amenity=drinking_water] {
+    icon-image: "symbols/food_drinkingtap.p.20.png";
+}
+
+node|z16-[amenity=prison] {
+    icon-image: "symbols/amenity_prison.p.20.png";
+}
+
+node|z16-[tourism=viewpoint] {
+    icon-image: "symbols/view_point.p.16.png";
+}
+
+node|z17-[man_made=water_tower] {
+    icon-image: "symbols/tower_water.p.20.png";
+}
+
+node|z17-[historic=memorial] {
+    icon-image: "symbols/tourist_memorial.p.20.png";
+}
+
+node|z16-[historic=archaeological_site] {
+    icon-image: "symbols/tourist_archaeological2.glow.16.png";
+}
+
+node|z16-[shop=supermarket] {
+    icon-image: "symbols/shop_supermarket.p.16.png";
+}
+
+node|z17-[shop=bakery] {
+    icon-image: "symbols/shop_bakery.p.16.png";
+}
+
+node|z17-[shop=butcher] {
+    icon-image: "symbols/shop_butcher.png";
+}
+
+node|z17-[shop=clothes],
+node|z17-[shop=fashion] {
+    icon-image: "symbols/shop_clothes.p.16.png";
+}
+
+node|z17-[shop=convenience] {
+    icon-image: "symbols/shop_convenience.p.16.png";
+}
+
+node|z16-[shop=department_store] {
+    icon-image: "symbols/department_store.p.16.png";
+}
+
+node|z17-[shop=doityourself] {
+    icon-image: "symbols/shop_diy.p.16.png";
+}
+
+node|z17-[shop=florist] {
+    icon-image: "symbols/florist.p.16.png";
+}
+
+node|z17-[shop=hairdresser] {
+    icon-image: "symbols/shop_hairdresser.p.16.png";
+}
+
+node|z17-[shop=car] {
+    icon-image: "symbols/shopping_car.p.16.png";
+}
+
+node|z17-[shop=car_repair] {
+    icon-image: "symbols/shopping_car_repair.p.16.png";
+}
+
+node|z17-[shop=bicycle] {
+    icon-image: "symbols/shopping_bicycle.p.16.png";
+}
+
+node|z17-[leisure=playground] {
+    icon-image: "symbols/playground.p.20.png";
+}
+
+node|z16-[amenity=picnic_site] {
+    icon-image: "symbols/picnic.p.16.png";
+}
+
+node|z17-[leisure=slipway] {
+    icon-image: "symbols/transport_slipway.p.20.png";
+}
+
+area|z13-[tourism=alpine_hut] {
+    icon-image: "symbols/alpinehut.p.16.png";
+}
+
+area|z16-[amenity=shelter] {
+    icon-image: "symbols/shelter2.p.16.png";
+}
+
+area|z17-[amenity=atm] {
+    icon-image: "symbols/atm2.p.16.png";
+}
+
+area|z17-[amenity=bank] {
+    icon-image: "symbols/bank2.p.16.png";
+}
+
+area|z17-[amenity=bar] {
+    icon-image: "symbols/bar.p.20.png";
+}
+
+area|z17-[amenity=bicycle_rental] {
+    icon-image: "symbols/rental_bicycle.p.20.png";
+}
+
+area|z16[amenity=bus_stop],
+area|z16[highway=bus_stop] {
+    icon-image: "symbols/bus_stop_small.png";
+}
+
+area|z17-[amenity=bus_stop],
+area|z17-[highway=bus_stop] {
+    icon-image: "symbols/bus_stop.p.12.png";
+}
+
+area|z16-[amenity=bus_station] {
+    icon-image: "symbols/bus_station.n.16.png";
+}
+
+area|z17-[highway=traffic_signals] {
+    icon-image: "symbols/traffic_light.png";
+}
+
+area|z17-[amenity=cafe] {
+    icon-image: "symbols/cafe.p.16.png";
+}
+
+area|z16-[tourism=camp_site] {
+    icon-image: "symbols/camping.n.16.png";
+}
+
+area|z16-[highway=ford] {
+    icon-image: "symbols/transport_ford.p.16.png";
+}
+
+area|z16-[tourism=caravan_site] {
+    icon-image: "symbols/caravan_park.p.24.png";
+}
+
+area|z16-[amenity=car_sharing] {
+    icon-image: "symbols/car_share.p.16.png";
+}
+
+area|z17-[tourism=chalet] {
+    icon-image: "symbols/chalet.p.16.png";
+}
+
+area|z17-[amenity=cinema] {
+    icon-image: "symbols/cinema.p.24.png";
+}
+
+area|z17-[amenity=fire_station] {
+    icon-image: "symbols/firestation.p.16.png";
+}
+
+area|z17-[amenity=fuel] {
+    icon-image: "symbols/fuel.p.16.png";
+}
+
+area|z17-[tourism=guest_house] {
+    icon-image: "symbols/guest_house.p.16.png";
+}
+
+area|z17-[tourism=bed_and_breakfast] {
+    icon-image: "symbols/bandb.p.20.png";
+}
+
+area|z15-[amenity=hospital] {
+    icon-image: "symbols/hospital.p.16.png";
+}
+
+area|z17-[tourism=hostel] {
+    icon-image: "symbols/hostel.p.20.png";
+}
+
+area|z17-[tourism=hotel] {
+    icon-image: "symbols/hotel2.p.20.png";
+}
+
+area|z17-[tourism=motel] {
+    icon-image: "symbols/motel.p.20.png";
+}
+
+area|z16-[tourism=information] {
+    icon-image: "symbols/information.p.16.png";
+}
+
+area|z17-[amenity=embassy] {
+    icon-image: "symbols/embassy.png";
+}
+
+area|z17-[amenity=library] {
+    icon-image: "symbols/library.p.20.png";
+}
+
+area|z17-[amenity=courthouse] {
+    icon-image: "symbols/amenity_court.p.20.png";
+}
+
+area|z15-[waterway=lock],
+area|z15-[lock=yes] {
+    icon-image: "symbols/lock_gate.png";
+}
+
+area|z17-[man_made=mast] {
+    icon-image: "symbols/communications.p.20.png";
+}
+
+area|z17-[tourism=museum] {
+    icon-image: "symbols/museum.p.16.png";
+}
+
+area|z15-[amenity=parking][access=public],
+area|z15-[amenity=parking][access=yes],
+area|z15-[amenity=parking][!access] {
+    icon-image: "symbols/parking.p.16.png";
+}
+
+area|z15-[amenity=parking][access][access!=public][access!=yes] {
+    icon-image: "symbols/parking_private.p.16.png";
+}
+
+area|z17-[amenity=pharmacy] {
+    icon-image: "symbols/pharmacy.p.16.png";
+}
+
+area|z16-[amenity=place_of_worship][religion=christian] {
+    icon-image: "symbols/christian3.p.14.png";
+}
+
+area|z16-[amenity=place_of_worship][religion=muslim] {
+    icon-image: "symbols/islamic3.p.16.png";
+}
+
+area|z16-[amenity=place_of_worship][religion=sikh] {
+    icon-image: "symbols/sikh3.p.16.png";
+}
+
+area|z16-[amenity=place_of_worship][religion=jewish] {
+    icon-image: "symbols/jewish3.p.16.png";
+}
+
+area|z16-[amenity=place_of_worship] {
+    icon-image: "symbols/place_of_worship3.p.16.png";
+}
+
+area|z17-[amenity=police] {
+    icon-image: "symbols/police.p.16.png";
+}
+
+area|z17-[amenity=post_box] {
+    icon-image: "symbols/post_box.p.16.png";
+}
+
+area|z17-[amenity=post_office] {
+    icon-image: "symbols/post_office.p.16.png";
+}
+
+area|z16-[amenity=pub] {
+    icon-image: "symbols/pub.p.16.png";
+}
+
+area|z16-[amenity=biergarten] {
+    icon-image: "symbols/biergarten.p.16.png";
+}
+
+area|z16-[amenity=recycling] {
+    icon-image: "symbols/recycling.p.16.png";
+}
+
+area|z17-[amenity=restaurant] {
+    icon-image: "symbols/restaurant.p.16.png";
+}
+
+area|z17-[amenity=fast_food] {
+    icon-image: "symbols/fast_food.png";
+}
+
+area|z17-[amenity=telephone] {
+    icon-image: "symbols/telephone.p.16.png";
+}
+
+area|z17-[amenity=emergency_phone] {
+    icon-image: "symbols/sosphone.png";
+}
+
+area|z17-[amenity=theatre] {
+    icon-image: "symbols/theatre.p.20.png";
+}
+
+area|z17-[amenity=toilets] {
+    icon-image: "symbols/toilets.p.20.png";
+}
+
+area|z17-[amenity=drinking_water] {
+    icon-image: "symbols/food_drinkingtap.p.20.png";
+}
+
+area|z16-[amenity=prison] {
+    icon-image: "symbols/amenity_prison.p.20.png";
+}
+
+area|z16-[tourism=viewpoint] {
+    icon-image: "symbols/view_point.p.16.png";
+}
+
+area|z17-[man_made=water_tower] {
+    icon-image: "symbols/tower_water.p.20.png";
+}
+
+area|z17-[historic=memorial] {
+    icon-image: "symbols/tourist_memorial.p.20.png";
+}
+
+area|z16-[historic=archaeological_site] {
+    icon-image: "symbols/tourist_archaeological2.glow.16.png";
+}
+
+area|z16-[shop=supermarket] {
+    icon-image: "symbols/shop_supermarket.p.16.png";
+}
+
+area|z17-[shop=bakery] {
+    icon-image: "symbols/shop_bakery.p.16.png";
+}
+
+area|z17-[shop=butcher] {
+    icon-image: "symbols/shop_butcher.png";
+}
+
+area|z17-[shop=clothes],
+area|z17-[shop=fashion] {
+    icon-image: "symbols/shop_clothes.p.16.png";
+}
+
+area|z17-[shop=convenience] {
+    icon-image: "symbols/shop_convenience.p.16.png";
+}
+
+area|z16-[shop=department_store] {
+    icon-image: "symbols/department_store.p.16.png";
+}
+
+area|z17-[shop=doityourself] {
+    icon-image: "symbols/shop_diy.p.16.png";
+}
+
+area|z17-[shop=florist] {
+    icon-image: "symbols/florist.p.16.png";
+}
+
+area|z17-[shop=hairdresser] {
+    icon-image: "symbols/shop_hairdresser.p.16.png";
+}
+
+area|z17-[shop=car] {
+    icon-image: "symbols/shopping_car.p.16.png";
+}
+
+area|z17-[shop=car_repair] {
+    icon-image: "symbols/shopping_car_repair.p.16.png";
+}
+
+area|z17-[shop=bicycle] {
+    icon-image: "symbols/shopping_bicycle.p.16.png";
+}
+
+area|z17-[leisure=playground] {
+    icon-image: "symbols/playground.p.20.png";
+}
+
+area|z16-[amenity=picnic_site] {
+    icon-image: "symbols/picnic.p.16.png";
+}
+
+area|z17-[leisure=slipway] {
+    icon-image: "symbols/transport_slipway.p.20.png";
+}
+
+
+/* ===== Road labels ===== */
+
+way|z15-[highway=unclassified][!bridge],
+way|z15-[highway=residential][!bridge] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 10;
+    text: ref;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+way|z15-[aeroway=runway][!bridge],
+way|z15-[aeroway=taxiway][!bridge] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: ref;
+    text-color: #333333;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z13[highway=trunk],
+way|z13[highway=primary] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: black;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z13[highway=secondary] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: black;
+    text-halo-color: #fed7a5;
+    text-halo-radius: 1;
+    text-position: line;
+}
+
+way|z14[highway=trunk],
+way|z14[highway=primary] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z15-[highway=trunk],
+way|z15-[highway=primary] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: black;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z14[highway=secondary] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-color: #fed7a5;
+    text-halo-radius: 1;
+    text-position: line;
+}
+
+way|z15-[highway=secondary] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: black;
+    text-halo-color: #fed7a5;
+    text-halo-radius: 1;
+    text-position: line;
+}
+
+way|z15-16[highway=tertiary] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z17-[highway=tertiary] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z13-15[highway=proposed],
+way|z13-15[highway=construction] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z16-[highway=proposed],
+way|z16-[highway=construction] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z15[highway=unclassified],
+way|z15[highway=residential] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z16[highway=unclassified],
+way|z16[highway=residential] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z17-[highway=unclassified],
+way|z17-[highway=residential] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z15-16[highway][highway!=motorway][highway!=trunk][highway!=primary][highway!=secondary][highway!=tertiary][highway!=unclassified][highway!=residential][highway!=proposed][highway!=construction],
+way|z15-16[aeroway][aeroway!=runway][aeroway!=taxiway] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+way|z17-[highway][highway!=motorway][highway!=trunk][highway!=primary][highway!=secondary][highway!=tertiary][highway!=unclassified][highway!=residential][highway!=proposed][highway!=construction],
+way|z17-[aeroway][aeroway!=runway][aeroway!=taxiway] {
+    font-family: DejaVu Sans;
+    font-size: 11;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+    text-position: line;
+	text-halo-color: white;
+}
+
+node|z12-[place=island] {
+    font-family: DejaVu Sans;
+	font-style: italic;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 1;
+	text-halo-color: white;
+}
+
+node|z17-[amenity=pub],
+node|z17-[amenity=restaurant],
+node|z17-[amenity=cafe],
+node|z17-[amenity=fast_food],
+node|z17-[amenity=biergarten] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 34;
+}
+
+node|z17-[amenity=bar] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+}
+
+node|z17-[amenity=library],
+node|z17-[amenity=theatre],
+node|z17-[amenity=courthouse] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+}
+
+node|z17-[amenity=cinema] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+}
+
+node|z17-[amenity=parking][access=public],
+node|z17-[amenity=parking][!access] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 34;
+}
+
+node|z17-[amenity=parking][access][access!=public] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #66ccaf;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 34;
+}
+
+node|z17-[amenity=police] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+    max-width: 30;
+}
+
+node|z17-[amenity=fire_station] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 30;
+}
+
+node|z17-[amenity=place_of_worship] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #000033;
+    text-halo-radius: 1;
+    text-offset-y: -1;
+    max-width: 30;
+}
+
+node|z15-[natural=wood] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: black;
+    text-halo-radius: 2;
+    max-width: 10;
+}
+
+node|z14-[natural=peak] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: brown;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+}
+
+node|z13-[natural=volcano] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: brown;
+    text-halo-radius: 1;
+    text-offset-y: 5;
+}
+
+node|z15-[natural=cave_entrance] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: brown;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 20;
+}
+
+node|z17-[historic=memorial],
+node|z17-[historic=archaeological_site] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: brown;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+    max-width: 20;
+}
+
+node|z15-[natural=water],
+node|z15-[natural=lake],
+node|z15-[landuse=reservoir],
+node|z15-[landuse=basin] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: #6699cc;
+    text-halo-radius: 1;
+    max-width: 20;
+}
+
+node|z15-[leisure][point=yes],
+node|z15-[landuse][point=yes] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: black;
+    text-halo-radius: 2;
+    max-width: 10;
+}
+
+node|z14-[natural=bay] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: #6699cc;
+    text-halo-radius: 1;
+    max-width: 20;
+}
+
+node|z16-[natural=spring] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #6699cc;
+    text-halo-radius: 1;
+    text-offset-y: -5;
+    max-width: 20;
+}
+
+node|z15-[tourism=alpine_hut] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #6699cc;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+}
+
+node|z16-[tourism=alpine_hut] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+	font-style: italic;
+    font-size: 8;
+    text: ele;
+    text-anchor-vertical: below;
+    text-color: #6699cc;
+    text-halo-radius: 1;
+    text-offset-y: -12;
+}
+
+node|z17-[amenity=shelter] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #6699cc;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+}
+
+node|z17-[amenity=bank] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: black;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+}
+
+node|z17-[tourism=hotel],
+node|z17-[tourism=hostel],
+node|z17-[tourism=chalet] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+}
+
+node|z17-[amenity=embassy] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+}
+
+node|z17-[tourism=guest_house] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+}
+
+node|z17-[tourism=bed_and_breakfast] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: 5;
+}
+
+node|z17-[amenity=fuel],
+node|z17-[amenity=bus_station] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+}
+
+node|z17-[tourism=camp_site] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: -5;
+    max-width: 70;
+}
+
+node|z17-[tourism=caravan_site] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: -5;
+    max-width: 70;
+}
+
+node|z15-[waterway=lock] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #0066ff;
+    text-halo-radius: 1;
+    text-offset-y: -4;
+    max-width: 70;
+}
+
+node|z15-16[leisure=marina] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: blue;
+    text-halo-radius: 1;
+    max-width: 30;
+}
+
+node|z17-[leisure=marina] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: blue;
+    text-halo-radius: 1;
+    max-width: 30;
+}
+
+node|z14-15[tourism=theme_park] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    max-width: 30;
+}
+
+node|z16-[tourism=theme_park] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    max-width: 30;
+}
+
+node|z17-[tourism=museum] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: 0;
+}
+
+node|z17-[amenity=prison] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: -4;
+}
+
+node|z16-[tourism=attraction] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: name;
+    text-color: #660033;
+    text-halo-radius: 2;
+    max-width: 10;
+}
+
+node|z15-[amenity=university] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 9;
+    text: name;
+    text-color: #000033;
+    text-halo-radius: 1;
+    max-width: 16;
+}
+
+node|z15-[amenity=school],
+node|z15-[amenity=college] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-color: #000033;
+    text-halo-radius: 1;
+    max-width: 14;
+}
+
+node|z16-[amenity=kindergarten] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-color: #000033;
+    text-halo-radius: 1;
+    max-width: 14;
+}
+
+node|z15-[man_made=lighthouse] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #000033;
+    text-halo-radius: 2;
+    text-offset-y: -4;
+    max-width: 12;
+}
+
+node|z17-[man_made=windmill] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #734a08;
+    text-halo-radius: 1;
+    text-offset-y: -3;
+    max-width: 20;
+}
+
+node|z16-[amenity=hospital] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #da0092;
+    text-halo-radius: 2;
+    text-offset-y: 0;
+    max-width: 24;
+}
+
+node|z17-[amenity=pharmacy] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #da0092;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 12;
+}
+
+node|z17-[shop=bakery],
+node|z17-[shop=clothes],
+node|z17-[shop=fashion],
+node|z17-[shop=convenience],
+node|z17-[shop=doityourself],
+node|z17-[shop=hairdresser],
+node|z17-[shop=butcher],
+node|z17-[shop=car],
+node|z17-[shop=car_repair],
+node|z17-[shop=bicycle],
+node|z17-[shop=florist] {
+    font-family: DejaVu Sans;
+    font-size: 8;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #993399;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 12;
+}
+
+node|z16-[shop=supermarket],
+node|z16-[shop=department_store] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: name;
+    text-anchor-vertical: below;
+    text-color: #993399;
+    text-halo-radius: 1;
+    text-offset-y: 1;
+    max-width: 20;
+}
+
+node|z12-[military=danger_area] {
+    font-family: DejaVu Sans;
+	font-weight: bold;
+    font-size: 9;
+    text: name;
+    text-color: pink;
+    text-halo-radius: 1;
+    max-width: 10;
+}
+
+node|z17-[aeroway=gate] {
+    font-family: DejaVu Sans;
+    font-size: 10;
+    text: ref;
+    text-color: #aa66cc;
+    text-halo-radius: 1;
+    max-width: 10;
+}
+
+
+/**** House numbers ****/
+node|z17-[addr:housenumber],
+area|z17-[addr:housenumber] {
+    font-family: DejaVu Sans;
+    font-size: 9;
+    text: addr:housenumber;
+    text-color: #444444;
+    text-position: center;
+}
+
