@@ -57,7 +57,7 @@ area|z10-[tourism=attraction] {
 }
 
 area|z11-[landuse=quarry] {
-    fill-image: "symbols/quarry2.png";
+    fill-image: url("symbols/quarry2.png");
     color: grey;
     width: 0.5;
 }
@@ -67,11 +67,11 @@ area|z10-12[landuse=vineyard] {
 }
 
 area|z10-[landuse=orchard] {
-    fill-image: "symbols/orchard.png";
+    fill-image: url("symbols/orchard.png");
 }
 
 area|z13-[landuse=vineyard] {
-    fill-image: "symbols/vineyard.png";
+    fill-image: url("symbols/vineyard.png");
 }
 
 area|z10-14[landuse=cemetery],
@@ -114,25 +114,25 @@ area|z9-10[military=danger_area] {
 }
 
 area|z11-[military=danger_area] {
-    fill-image: "symbols/danger.png";
+    fill-image: url("symbols/danger.png");
 }
 
 area|z14-[landuse=cemetery][religion=jewish],
 area|z14-[landuse=grave_yard][religion=jewish],
 area|z14-[amenity=grave_yard][religion=jewish] {
-    fill-image: "symbols/cemetery_jewish.18.png";
+    fill-image: url("symbols/cemetery_jewish.18.png");
 }
 
 area|z14-[landuse=cemetery][religion=christian],
 area|z14-[landuse=grave_yard][religion=christian],
 area|z14-[amenity=grave_yard][religion=christian] {
-    fill-image: "symbols/grave_yard.png";
+    fill-image: url("symbols/grave_yard.png");
 }
 
 area|z14-[landuse=cemetery][religion!=christian][religion!=jewish],
 area|z14-[landuse=grave_yard][religion!=christian][religion!=jewish],
 area|z14-[amenity=grave_yard][religion!=christian][religion!=jewish] {
-    fill-image: "symbols/grave_yard_generic.png";
+    fill-image: url("symbols/grave_yard_generic.png");
 }
 
 area|z10-[landuse=meadow],
@@ -147,7 +147,7 @@ area|z10-[leisure=recreation_ground] {
 }
 
 area|z10-[tourism=zoo] {
-    fill-image: "symbols/zoo.png";
+    fill-image: url("symbols/zoo.png");
 }
 
 area|z10-[leisure=common] {
@@ -167,7 +167,7 @@ area|z10-13[landuse=allotments] {
 }
 
 area|z14-[landuse=allotments] {
-    fill-image: "symbols/allotments.png";
+    fill-image: url("symbols/allotments.png");
 }
 
 area|z8-13[landuse=forest] {
@@ -175,7 +175,7 @@ area|z8-13[landuse=forest] {
 }
 
 area|z14-[landuse=forest] {
-    fill-image: "symbols/forest.png";
+    fill-image: url("symbols/forest.png");
 }
 
 area|z9-[landuse=farmyard] {
@@ -262,7 +262,7 @@ area|z10-13[natural=scrub] {
 }
 
 area|z14-[natural=scrub] {
-    fill-image: "symbols/scrub.png";
+    fill-image: url("symbols/scrub.png");
 }
 
 area|z10-[amenity=university],
@@ -303,7 +303,7 @@ area|z12-[aeroway=aerodrome] {
 }
 
 area|z13-[natural=beach] {
-    fill-image: "symbols/beach.png";
+    fill-image: url("symbols/beach.png");
 }
 
 area|z14-[highway=services],
@@ -380,7 +380,7 @@ way|z15-[waterway=stream][!tunnel?]::water_lines-casing {
  */
 
 area|z6-7[natural=glacier] {
-    fill-image: "symbols/glacier.png";
+    fill-image: url("symbols/glacier.png");
     color: #99ccff;
     dashes: 4,2;
     width: 1.5;
@@ -388,7 +388,7 @@ area|z6-7[natural=glacier] {
 }
 
 area|z8-[natural=glacier] {
-    fill-image: "symbols/glacier2.png";
+    fill-image: url("symbols/glacier2.png");
     color: #99ccff;
     dashes: 4,2;
     width: 1.5;
@@ -418,7 +418,7 @@ area|z6-[natural=bay] {
 }
 
 area|z13-[natural=mud] {
-    fill-image: "symbols/mud.png";
+    fill-image: url("symbols/mud.png");
     z-index: -999;
 }
 
@@ -434,7 +434,7 @@ area|z10-[natural=land] {
 
 area|z13-[natural=marsh],
 area|z13-[natural=wetland] {
-    fill-image: "symbols/marsh.png";
+    fill-image: url("symbols/marsh.png");
     z-index: -998;
 }
 
@@ -950,7 +950,7 @@ way|z16-[man_made=pier] {
  */
 
 node|z17-[waterway=lock_gate] {
-    icon-image: "symbols/lock_gate.png";
+    icon-image: url("symbols/lock_gate.png");
 }
 
 /**
@@ -1387,20 +1387,20 @@ area|z16-[historic=castle_walls] {
  */
 
 area|z10-[landuse=military] {
-    fill-image: "symbols/military_red_hz2.png";
+    fill-image: url("symbols/military_red_hz2.png");
     color: #ff5555;
     opacity: 0.329;
     width: 3;
 }
 
 area|z10-13[leisure=nature_reserve] {
-    fill-image: "symbols/nature_reserve5.png";
+    fill-image: url("symbols/nature_reserve5.png");
     color: #66cc33;
     width: 0.5;
 }
 
 area|z14-[leisure=nature_reserve] {
-    fill-image: "symbols/nature_reserve6.png";
+    fill-image: url("symbols/nature_reserve6.png");
     color: #66cc33;
     width: 1;
 }
@@ -1412,64 +1412,64 @@ area|z14-[leisure=nature_reserve] {
 
 way[highway=tertiary] > node|z15-16[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-tert-casing.18.png";
+    icon-image: url("symbols/turning_circle-tert-casing.18.png");
     z-index: -1;
 }
 
 way[highway=residential] > node|z15[highway=turning_circle]::turning_circle-casing,
 way[highway=unclassified] > node|z15[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-casing.16.png";
+    icon-image: url("symbols/turning_circle-uncl-casing.16.png");
     z-index: -1;
 }
 
 way[highway=living_street] > node|z15[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.16.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.16.png");
     z-index: -1;
 }
 
 way[highway=residential] > node|z16[highway=turning_circle]::turning_circle-casing,
 way[highway=unclassified] > node|z16[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-casing.18.png";
+    icon-image: url("symbols/turning_circle-uncl-casing.18.png");
     z-index: -1;
 }
 
 way[highway=service] > node|z16[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-casing.14.png";
+    icon-image: url("symbols/turning_circle-uncl-casing.14.png");
     z-index: -1;
 }
 
 way[highway=living_street] > node|z16[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.18.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.18.png");
     z-index: -1;
 }
 
 way[highway=tertiary] > node|z17-[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-tert-casing.24.png";
+    icon-image: url("symbols/turning_circle-tert-casing.24.png");
     z-index: -1;
 }
 
 way[highway=residential] > node|z17-[highway=turning_circle]::turning_circle-casing,
 way[highway=unclassified] > node|z17-[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-casing.24.png";
+    icon-image: url("symbols/turning_circle-uncl-casing.24.png");
     z-index: -1;
 }
 
 way[highway=service] > node|z17-[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-casing.16.png";
+    icon-image: url("symbols/turning_circle-uncl-casing.16.png");
     z-index: -1;
 }
 
 way[highway=living_street] > node|z17-[highway=turning_circle]::turning_circle-casing {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.24.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.24.png");
     z-index: -1;
 }
 
@@ -1722,15 +1722,15 @@ way|z14-[highway=track][tunnel?][tracktype!=grade1][tracktype!=grade2][tracktype
  */
 
 way|z13-14[natural=cliff] {
-    pattern-image: "symbols/cliff.png";
+    pattern-image: url("symbols/cliff.png");
 }
 
 way|z15-[natural=cliff] {
-    pattern-image: "symbols/cliff2.png";
+    pattern-image: url("symbols/cliff2.png");
 }
 
 way|z15-[man_made=embankment] {
-    pattern-image: "symbols/cliff.png";
+    pattern-image: url("symbols/cliff.png");
 }
 
 /* Style 'barriers' */
@@ -2421,55 +2421,55 @@ area|z14-[aeroway=terminal] {
 
 way[highway=tertiary] > node|z15-16[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-tert-fill.16.png";
+    icon-image: url("symbols/turning_circle-tert-fill.16.png");
 }
 
 way[highway=residential] > node|z15[highway=turning_circle],
 way[highway=unclassified] > node|z15[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.14.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.14.png");
 }
 
 way[highway=living_street] > node|z15[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-livs-fill.14.png";
+    icon-image: url("symbols/turning_circle-livs-fill.14.png");
 }
 
 way[highway=residential] > node|z16[highway=turning_circle],
 way[highway=unclassified] > node|z16[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.16.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.16.png");
 }
 
 way[highway=service] > node|z16[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.12.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.12.png");
 }
 
 way[highway=living_street] > node|z16[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-livs-fill.16.png";
+    icon-image: url("symbols/turning_circle-livs-fill.16.png");
 }
 
 way[highway=tertiary] > node|z17-[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-tert-fill.22.png";
+    icon-image: url("symbols/turning_circle-tert-fill.22.png");
 }
 
 way[highway=residential] > node|z17-[highway=turning_circle],
 way[highway=unclassified] > node|z17-[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.22.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.22.png");
 }
 
 way[highway=service] > node|z17-[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-uncl-fill.14.png";
+    icon-image: url("symbols/turning_circle-uncl-fill.14.png");
 }
 
 way[highway=living_street] > node|z17-[highway=turning_circle] {
     allow_overlap: true;
-    icon-image: "symbols/turning_circle-livs-fill.22.png";
+    icon-image: url("symbols/turning_circle-livs-fill.22.png");
 }
 
 /**
@@ -3898,7 +3898,7 @@ way|z11-[route=ferry] {
 way|z12-[aerialway=cable_car],
 way|z12-[aerialway=gondola],
 way|z12-[aerialway=goods] {
-    pattern-image: "symbols/cable_car.png";
+    pattern-image: url("symbols/cable_car.png");
 }
 
 way|z12-[aerialway=chair_lift],
@@ -3907,7 +3907,7 @@ way|z12-[aerialway=t-bar],
 way|z12-[aerialway=j-bar],
 way|z12-[aerialway=platter],
 way|z12-[aerialway=rope_tow] {
-    pattern-image: "symbols/chair_lift.png";
+    pattern-image: url("symbols/chair_lift.png");
 }
 
 /**
@@ -6138,35 +6138,35 @@ node|z16-[place=farm] {
  */
 
 node|z18-[railway=subway_entrance] {
-    icon-image: "symbols/walking.n.12.png";
+    icon-image: url("symbols/walking.n.12.png");
 }
 
 node|z12[railway=station][disused!=yes] {
-    icon-image: "symbols/halt.png";
+    icon-image: url("symbols/halt.png");
 }
 
 node|z13-14[railway=station][disused!=yes] {
-    icon-image: "symbols/station_small.png";
+    icon-image: url("symbols/station_small.png");
 }
 
 node|z13-[railway=station][disused=yes] {
-    icon-image: "symbols/station_disused.png";
+    icon-image: url("symbols/station_disused.png");
 }
 
 node|z15-[railway=station][disused!=yes] {
-    icon-image: "symbols/station.png";
+    icon-image: url("symbols/station.png");
 }
 
 node|z13-14[railway=halt],
 node|z13-14[railway=tram_stop],
 node|z13-14[aerialway=station] {
-    icon-image: "symbols/halt.png";
+    icon-image: url("symbols/halt.png");
 }
 
 node|z15-[railway=halt],
 node|z15-[railway=tram_stop],
 node|z15-[aerialway=station] {
-    icon-image: "symbols/station_small.png";
+    icon-image: url("symbols/station_small.png");
 }
 
 node|z14[railway=halt],
@@ -6229,35 +6229,35 @@ node|z15-[railway=station][disused=yes] {
  */
 
 area|z18-[railway=subway_entrance] {
-    icon-image: "symbols/walking.n.12.png";
+    icon-image: url("symbols/walking.n.12.png");
 }
 
 area|z12[railway=station][disused!=yes] {
-    icon-image: "symbols/halt.png";
+    icon-image: url("symbols/halt.png");
 }
 
 area|z13-14[railway=station][disused!=yes] {
-    icon-image: "symbols/station_small.png";
+    icon-image: url("symbols/station_small.png");
 }
 
 area|z13-[railway=station][disused=yes] {
-    icon-image: "symbols/station_disused.png";
+    icon-image: url("symbols/station_disused.png");
 }
 
 area|z15-[railway=station][disused!=yes] {
-    icon-image: "symbols/station.png";
+    icon-image: url("symbols/station.png");
 }
 
 area|z13-14[railway=halt],
 area|z13-14[railway=tram_stop],
 area|z13-14[aerialway=station] {
-    icon-image: "symbols/halt.png";
+    icon-image: url("symbols/halt.png");
 }
 
 area|z15-[railway=halt],
 area|z15-[railway=tram_stop],
 area|z15-[aerialway=station] {
-    icon-image: "symbols/station_small.png";
+    icon-image: url("symbols/station_small.png");
 }
 
 area|z14[railway=halt],
@@ -6320,7 +6320,7 @@ area|z15-[railway=station][disused=yes] {
  */
 
 node|z16-[aeroway=helipad] {
-    icon-image: "symbols/helipad.p.16.png";
+    icon-image: url("symbols/helipad.p.16.png");
     font-family: "DejaVu Sans Bold";
     font-size: 8;
     text: "name";
@@ -6331,7 +6331,7 @@ node|z16-[aeroway=helipad] {
 }
 
 node|z9-10[aeroway=airport] {
-    icon-image: "symbols/airport.p.16.png";
+    icon-image: url("symbols/airport.p.16.png");
     font-family: "DejaVu Sans Bold";
     font-size: 8;
     text: "name";
@@ -6350,7 +6350,7 @@ node|z11-12[aeroway=airport] {
 }
 
 node|z10[aeroway=aerodrome] {
-    icon-image: "symbols/aerodrome.p.16.png";
+    icon-image: url("symbols/aerodrome.p.16.png");
     font-family: "DejaVu Sans Oblique";
     font-size: 8;
     text: "name";
@@ -6369,70 +6369,70 @@ node|z11-12[aeroway=aerodrome] {
 }
 
 node|z14-15[railway=level_crossing] {
-    icon-image: "symbols/level_crossing.png";
+    icon-image: url("symbols/level_crossing.png");
 }
 
 node|z16-[railway=level_crossing] {
-    icon-image: "symbols/level_crossing2.png";
+    icon-image: url("symbols/level_crossing2.png");
 }
 
 node|z15-[man_made=lighthouse] {
-    icon-image: "symbols/lighthouse.p.20.png";
+    icon-image: url("symbols/lighthouse.p.20.png");
 }
 
 node|z11-[natural=peak] {
-    icon-image: "symbols/peak.png";
+    icon-image: url("symbols/peak.png");
 }
 
 node|z11-[natural=volcano] {
-    icon-image: "symbols/volcano.png";
+    icon-image: url("symbols/volcano.png");
 }
 
 node|z15-[natural=cave_entrance] {
-    icon-image: "symbols/poi_cave.p.16.png";
+    icon-image: url("symbols/poi_cave.p.16.png");
 }
 
 node|z14-[natural=spring] {
-    icon-image: "symbols/spring.png";
+    icon-image: url("symbols/spring.png");
 }
 
 node|z16[natural=tree] {
-    icon-image: "symbols/tree.png";
+    icon-image: url("symbols/tree.png");
 }
 
 node|z17-[natural=tree] {
-    icon-image: "symbols/tree2.png";
+    icon-image: url("symbols/tree2.png");
 }
 
 node|z15-[man_made=power_wind],
 node|z15-[power=generator][power_source=wind] {
-    icon-image: "symbols/power_wind.png";
+    icon-image: url("symbols/power_wind.png");
 }
 
 node|z16-[man_made=windmill] {
-    icon-image: "symbols/windmill.png";
+    icon-image: url("symbols/windmill.png");
 }
 
 node|z17-[man_made=mast] {
-    icon-image: "symbols/communications.p.20.png";
+    icon-image: url("symbols/communications.p.20.png");
 }
 
 node|z15-[highway=mini_roundabout] {
-    icon-image: "symbols/mini_round.png";
+    icon-image: url("symbols/mini_round.png");
 }
 
 node|z15-[highway=gate],
 node|z15-[barrier=gate] {
-    icon-image: "symbols/gate2.png";
+    icon-image: url("symbols/gate2.png");
 }
 
 node|z16-[barrier=lift_gate] {
-    icon-image: "symbols/liftgate.png";
+    icon-image: url("symbols/liftgate.png");
 }
 
 node|z16-[barrier=bollard],
 node|z16-[barrier=block] {
-    icon-image: "symbols/bollard.png";
+    icon-image: url("symbols/bollard.png");
 }
 
 /**
@@ -6441,7 +6441,7 @@ node|z16-[barrier=block] {
  */
 
 area|z16-[aeroway=helipad] {
-    icon-image: "symbols/helipad.p.16.png";
+    icon-image: url("symbols/helipad.p.16.png");
     font-family: "DejaVu Sans Bold";
     font-size: 8;
     text: "name";
@@ -6452,7 +6452,7 @@ area|z16-[aeroway=helipad] {
 }
 
 area|z9-10[aeroway=airport] {
-    icon-image: "symbols/airport.p.16.png";
+    icon-image: url("symbols/airport.p.16.png");
     font-family: "DejaVu Sans Bold";
     font-size: 8;
     text: "name";
@@ -6471,7 +6471,7 @@ area|z11-12[aeroway=airport] {
 }
 
 area|z10[aeroway=aerodrome] {
-    icon-image: "symbols/aerodrome.p.16.png";
+    icon-image: url("symbols/aerodrome.p.16.png");
     font-family: "DejaVu Sans Oblique";
     font-size: 8;
     text: "name";
@@ -6490,70 +6490,70 @@ area|z11-12[aeroway=aerodrome] {
 }
 
 area|z14-15[railway=level_crossing] {
-    icon-image: "symbols/level_crossing.png";
+    icon-image: url("symbols/level_crossing.png");
 }
 
 area|z16-[railway=level_crossing] {
-    icon-image: "symbols/level_crossing2.png";
+    icon-image: url("symbols/level_crossing2.png");
 }
 
 area|z15-[man_made=lighthouse] {
-    icon-image: "symbols/lighthouse.p.20.png";
+    icon-image: url("symbols/lighthouse.p.20.png");
 }
 
 area|z11-[natural=peak] {
-    icon-image: "symbols/peak.png";
+    icon-image: url("symbols/peak.png");
 }
 
 area|z11-[natural=volcano] {
-    icon-image: "symbols/volcano.png";
+    icon-image: url("symbols/volcano.png");
 }
 
 area|z15-[natural=cave_entrance] {
-    icon-image: "symbols/poi_cave.p.16.png";
+    icon-image: url("symbols/poi_cave.p.16.png");
 }
 
 area|z14-[natural=spring] {
-    icon-image: "symbols/spring.png";
+    icon-image: url("symbols/spring.png");
 }
 
 area|z16[natural=tree] {
-    icon-image: "symbols/tree.png";
+    icon-image: url("symbols/tree.png");
 }
 
 area|z17-[natural=tree] {
-    icon-image: "symbols/tree2.png";
+    icon-image: url("symbols/tree2.png");
 }
 
 area|z15-[man_made=power_wind],
 area|z15-[power=generator][power_source=wind] {
-    icon-image: "symbols/power_wind.png";
+    icon-image: url("symbols/power_wind.png");
 }
 
 area|z16-[man_made=windmill] {
-    icon-image: "symbols/windmill.png";
+    icon-image: url("symbols/windmill.png");
 }
 
 area|z17-[man_made=mast] {
-    icon-image: "symbols/communications.p.20.png";
+    icon-image: url("symbols/communications.p.20.png");
 }
 
 area|z15-[highway=mini_roundabout] {
-    icon-image: "symbols/mini_round.png";
+    icon-image: url("symbols/mini_round.png");
 }
 
 area|z15-[highway=gate],
 area|z15-[barrier=gate] {
-    icon-image: "symbols/gate2.png";
+    icon-image: url("symbols/gate2.png");
 }
 
 area|z16-[barrier=lift_gate] {
-    icon-image: "symbols/liftgate.png";
+    icon-image: url("symbols/liftgate.png");
 }
 
 area|z16-[barrier=bollard],
 area|z16-[barrier=block] {
-    icon-image: "symbols/bollard.png";
+    icon-image: url("symbols/bollard.png");
 }
 
 /**
@@ -6562,301 +6562,301 @@ area|z16-[barrier=block] {
  */
 
 node|z13-[tourism=alpine_hut] {
-    icon-image: "symbols/alpinehut.p.16.png";
+    icon-image: url("symbols/alpinehut.p.16.png");
 }
 
 node|z16-[amenity=shelter] {
-    icon-image: "symbols/shelter2.p.16.png";
+    icon-image: url("symbols/shelter2.p.16.png");
 }
 
 node|z17-[amenity=atm] {
-    icon-image: "symbols/atm2.p.16.png";
+    icon-image: url("symbols/atm2.p.16.png");
 }
 
 node|z17-[amenity=bank] {
-    icon-image: "symbols/bank2.p.16.png";
+    icon-image: url("symbols/bank2.p.16.png");
 }
 
 node|z17-[amenity=bar] {
-    icon-image: "symbols/bar.p.20.png";
+    icon-image: url("symbols/bar.p.20.png");
 }
 
 node|z17-[amenity=bicycle_rental] {
-    icon-image: "symbols/rental_bicycle.p.20.png";
+    icon-image: url("symbols/rental_bicycle.p.20.png");
 }
 
 node|z16[amenity=bus_stop],
 node|z16[highway=bus_stop] {
-    icon-image: "symbols/bus_stop_small.png";
+    icon-image: url("symbols/bus_stop_small.png");
 }
 
 node|z17-[amenity=bus_stop],
 node|z17-[highway=bus_stop] {
-    icon-image: "symbols/bus_stop.p.12.png";
+    icon-image: url("symbols/bus_stop.p.12.png");
 }
 
 node|z16-[amenity=bus_station] {
-    icon-image: "symbols/bus_station.n.16.png";
+    icon-image: url("symbols/bus_station.n.16.png");
 }
 
 node|z17-[highway=traffic_signals] {
-    icon-image: "symbols/traffic_light.png";
+    icon-image: url("symbols/traffic_light.png");
 }
 
 node|z17-[amenity=cafe] {
-    icon-image: "symbols/cafe.p.16.png";
+    icon-image: url("symbols/cafe.p.16.png");
 }
 
 node|z16-[tourism=camp_site] {
-    icon-image: "symbols/camping.n.16.png";
+    icon-image: url("symbols/camping.n.16.png");
 }
 
 node|z16-[highway=ford] {
-    icon-image: "symbols/transport_ford.p.16.png";
+    icon-image: url("symbols/transport_ford.p.16.png");
 }
 
 node|z16-[tourism=caravan_site] {
-    icon-image: "symbols/caravan_park.p.24.png";
+    icon-image: url("symbols/caravan_park.p.24.png");
 }
 
 node|z16-[amenity=car_sharing] {
-    icon-image: "symbols/car_share.p.16.png";
+    icon-image: url("symbols/car_share.p.16.png");
 }
 
 node|z17-[tourism=chalet] {
-    icon-image: "symbols/chalet.p.16.png";
+    icon-image: url("symbols/chalet.p.16.png");
 }
 
 node|z17-[amenity=cinema] {
-    icon-image: "symbols/cinema.p.24.png";
+    icon-image: url("symbols/cinema.p.24.png");
 }
 
 node|z17-[amenity=fire_station] {
-    icon-image: "symbols/firestation.p.16.png";
+    icon-image: url("symbols/firestation.p.16.png");
 }
 
 node|z17-[amenity=fuel] {
-    icon-image: "symbols/fuel.p.16.png";
+    icon-image: url("symbols/fuel.p.16.png");
 }
 
 node|z17-[tourism=guest_house] {
-    icon-image: "symbols/guest_house.p.16.png";
+    icon-image: url("symbols/guest_house.p.16.png");
 }
 
 node|z17-[tourism=bed_and_breakfast] {
-    icon-image: "symbols/bandb.p.20.png";
+    icon-image: url("symbols/bandb.p.20.png");
 }
 
 node|z15-[amenity=hospital] {
-    icon-image: "symbols/hospital.p.16.png";
+    icon-image: url("symbols/hospital.p.16.png");
 }
 
 node|z17-[tourism=hostel] {
-    icon-image: "symbols/hostel.p.20.png";
+    icon-image: url("symbols/hostel.p.20.png");
 }
 
 node|z17-[tourism=hotel] {
-    icon-image: "symbols/hotel2.p.20.png";
+    icon-image: url("symbols/hotel2.p.20.png");
 }
 
 node|z17-[tourism=motel] {
-    icon-image: "symbols/motel.p.20.png";
+    icon-image: url("symbols/motel.p.20.png");
 }
 
 node|z16-[tourism=information] {
-    icon-image: "symbols/information.p.16.png";
+    icon-image: url("symbols/information.p.16.png");
 }
 
 node|z17-[amenity=embassy] {
-    icon-image: "symbols/embassy.png";
+    icon-image: url("symbols/embassy.png");
 }
 
 node|z17-[amenity=library] {
-    icon-image: "symbols/library.p.20.png";
+    icon-image: url("symbols/library.p.20.png");
 }
 
 node|z17-[amenity=courthouse] {
-    icon-image: "symbols/amenity_court.p.20.png";
+    icon-image: url("symbols/amenity_court.p.20.png");
 }
 
 node|z15-[waterway=lock],
 node|z15-[lock=yes] {
-    icon-image: "symbols/lock_gate.png";
+    icon-image: url("symbols/lock_gate.png");
 }
 
 node|z17-[man_made=mast] {
-    icon-image: "symbols/communications.p.20.png";
+    icon-image: url("symbols/communications.p.20.png");
 }
 
 node|z17-[tourism=museum] {
-    icon-image: "symbols/museum.p.16.png";
+    icon-image: url("symbols/museum.p.16.png");
 }
 
 node|z15-[amenity=parking][access=public],
 node|z15-[amenity=parking][access=yes],
 node|z15-[amenity=parking][!access] {
-    icon-image: "symbols/parking.p.16.png";
+    icon-image: url("symbols/parking.p.16.png");
 }
 
 node|z15-[amenity=parking][access][access!=public][access!=yes] {
-    icon-image: "symbols/parking_private.p.16.png";
+    icon-image: url("symbols/parking_private.p.16.png");
 }
 
 node|z17-[amenity=pharmacy] {
-    icon-image: "symbols/pharmacy.p.16.png";
+    icon-image: url("symbols/pharmacy.p.16.png");
 }
 
 node|z16-[amenity=place_of_worship][religion=christian] {
-    icon-image: "symbols/christian3.p.14.png";
+    icon-image: url("symbols/christian3.p.14.png");
 }
 
 node|z16-[amenity=place_of_worship][religion=muslim] {
-    icon-image: "symbols/islamic3.p.16.png";
+    icon-image: url("symbols/islamic3.p.16.png");
 }
 
 node|z16-[amenity=place_of_worship][religion=sikh] {
-    icon-image: "symbols/sikh3.p.16.png";
+    icon-image: url("symbols/sikh3.p.16.png");
 }
 
 node|z16-[amenity=place_of_worship][religion=jewish] {
-    icon-image: "symbols/jewish3.p.16.png";
+    icon-image: url("symbols/jewish3.p.16.png");
 }
 
 node|z16-[amenity=place_of_worship][religion!=christian][religion!=muslim][religion!=sikh][religion!=jewish] {
-    icon-image: "symbols/place_of_worship3.p.16.png";
+    icon-image: url("symbols/place_of_worship3.p.16.png");
 }
 
 node|z17-[amenity=police] {
-    icon-image: "symbols/police.p.16.png";
+    icon-image: url("symbols/police.p.16.png");
 }
 
 node|z17-[amenity=post_box] {
-    icon-image: "symbols/post_box.p.16.png";
+    icon-image: url("symbols/post_box.p.16.png");
 }
 
 node|z17-[amenity=post_office] {
-    icon-image: "symbols/post_office.p.16.png";
+    icon-image: url("symbols/post_office.p.16.png");
 }
 
 node|z16-[amenity=pub] {
-    icon-image: "symbols/pub.p.16.png";
+    icon-image: url("symbols/pub.p.16.png");
 }
 
 node|z16-[amenity=biergarten] {
-    icon-image: "symbols/biergarten.p.16.png";
+    icon-image: url("symbols/biergarten.p.16.png");
 }
 
 node|z16-[amenity=recycling] {
-    icon-image: "symbols/recycling.p.16.png";
+    icon-image: url("symbols/recycling.p.16.png");
 }
 
 node|z17-[amenity=restaurant] {
-    icon-image: "symbols/restaurant.p.16.png";
+    icon-image: url("symbols/restaurant.p.16.png");
 }
 
 node|z17-[amenity=fast_food] {
-    icon-image: "symbols/fast_food.png";
+    icon-image: url("symbols/fast_food.png");
 }
 
 node|z17-[amenity=telephone] {
-    icon-image: "symbols/telephone.p.16.png";
+    icon-image: url("symbols/telephone.p.16.png");
 }
 
 node|z17-[amenity=emergency_phone] {
-    icon-image: "symbols/sosphone.png";
+    icon-image: url("symbols/sosphone.png");
 }
 
 node|z17-[amenity=theatre] {
-    icon-image: "symbols/theatre.p.20.png";
+    icon-image: url("symbols/theatre.p.20.png");
 }
 
 node|z17-[amenity=toilets] {
-    icon-image: "symbols/toilets.p.20.png";
+    icon-image: url("symbols/toilets.p.20.png");
 }
 
 node|z17-[amenity=drinking_water] {
-    icon-image: "symbols/food_drinkingtap.p.20.png";
+    icon-image: url("symbols/food_drinkingtap.p.20.png");
 }
 
 node|z16-[amenity=prison] {
-    icon-image: "symbols/amenity_prison.p.20.png";
+    icon-image: url("symbols/amenity_prison.p.20.png");
 }
 
 node|z16-[tourism=viewpoint] {
-    icon-image: "symbols/view_point.p.16.png";
+    icon-image: url("symbols/view_point.p.16.png");
 }
 
 node|z17-[man_made=water_tower] {
-    icon-image: "symbols/tower_water.p.20.png";
+    icon-image: url("symbols/tower_water.p.20.png");
 }
 
 node|z17-[historic=memorial] {
-    icon-image: "symbols/tourist_memorial.p.20.png";
+    icon-image: url("symbols/tourist_memorial.p.20.png");
 }
 
 node|z16-[historic=archaeological_site] {
-    icon-image: "symbols/tourist_archaeological2.glow.16.png";
+    icon-image: url("symbols/tourist_archaeological2.glow.16.png");
 }
 
 node|z16-[shop=supermarket] {
-    icon-image: "symbols/shop_supermarket.p.16.png";
+    icon-image: url("symbols/shop_supermarket.p.16.png");
 }
 
 node|z17-[shop=bakery] {
-    icon-image: "symbols/shop_bakery.p.16.png";
+    icon-image: url("symbols/shop_bakery.p.16.png");
 }
 
 node|z17-[shop=butcher] {
-    icon-image: "symbols/shop_butcher.png";
+    icon-image: url("symbols/shop_butcher.png");
 }
 
 node|z17-[shop=clothes],
 node|z17-[shop=fashion] {
-    icon-image: "symbols/shop_clothes.p.16.png";
+    icon-image: url("symbols/shop_clothes.p.16.png");
 }
 
 node|z17-[shop=convenience] {
-    icon-image: "symbols/shop_convenience.p.16.png";
+    icon-image: url("symbols/shop_convenience.p.16.png");
 }
 
 node|z16-[shop=department_store] {
-    icon-image: "symbols/department_store.p.16.png";
+    icon-image: url("symbols/department_store.p.16.png");
 }
 
 node|z17-[shop=doityourself] {
-    icon-image: "symbols/shop_diy.p.16.png";
+    icon-image: url("symbols/shop_diy.p.16.png");
 }
 
 node|z17-[shop=florist] {
-    icon-image: "symbols/florist.p.16.png";
+    icon-image: url("symbols/florist.p.16.png");
 }
 
 node|z17-[shop=hairdresser] {
-    icon-image: "symbols/shop_hairdresser.p.16.png";
+    icon-image: url("symbols/shop_hairdresser.p.16.png");
 }
 
 node|z17-[shop=car] {
-    icon-image: "symbols/shopping_car.p.16.png";
+    icon-image: url("symbols/shopping_car.p.16.png");
 }
 
 node|z17-[shop=car_repair] {
-    icon-image: "symbols/shopping_car_repair.p.16.png";
+    icon-image: url("symbols/shopping_car_repair.p.16.png");
 }
 
 node|z17-[shop=bicycle] {
-    icon-image: "symbols/shopping_bicycle.p.16.png";
+    icon-image: url("symbols/shopping_bicycle.p.16.png");
 }
 
 node|z17-[leisure=playground] {
-    icon-image: "symbols/playground.p.20.png";
+    icon-image: url("symbols/playground.p.20.png");
 }
 
 node|z16-[amenity=picnic_site] {
-    icon-image: "symbols/picnic.p.16.png";
+    icon-image: url("symbols/picnic.p.16.png");
 }
 
 node|z17-[leisure=slipway] {
-    icon-image: "symbols/transport_slipway.p.20.png";
+    icon-image: url("symbols/transport_slipway.p.20.png");
 }
 
 /**
@@ -6865,301 +6865,301 @@ node|z17-[leisure=slipway] {
  */
 
 area|z13-[tourism=alpine_hut] {
-    icon-image: "symbols/alpinehut.p.16.png";
+    icon-image: url("symbols/alpinehut.p.16.png");
 }
 
 area|z16-[amenity=shelter] {
-    icon-image: "symbols/shelter2.p.16.png";
+    icon-image: url("symbols/shelter2.p.16.png");
 }
 
 area|z17-[amenity=atm] {
-    icon-image: "symbols/atm2.p.16.png";
+    icon-image: url("symbols/atm2.p.16.png");
 }
 
 area|z17-[amenity=bank] {
-    icon-image: "symbols/bank2.p.16.png";
+    icon-image: url("symbols/bank2.p.16.png");
 }
 
 area|z17-[amenity=bar] {
-    icon-image: "symbols/bar.p.20.png";
+    icon-image: url("symbols/bar.p.20.png");
 }
 
 area|z17-[amenity=bicycle_rental] {
-    icon-image: "symbols/rental_bicycle.p.20.png";
+    icon-image: url("symbols/rental_bicycle.p.20.png");
 }
 
 area|z16[amenity=bus_stop],
 area|z16[highway=bus_stop] {
-    icon-image: "symbols/bus_stop_small.png";
+    icon-image: url("symbols/bus_stop_small.png");
 }
 
 area|z17-[amenity=bus_stop],
 area|z17-[highway=bus_stop] {
-    icon-image: "symbols/bus_stop.p.12.png";
+    icon-image: url("symbols/bus_stop.p.12.png");
 }
 
 area|z16-[amenity=bus_station] {
-    icon-image: "symbols/bus_station.n.16.png";
+    icon-image: url("symbols/bus_station.n.16.png");
 }
 
 area|z17-[highway=traffic_signals] {
-    icon-image: "symbols/traffic_light.png";
+    icon-image: url("symbols/traffic_light.png");
 }
 
 area|z17-[amenity=cafe] {
-    icon-image: "symbols/cafe.p.16.png";
+    icon-image: url("symbols/cafe.p.16.png");
 }
 
 area|z16-[tourism=camp_site] {
-    icon-image: "symbols/camping.n.16.png";
+    icon-image: url("symbols/camping.n.16.png");
 }
 
 area|z16-[highway=ford] {
-    icon-image: "symbols/transport_ford.p.16.png";
+    icon-image: url("symbols/transport_ford.p.16.png");
 }
 
 area|z16-[tourism=caravan_site] {
-    icon-image: "symbols/caravan_park.p.24.png";
+    icon-image: url("symbols/caravan_park.p.24.png");
 }
 
 area|z16-[amenity=car_sharing] {
-    icon-image: "symbols/car_share.p.16.png";
+    icon-image: url("symbols/car_share.p.16.png");
 }
 
 area|z17-[tourism=chalet] {
-    icon-image: "symbols/chalet.p.16.png";
+    icon-image: url("symbols/chalet.p.16.png");
 }
 
 area|z17-[amenity=cinema] {
-    icon-image: "symbols/cinema.p.24.png";
+    icon-image: url("symbols/cinema.p.24.png");
 }
 
 area|z17-[amenity=fire_station] {
-    icon-image: "symbols/firestation.p.16.png";
+    icon-image: url("symbols/firestation.p.16.png");
 }
 
 area|z17-[amenity=fuel] {
-    icon-image: "symbols/fuel.p.16.png";
+    icon-image: url("symbols/fuel.p.16.png");
 }
 
 area|z17-[tourism=guest_house] {
-    icon-image: "symbols/guest_house.p.16.png";
+    icon-image: url("symbols/guest_house.p.16.png");
 }
 
 area|z17-[tourism=bed_and_breakfast] {
-    icon-image: "symbols/bandb.p.20.png";
+    icon-image: url("symbols/bandb.p.20.png");
 }
 
 area|z15-[amenity=hospital] {
-    icon-image: "symbols/hospital.p.16.png";
+    icon-image: url("symbols/hospital.p.16.png");
 }
 
 area|z17-[tourism=hostel] {
-    icon-image: "symbols/hostel.p.20.png";
+    icon-image: url("symbols/hostel.p.20.png");
 }
 
 area|z17-[tourism=hotel] {
-    icon-image: "symbols/hotel2.p.20.png";
+    icon-image: url("symbols/hotel2.p.20.png");
 }
 
 area|z17-[tourism=motel] {
-    icon-image: "symbols/motel.p.20.png";
+    icon-image: url("symbols/motel.p.20.png");
 }
 
 area|z16-[tourism=information] {
-    icon-image: "symbols/information.p.16.png";
+    icon-image: url("symbols/information.p.16.png");
 }
 
 area|z17-[amenity=embassy] {
-    icon-image: "symbols/embassy.png";
+    icon-image: url("symbols/embassy.png");
 }
 
 area|z17-[amenity=library] {
-    icon-image: "symbols/library.p.20.png";
+    icon-image: url("symbols/library.p.20.png");
 }
 
 area|z17-[amenity=courthouse] {
-    icon-image: "symbols/amenity_court.p.20.png";
+    icon-image: url("symbols/amenity_court.p.20.png");
 }
 
 area|z15-[waterway=lock],
 area|z15-[lock=yes] {
-    icon-image: "symbols/lock_gate.png";
+    icon-image: url("symbols/lock_gate.png");
 }
 
 area|z17-[man_made=mast] {
-    icon-image: "symbols/communications.p.20.png";
+    icon-image: url("symbols/communications.p.20.png");
 }
 
 area|z17-[tourism=museum] {
-    icon-image: "symbols/museum.p.16.png";
+    icon-image: url("symbols/museum.p.16.png");
 }
 
 area|z15-[amenity=parking][access=public],
 area|z15-[amenity=parking][access=yes],
 area|z15-[amenity=parking][!access] {
-    icon-image: "symbols/parking.p.16.png";
+    icon-image: url("symbols/parking.p.16.png");
 }
 
 area|z15-[amenity=parking][access][access!=public][access!=yes] {
-    icon-image: "symbols/parking_private.p.16.png";
+    icon-image: url("symbols/parking_private.p.16.png");
 }
 
 area|z17-[amenity=pharmacy] {
-    icon-image: "symbols/pharmacy.p.16.png";
+    icon-image: url("symbols/pharmacy.p.16.png");
 }
 
 area|z16-[amenity=place_of_worship][religion=christian] {
-    icon-image: "symbols/christian3.p.14.png";
+    icon-image: url("symbols/christian3.p.14.png");
 }
 
 area|z16-[amenity=place_of_worship][religion=muslim] {
-    icon-image: "symbols/islamic3.p.16.png";
+    icon-image: url("symbols/islamic3.p.16.png");
 }
 
 area|z16-[amenity=place_of_worship][religion=sikh] {
-    icon-image: "symbols/sikh3.p.16.png";
+    icon-image: url("symbols/sikh3.p.16.png");
 }
 
 area|z16-[amenity=place_of_worship][religion=jewish] {
-    icon-image: "symbols/jewish3.p.16.png";
+    icon-image: url("symbols/jewish3.p.16.png");
 }
 
 area|z16-[amenity=place_of_worship] {
-    icon-image: "symbols/place_of_worship3.p.16.png";
+    icon-image: url("symbols/place_of_worship3.p.16.png");
 }
 
 area|z17-[amenity=police] {
-    icon-image: "symbols/police.p.16.png";
+    icon-image: url("symbols/police.p.16.png");
 }
 
 area|z17-[amenity=post_box] {
-    icon-image: "symbols/post_box.p.16.png";
+    icon-image: url("symbols/post_box.p.16.png");
 }
 
 area|z17-[amenity=post_office] {
-    icon-image: "symbols/post_office.p.16.png";
+    icon-image: url("symbols/post_office.p.16.png");
 }
 
 area|z16-[amenity=pub] {
-    icon-image: "symbols/pub.p.16.png";
+    icon-image: url("symbols/pub.p.16.png");
 }
 
 area|z16-[amenity=biergarten] {
-    icon-image: "symbols/biergarten.p.16.png";
+    icon-image: url("symbols/biergarten.p.16.png");
 }
 
 area|z16-[amenity=recycling] {
-    icon-image: "symbols/recycling.p.16.png";
+    icon-image: url("symbols/recycling.p.16.png");
 }
 
 area|z17-[amenity=restaurant] {
-    icon-image: "symbols/restaurant.p.16.png";
+    icon-image: url("symbols/restaurant.p.16.png");
 }
 
 area|z17-[amenity=fast_food] {
-    icon-image: "symbols/fast_food.png";
+    icon-image: url("symbols/fast_food.png");
 }
 
 area|z17-[amenity=telephone] {
-    icon-image: "symbols/telephone.p.16.png";
+    icon-image: url("symbols/telephone.p.16.png");
 }
 
 area|z17-[amenity=emergency_phone] {
-    icon-image: "symbols/sosphone.png";
+    icon-image: url("symbols/sosphone.png");
 }
 
 area|z17-[amenity=theatre] {
-    icon-image: "symbols/theatre.p.20.png";
+    icon-image: url("symbols/theatre.p.20.png");
 }
 
 area|z17-[amenity=toilets] {
-    icon-image: "symbols/toilets.p.20.png";
+    icon-image: url("symbols/toilets.p.20.png");
 }
 
 area|z17-[amenity=drinking_water] {
-    icon-image: "symbols/food_drinkingtap.p.20.png";
+    icon-image: url("symbols/food_drinkingtap.p.20.png");
 }
 
 area|z16-[amenity=prison] {
-    icon-image: "symbols/amenity_prison.p.20.png";
+    icon-image: url("symbols/amenity_prison.p.20.png");
 }
 
 area|z16-[tourism=viewpoint] {
-    icon-image: "symbols/view_point.p.16.png";
+    icon-image: url("symbols/view_point.p.16.png");
 }
 
 area|z17-[man_made=water_tower] {
-    icon-image: "symbols/tower_water.p.20.png";
+    icon-image: url("symbols/tower_water.p.20.png");
 }
 
 area|z17-[historic=memorial] {
-    icon-image: "symbols/tourist_memorial.p.20.png";
+    icon-image: url("symbols/tourist_memorial.p.20.png");
 }
 
 area|z16-[historic=archaeological_site] {
-    icon-image: "symbols/tourist_archaeological2.glow.16.png";
+    icon-image: url("symbols/tourist_archaeological2.glow.16.png");
 }
 
 area|z16-[shop=supermarket] {
-    icon-image: "symbols/shop_supermarket.p.16.png";
+    icon-image: url("symbols/shop_supermarket.p.16.png");
 }
 
 area|z17-[shop=bakery] {
-    icon-image: "symbols/shop_bakery.p.16.png";
+    icon-image: url("symbols/shop_bakery.p.16.png");
 }
 
 area|z17-[shop=butcher] {
-    icon-image: "symbols/shop_butcher.png";
+    icon-image: url("symbols/shop_butcher.png");
 }
 
 area|z17-[shop=clothes],
 area|z17-[shop=fashion] {
-    icon-image: "symbols/shop_clothes.p.16.png";
+    icon-image: url("symbols/shop_clothes.p.16.png");
 }
 
 area|z17-[shop=convenience] {
-    icon-image: "symbols/shop_convenience.p.16.png";
+    icon-image: url("symbols/shop_convenience.p.16.png");
 }
 
 area|z16-[shop=department_store] {
-    icon-image: "symbols/department_store.p.16.png";
+    icon-image: url("symbols/department_store.p.16.png");
 }
 
 area|z17-[shop=doityourself] {
-    icon-image: "symbols/shop_diy.p.16.png";
+    icon-image: url("symbols/shop_diy.p.16.png");
 }
 
 area|z17-[shop=florist] {
-    icon-image: "symbols/florist.p.16.png";
+    icon-image: url("symbols/florist.p.16.png");
 }
 
 area|z17-[shop=hairdresser] {
-    icon-image: "symbols/shop_hairdresser.p.16.png";
+    icon-image: url("symbols/shop_hairdresser.p.16.png");
 }
 
 area|z17-[shop=car] {
-    icon-image: "symbols/shopping_car.p.16.png";
+    icon-image: url("symbols/shopping_car.p.16.png");
 }
 
 area|z17-[shop=car_repair] {
-    icon-image: "symbols/shopping_car_repair.p.16.png";
+    icon-image: url("symbols/shopping_car_repair.p.16.png");
 }
 
 area|z17-[shop=bicycle] {
-    icon-image: "symbols/shopping_bicycle.p.16.png";
+    icon-image: url("symbols/shopping_bicycle.p.16.png");
 }
 
 area|z17-[leisure=playground] {
-    icon-image: "symbols/playground.p.20.png";
+    icon-image: url("symbols/playground.p.20.png");
 }
 
 area|z16-[amenity=picnic_site] {
-    icon-image: "symbols/picnic.p.16.png";
+    icon-image: url("symbols/picnic.p.16.png");
 }
 
 area|z17-[leisure=slipway] {
-    icon-image: "symbols/transport_slipway.p.20.png";
+    icon-image: url("symbols/transport_slipway.p.20.png");
 }
 
 /**
@@ -7193,15 +7193,15 @@ way|z16-[power=minor_line] {
  */
 
 node|z14[power=tower] {
-    icon-image: "symbols/power_tower_3x3.png";
+    icon-image: url("symbols/power_tower_3x3.png");
 }
 
 node|z15-16[power=tower] {
-    icon-image: "symbols/power_tower_5x5.png";
+    icon-image: url("symbols/power_tower_5x5.png");
 }
 
 node|z17-[power=tower] {
-    icon-image: "symbols/power_tower.png";
+    icon-image: url("symbols/power_tower.png");
 }
 
 /**
@@ -7210,7 +7210,7 @@ node|z17-[power=tower] {
  */
 
 node|z16-[power=pole] {
-    icon-image: "symbols/power_pole.png";
+    icon-image: url("symbols/power_pole.png");
 }
 
 /**
@@ -7267,131 +7267,6 @@ node|z15-[highway=motorway_junction]::over1 {
     text-wrap-character: ";";
     text-wrap-width: 2;
     z-index: 0.1;
-}
-
-/**
- * Layer 'planet roads text osm'
- * Style 'roads-text'
- */
-
-way|z13-[highway=motorway][length=1] {
-}
-
-way|z13-[highway=motorway][length=2] {
-}
-
-way|z13-[highway=motorway][length=3] {
-}
-
-way|z13-[highway=motorway][length=4] {
-}
-
-way|z13-[highway=motorway][length=5] {
-}
-
-way|z13-[highway=motorway][length=6] {
-}
-
-way|z13-[highway=motorway][length=7] {
-}
-
-way|z13-[highway=motorway][length=8] {
-}
-
-way|z13-[highway=trunk][length=1] {
-}
-
-way|z13-[highway=trunk][length=2] {
-}
-
-way|z13-[highway=trunk][length=3] {
-}
-
-way|z13-[highway=trunk][length=4] {
-}
-
-way|z13-[highway=trunk][length=5] {
-}
-
-way|z13-[highway=trunk][length=6] {
-}
-
-way|z13-[highway=trunk][length=7] {
-}
-
-way|z13-[highway=trunk][length=8] {
-}
-
-way|z13-[highway=primary][length=1] {
-}
-
-way|z13-[highway=primary][length=2] {
-}
-
-way|z13-[highway=primary][length=3] {
-}
-
-way|z13-[highway=primary][length=4] {
-}
-
-way|z13-[highway=primary][length=5] {
-}
-
-way|z13-[highway=primary][length=6] {
-}
-
-way|z13-[highway=primary][length=7] {
-}
-
-way|z13-[highway=primary][length=8] {
-}
-
-way|z12-[highway=secondary][length=1][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=2][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=3][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=4][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=5][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=6][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=7][!bridge?] {
-}
-
-way|z12-[highway=secondary][length=8][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=1][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=2][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=3][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=4][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=5][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=6][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=7][!bridge?] {
-}
-
-way|z13-[highway=tertiary][length=8][!bridge?] {
 }
 
 way|z15-[highway=unclassified][!bridge?],

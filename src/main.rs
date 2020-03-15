@@ -3,8 +3,12 @@ extern crate image;
 extern crate line_drawing;
 extern crate markup5ever;
 extern crate osmpbf;
+extern crate pest;
 extern crate winapi;
+#[macro_use]
+extern crate pest_derive;
 
+use pest::Parser;
 mod data;
 mod extractor;
 mod mapcss;
@@ -38,7 +42,7 @@ pub(crate) fn print_peak_memory_usage() {
         let cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
 
         if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, cb) == 0 {
-            eprintln!("fail to get memory info of process");
+            eprintln!("getting memory info of process failed");
         }
 
         println!(
@@ -67,13 +71,12 @@ where
 fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
-    dbg!(std::mem::size_of::<crate::data::RelationData>());
-    dbg!(std::mem::size_of::<crate::data::NodeData>());
-    dbg!(std::mem::size_of::<crate::data::WayData>());
-    dbg!(std::mem::size_of::<crate::painter::RenderStyle>());
+    let result =
+        mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
+    dbg!(result);
+    print_peak_memory_usage();
 
-    println!("Parsing mapcss.");
-    let mapcss_rules = mapcss::parse_mapcss(include_str!("../include/mapcss.css"));
+    std::process::exit(0);
 
     println!("Extracting data!");
 
@@ -99,7 +102,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         nid_to_node_data,
         wid_to_way_data,
         rid_to_relation_data,
-        mapcss_rules,
+        vec![], // TODO
     );
 
     print_peak_memory_usage();

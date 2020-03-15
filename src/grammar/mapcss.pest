@@ -1,0 +1,53 @@
+WHITESPACE = _{ " " | NEWLINE }
+COMMENT = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
+
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+digit = _{ '0'..'9' }
+int   = @{ "-" ? ~ ("0" | '1'..'9' ~ '0'..'9' * ) }
+float = @{
+    "-" ? ~
+    (
+        "0" ~ "." ~ '0'..'9' + |
+        '1'..'9' ~ '0'..'9' * ~ "." ~ '0'..'9' +
+    )
+}
+hex = _{ digit | 'a'..'f' | 'A'..'F' }
+boolean = { "true" | "false" }
+
+// matches anything between 2 double quotes
+double_quoted_string = @{ "\"" ~ (!("\"") ~ ANY)* ~ "\""}
+// matches anything between 2 single quotes
+single_quoted_string = @{ "\'" ~ (!("\'") ~ ANY)* ~ "\'"}
+
+color = @{ ("#" ~ (hex{8} | hex{6} | hex{3})) | ("black" | "silver" | "grey" | "white" | "maroon" | "red" | "purple") }
+text_expression = @{ alpha+ }
+
+declaration = { alpha ~ (alpha | (("-" | "_") ~ alpha))* }
+tag_value = { (digit | alpha | "_" | "-" | ":")+ }
+int_array = @{ (int ~ ","){1,} ~ int}
+url = { "url(" ~ (double_quoted_string | single_quoted_string) ~ ")" }
+declaration_value = _{ float | int_array | int | color | boolean | url | text_expression | double_quoted_string | single_quoted_string}
+
+rule_declaration = { declaration ~ ":" ~ declaration_value ~ ";"? }
+
+not_pseudo_class = { ":not(" ~ selector ~ ")" }
+generic_pseudo_class = { ("::" ~ selector) | ("::" ~ tag_value) }
+closed_pseudo_class = { ":closed" }
+
+selector_pseudo_classes = { not_pseudo_class | generic_pseudo_class | closed_pseudo_class }
+rule_selector = { selector ~ selector_tests* ~ selector_pseudo_classes* ~ (">" ~ rule_selector)? }
+rule = { rule_selector ~ ("," ~ (rule_selector ~ ","?)*)? ~ "{" ~ rule_declaration* ~ "}" }
+selector = { "meta" | "node" | "way" | "relation" | "area" | "line" | "canvas" | "*" }
+selector_tests = { selector_test_zoom_level | selector_test_tags }
+selector_test_zoom_level_closed_range = @{ "|z" ~ digit{1,2} ~ "-" ~ digit{1,2} }
+selector_test_zoom_level_open_right_range = @{ "|z" ~ digit{1,2} ~ "-" }
+selector_test_zoom_level_open_left_range = @{ "|z-" ~ digit{1,2} }
+selector_test_zoom_level_exact = @{ "|z" ~ digit{1,2} }
+selector_test_zoom_level = { selector_test_zoom_level_closed_range | selector_test_zoom_level_open_right_range | selector_test_zoom_level_exact | selector_test_zoom_level_open_left_range }
+comparison = { "!=" | "=~" | "=" | ">=" | ">" | "<=" | "<" }
+selector_test_comparator = _{ (comparison? ~ tag_value) | selector_test_question_mark }
+selector_test_question_mark = _{ "?" }
+selector_test_not = _{ "!" }
+selector_test_tags = _{ "[" ~ ((selector_test_not ~ tag_value ~ selector_test_question_mark?) | (tag_value ~ selector_test_comparator) | tag_value) ~ "]" }
+
+rule_list = _{ SOI ~ rule* ~ EOI }
