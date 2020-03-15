@@ -1,4 +1,4 @@
-use crate::mapcss::parser::FloatSize;
+use crate::mapcss::parser::{FloatSize, IntSize};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::num::ParseIntError;
@@ -16,13 +16,21 @@ pub enum MapCssDeclaration {
     Description(String),
     Acknowledgement(String),
 
-    Text(String),
+    Dashes(Vec<IntSize>),
 
-    Color(RGBA),
+    Text(String),
+    TextColor(RGBA),
+
     BackgroundColor(RGBA),
+    Color(RGBA),
+    FontSize(IntSize),
+    FontColor(RGBA),
     FontFamily(String),
 
     Opacity(FloatSize),
     FillOpacity(FloatSize),
+    FillColor(RGBA),
     Width(FloatSize),
+
+    ZIndex(FloatSize),
 }

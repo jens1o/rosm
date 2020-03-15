@@ -5,6 +5,7 @@ use pest::Parser;
 use std::rc::Rc;
 
 pub type FloatSize = f32;
+pub type IntSize = i32;
 
 pub enum MapCssProperty {
     Width(FloatSize),
@@ -302,6 +303,13 @@ fn handle_declaration(
         };
     }
 
+    macro_rules! to_int {
+        () => {
+            // TODO: Catch error
+            inner.as_span().as_str().parse::<IntSize>().unwrap()
+        };
+    }
+
     macro_rules! to_color {
         () => {
             // TODO: Catch error
@@ -313,20 +321,41 @@ fn handle_declaration(
         };
     }
 
-    Ok(match declaration_name.to_lowercase().as_str() {
+    Ok(match declaration_name.to_ascii_lowercase().as_str() {
         "title" => MapCssDeclaration::Title(to_text!()),
         "version" => MapCssDeclaration::Version(to_text!()),
         "description" => MapCssDeclaration::Description(to_text!()),
         "acknowledgement" => MapCssDeclaration::Acknowledgement(to_text!()),
 
-        "text" => MapCssDeclaration::Text(to_text!()),
+        "dashes" => {
+            // TODO: Make sure that the syntax is right
+            // TODO: Prevent DoS?!
 
-        "color" => MapCssDeclaration::Color(to_color!()),
+            MapCssDeclaration::Dashes(
+                inner
+                    .as_span()
+                    .as_str()
+                    .split(',')
+                    .map(|x| x.parse::<IntSize>().unwrap())
+                    .collect::<Vec<IntSize>>(),
+            )
+        }
+
+        "text" => MapCssDeclaration::Text(to_text!()),
+        "text-color" => MapCssDeclaration::TextColor(to_color!()),
+
         "background-color" => MapCssDeclaration::BackgroundColor(to_color!()),
+        "color" => MapCssDeclaration::Color(to_color!()),
+        "font-size" => MapCssDeclaration::FontSize(to_int!()),
+        "font-color" => MapCssDeclaration::FontColor(to_color!()),
+        "font-family" => MapCssDeclaration::FontFamily(to_text!()),
 
         "fill-opacity" => MapCssDeclaration::FillOpacity(to_float!()),
+        "fill-color" => MapCssDeclaration::FillColor(to_color!()),
         "opacity" => MapCssDeclaration::Opacity(to_float!()),
         "width" => MapCssDeclaration::Width(to_float!()),
+
+        "z-index" => MapCssDeclaration::ZIndex(to_float!()),
 
         _ => {
             return Err(MapCssError::UnknownDeclarationName(
