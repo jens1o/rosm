@@ -35,7 +35,8 @@ generic_pseudo_class = { ("::" ~ selector) | ("::" ~ tag_value) }
 closed_pseudo_class = { ":closed" }
 
 selector_pseudo_classes = { not_pseudo_class | generic_pseudo_class | closed_pseudo_class }
-rule_selector = { selector ~ selector_tests* ~ selector_pseudo_classes* ~ (">" ~ rule_selector)? }
+rule_selector = { selector ~ selector_tests* ~ selector_pseudo_classes* ~ rule_descendant? }
+rule_descendant = { ">" ~ rule_selector}
 rule = { rule_selector ~ ("," ~ (rule_selector ~ ","?)*)? ~ "{" ~ rule_declaration* ~ "}" }
 selector = { "meta" | "node" | "way" | "relation" | "area" | "line" | "canvas" | "*" }
 selector_tests = { selector_test_zoom_level | selector_test_tags }

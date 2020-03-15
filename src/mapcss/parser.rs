@@ -1,5 +1,6 @@
 use crate::mapcss::selectors::{Selector, SelectorCondition};
 use pest::Parser;
+use std::rc::Rc;
 
 type FloatSize = f32;
 
@@ -20,24 +21,10 @@ impl MapCssParser {
                 Rule::rule => {
                     let rule_contents = rule.into_inner();
 
-                    let mut processed_rule_selectors = Vec::new();
-                    // let mut rule_declarations = Vec::new();
-
                     for rule_content in rule_contents {
                         match rule_content.as_rule() {
                             Rule::rule_selector => {
-                                let mut rule_selectors = rule_content.into_inner();
-                                // ensure collection is not empty
-                                debug_assert_ne!(rule_selectors.peek(), None);
-
-                                processed_rule_selectors.push(selector_span_to_type(
-                                    rule_selectors
-                                        .find(|x| x.as_rule() == Rule::selector)
-                                        .unwrap()
-                                        .as_span()
-                                        .as_str(),
-                                    selector_condition_from_rule_selectors(rule_selectors),
-                                ));
+                                handle_selector(rule_content);
                             }
                             Rule::rule_declaration => {
                                 // dbg!(rule_content);
@@ -52,6 +39,38 @@ impl MapCssParser {
             }
         }
     }
+}
+
+fn handle_selector(selectors: pest::iterators::Pair<'_, Rule>) -> Vec<Selector> {
+    let mut processed_selectors = Vec::new();
+
+    let mut rule_selectors = selectors.into_inner();
+
+    let main_selector = rule_selectors.next().unwrap();
+
+    debug_assert_eq!(main_selector.as_rule(), Rule::selector);
+
+    let main_selector = selector_span_to_type(
+        main_selector.as_span().as_str(),
+        selector_condition_from_rule_selectors(&mut rule_selectors.clone()),
+    );
+
+    let mut main_selector_conditions = main_selector.clone().conditions();
+
+    for descendant_selectors in rule_selectors.filter(|x| x.as_rule() == Rule::rule_descendant) {
+        let descendant_selectors =
+            handle_selector(descendant_selectors.into_inner().next().unwrap());
+
+        for descendant_selector in descendant_selectors {
+            main_selector_conditions = main_selector_conditions.add_condition(
+                SelectorCondition::HasDescendant(Rc::new(descendant_selector)),
+            );
+        }
+    }
+
+    processed_selectors.push(main_selector.set_conditions(main_selector_conditions));
+
+    processed_selectors
 }
 
 #[inline]
@@ -71,7 +90,7 @@ fn selector_span_to_type(span: &str, selector_conditions: SelectorCondition) -> 
 }
 
 fn selector_condition_from_rule_selectors(
-    rules: pest::iterators::Pairs<'_, Rule>,
+    rules: &mut pest::iterators::Pairs<'_, Rule>,
 ) -> SelectorCondition {
     if rules.peek().is_none() {
         return SelectorCondition::No;
@@ -81,6 +100,9 @@ fn selector_condition_from_rule_selectors(
 
     for rule in rules {
         match rule.as_rule() {
+            Rule::rule_descendant => {
+                continue;
+            }
             Rule::selector_tests => {
                 let mut inner_rules = rule.into_inner().peekable();
 
@@ -110,9 +132,46 @@ fn selector_condition_from_rule_selectors(
                                 _ => unreachable!(),
                             }
                         }
-                        Rule::selector_test_zoom_level_open_right_range => {
-                            dbg!(inner_rule);
-                            todo!();
+                        Rule::selector_test_zoom_level => {
+                            let selector_test = inner_rule.into_inner().next().unwrap();
+                            let span = selector_test.as_span().as_str();
+
+                            match selector_test.as_rule() {
+                                Rule::selector_test_zoom_level_exact => {
+                                    // "|z8"
+                                    selector_conditions.push(SelectorCondition::ExactZoomLevel(
+                                        span[2..span.len()].parse::<u8>().unwrap(),
+                                    ));
+                                }
+                                // use rfind because the minus is always located more towards the end
+                                Rule::selector_test_zoom_level_closed_range => {
+                                    // "|z10-12"
+                                    let minus_pos = span.rfind('-').unwrap();
+
+                                    let min_level = &span[2..minus_pos].parse::<u8>().unwrap();
+                                    // skip the minus itself
+                                    let max_level =
+                                        &span[minus_pos + 1..span.len()].parse::<u8>().unwrap();
+
+                                    debug_assert!(max_level > min_level);
+
+                                    selector_conditions.push(SelectorCondition::RangeZoomLevel(
+                                        *min_level, *max_level,
+                                    ));
+                                }
+                                Rule::selector_test_zoom_level_open_right_range => {
+                                    // "|z14-" or "|z4-"
+                                    let zoom_level =
+                                        &span[2..span.rfind('-').unwrap()].parse::<u8>().unwrap();
+
+                                    selector_conditions
+                                        .push(SelectorCondition::MinZoomLevel(*zoom_level));
+                                }
+                                _ => {
+                                    dbg!(selector_test);
+                                    todo!();
+                                }
+                            }
                         }
                         _ => {
                             dbg!(inner_rule);
