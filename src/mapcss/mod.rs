@@ -1,3 +1,5 @@
+pub mod declaration;
+pub mod error;
 pub mod parser;
 pub mod selectors;
 pub mod style;

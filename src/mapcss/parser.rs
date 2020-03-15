@@ -1,8 +1,10 @@
+use crate::mapcss::declaration::MapCssDeclaration;
+use crate::mapcss::error::MapCssError;
 use crate::mapcss::selectors::{Selector, SelectorCondition};
 use pest::Parser;
 use std::rc::Rc;
 
-type FloatSize = f32;
+pub type FloatSize = f32;
 
 pub enum MapCssProperty {
     Width(FloatSize),
@@ -20,19 +22,26 @@ impl MapCssParser {
             match rule.as_rule() {
                 Rule::rule => {
                     let rule_contents = rule.into_inner();
+                    let mut selector: Option<Selector> = None;
+                    let mut declarations: Vec<MapCssDeclaration> = Vec::new();
 
                     for rule_content in rule_contents {
                         match rule_content.as_rule() {
                             Rule::rule_selector => {
-                                handle_selector(rule_content);
+                                selector = Some(handle_selector(rule_content));
                             }
-                            Rule::rule_declaration => {
-                                // dbg!(rule_content);
-                                // break;
-                            }
+                            Rule::rule_declaration => match handle_declaration(rule_content) {
+                                Ok(dec) => {
+                                    declarations.push(dec);
+                                }
+                                Err(err) => {
+                                    eprintln!("{}", err);
+                                }
+                            },
                             _ => unreachable!(),
                         };
                     }
+                    debug_assert!(selector.is_some());
                 }
                 Rule::EOI => break,
                 _ => unreachable!(),
@@ -41,9 +50,7 @@ impl MapCssParser {
     }
 }
 
-fn handle_selector(selectors: pest::iterators::Pair<'_, Rule>) -> Vec<Selector> {
-    let mut processed_selectors = Vec::new();
-
+fn handle_selector(selectors: pest::iterators::Pair<'_, Rule>) -> Selector {
     let mut rule_selectors = selectors.into_inner();
 
     let main_selector = rule_selectors.next().unwrap();
@@ -58,19 +65,15 @@ fn handle_selector(selectors: pest::iterators::Pair<'_, Rule>) -> Vec<Selector> 
     let mut main_selector_conditions = main_selector.clone().conditions();
 
     for descendant_selectors in rule_selectors.filter(|x| x.as_rule() == Rule::rule_descendant) {
-        let descendant_selectors =
+        let descendant_selector =
             handle_selector(descendant_selectors.into_inner().next().unwrap());
 
-        for descendant_selector in descendant_selectors {
-            main_selector_conditions = main_selector_conditions.add_condition(
-                SelectorCondition::HasDescendant(Rc::new(descendant_selector)),
-            );
-        }
+        main_selector_conditions = main_selector_conditions.add_condition(
+            SelectorCondition::HasDescendant(Rc::new(descendant_selector)),
+        );
     }
 
-    processed_selectors.push(main_selector.set_conditions(main_selector_conditions));
-
-    processed_selectors
+    main_selector.set_conditions(main_selector_conditions)
 }
 
 #[inline]
@@ -266,4 +269,69 @@ fn operator_to_condition(
             todo!();
         }
     }
+}
+
+fn handle_declaration(
+    declaration: pest::iterators::Pair<'_, Rule>,
+) -> Result<MapCssDeclaration, MapCssError> {
+    debug_assert_eq!(declaration.as_rule(), Rule::rule_declaration);
+
+    let mut inner = declaration.into_inner();
+
+    let declaration_name = inner.next().unwrap().as_span().as_str();
+    let inner = inner.next().unwrap();
+    let inner_rule = inner.as_rule();
+
+    macro_rules! to_text {
+        () => {
+            // remove quotations
+            if inner_rule == Rule::double_quoted_string || inner_rule == Rule::single_quoted_string
+            {
+                let as_str = inner.as_span().as_str();
+                as_str[1..as_str.len() - 1].to_owned()
+            } else {
+                inner.as_span().as_str().to_owned()
+            }
+        };
+    }
+
+    macro_rules! to_float {
+        () => {
+            // TODO: Catch error
+            inner.as_span().as_str().parse::<FloatSize>().unwrap()
+        };
+    }
+
+    macro_rules! to_color {
+        () => {
+            // TODO: Catch error
+            inner
+                .as_span()
+                .as_str()
+                .parse::<crate::mapcss::declaration::RGBA>()
+                .unwrap()
+        };
+    }
+
+    Ok(match declaration_name.to_lowercase().as_str() {
+        "title" => MapCssDeclaration::Title(to_text!()),
+        "version" => MapCssDeclaration::Version(to_text!()),
+        "description" => MapCssDeclaration::Description(to_text!()),
+        "acknowledgement" => MapCssDeclaration::Acknowledgement(to_text!()),
+
+        "text" => MapCssDeclaration::Text(to_text!()),
+
+        "color" => MapCssDeclaration::Color(to_color!()),
+        "background-color" => MapCssDeclaration::BackgroundColor(to_color!()),
+
+        "fill-opacity" => MapCssDeclaration::FillOpacity(to_float!()),
+        "opacity" => MapCssDeclaration::Opacity(to_float!()),
+        "width" => MapCssDeclaration::Width(to_float!()),
+
+        _ => {
+            return Err(MapCssError::UnknownDeclarationName(
+                declaration_name.to_owned(),
+            ))
+        }
+    })
 }

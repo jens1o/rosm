@@ -2,6 +2,7 @@ extern crate cssparser;
 extern crate image;
 extern crate line_drawing;
 extern crate markup5ever;
+extern crate once_cell;
 extern crate osmpbf;
 extern crate pest;
 extern crate winapi;
@@ -71,9 +72,10 @@ where
 fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
+    let instant = Instant::now();
     let result =
         mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
-    dbg!(result);
+    dbg!(result, instant.elapsed());
     print_peak_memory_usage();
 
     std::process::exit(0);
