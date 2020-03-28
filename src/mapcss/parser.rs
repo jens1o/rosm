@@ -5,6 +5,7 @@ use super::error::MapCssError;
 use super::rule::MapCssRule;
 use super::selectors::{Selector, SelectorCondition};
 use super::MapCssAcknowledgement;
+use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use std::rc::Rc;
 
@@ -16,8 +17,13 @@ pub type IntSize = i32;
 pub struct MapCssParser;
 
 impl MapCssParser {
+    // TODO: Use this method for testing against various stylesheets (maybe with errors?)
+    pub fn lex(mapcss: &str) -> Pairs<Rule> {
+        MapCssParser::parse(Rule::rule_list, mapcss).unwrap()
+    }
+
     pub fn parse_mapcss(mapcss: &str) -> (Option<MapCssAcknowledgement>, Vec<MapCssRule>) {
-        let pairs = MapCssParser::parse(Rule::rule_list, mapcss).unwrap();
+        let pairs = MapCssParser::lex(mapcss);
 
         let mapcss_rules: Vec<MapCssRule> = Vec::new();
         let mut acknowledgement = None;
@@ -69,7 +75,7 @@ impl MapCssParser {
     }
 }
 
-fn handle_selector(selectors: pest::iterators::Pair<'_, Rule>) -> Selector {
+fn handle_selector(selectors: Pair<'_, Rule>) -> Selector {
     let mut rule_selectors = selectors.into_inner();
 
     let main_selector = rule_selectors.next().unwrap();

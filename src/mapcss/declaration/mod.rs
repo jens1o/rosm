@@ -1,7 +1,5 @@
 use crate::mapcss::parser::{FloatSize, IntSize};
 use std::fmt;
-use std::num::ParseIntError;
-use std::str::FromStr;
 
 mod color;
 
@@ -18,6 +16,8 @@ pub struct MapCssDeclarationList {
     declarations: Vec<MapCssDeclaration>,
 }
 
+// TODO: Add merge(MapCssDeclarationList) method merging the current list with the latter (latter wins) => cascading properties
+// being used in the rendering process
 impl MapCssDeclarationList {
     pub fn new(declarations: Vec<MapCssDeclaration>) -> MapCssDeclarationList {
         MapCssDeclarationList { declarations }
@@ -54,11 +54,11 @@ pub enum MapCssDeclarationProperty {
     Description,
     Acknowledgement,
 
-    // whether to show all lines by default or only the ones that are styled
-    // only able to be used on the canvas element
+    /// whether to show all lines by default or only the ones that are styled
+    /// only able to be used on the canvas element
     DefaultLines,
-    // whether to show all points by default or only the ones that are styled
-    // only able to be used on the canvas element
+    /// whether to show all points by default or only the ones that are styled
+    /// only able to be used on the canvas element
     DefaultPoints,
 
     Linecap,

@@ -5,15 +5,7 @@ pub mod rule;
 pub mod selectors;
 pub mod style;
 
-use cssparser::CowRcStr;
-use cssparser::Parser;
-use std::error::Error;
-use std::fmt;
-use std::rc::Rc;
-use std::u16;
-use style::Size;
-
-use declaration::{MapCssDeclarationList, MapCssDeclarationProperty, ToFloatValue};
+use declaration::{MapCssDeclarationList, MapCssDeclarationProperty};
 
 #[derive(Debug, Default)]
 pub struct MapCssAcknowledgement {
