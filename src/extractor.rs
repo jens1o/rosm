@@ -144,7 +144,7 @@ pub fn extract_data_from_filepath(
             }
         }
 
-        return true;
+        true
     });
 
     Ok((nid_to_node_data, wid_to_way_data, rid_to_relation_data))

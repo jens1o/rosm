@@ -12,32 +12,16 @@ extern crate flexi_logger;
 #[macro_use]
 extern crate pest_derive;
 
-use pest::Parser;
 mod data;
 mod extractor;
 mod mapcss;
-mod painter;
 
-use crate::painter::Painter;
 use std::error::Error;
 use std::time::Instant;
 #[cfg(windows)]
 use winapi::um::processthreadsapi::GetCurrentProcess;
 #[cfg(windows)]
 use winapi::um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
-
-const IMAGE_RESOLUTION: f64 = 10000.0;
-const IMAGE_PART_SIZE: u32 = 512;
-
-pub(crate) trait Zero {
-    fn zero() -> Self;
-}
-
-impl Zero for u32 {
-    fn zero() -> u32 {
-        0
-    }
-}
 
 pub(crate) fn print_peak_memory_usage() {
     #[cfg(windows)]
@@ -56,22 +40,6 @@ pub(crate) fn print_peak_memory_usage() {
     }
 }
 
-pub(crate) fn round_up_to<T>(int: T, target: T) -> T
-where
-    T: std::cmp::PartialEq
-        + std::ops::Sub<Output = T>
-        + std::ops::Rem<Output = T>
-        + std::ops::Add<Output = T>
-        + Zero
-        + Copy,
-{
-    if int % target == T::zero() {
-        return int;
-    }
-
-    return (target - int % target) + int;
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     flexi_logger::Logger::with_str("debug")
         .format(flexi_logger::colored_detailed_format)
@@ -85,6 +53,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
 
     let (map_css_acknowledgement, rules) = result;
+
+    dbg!(instant.elapsed());
 
     if let Some(map_css_acknowledgement) = map_css_acknowledgement {
         info!(
@@ -108,27 +78,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         instant.elapsed(),
         nid_to_node_data.len(),
         wid_to_way_data.len()
-    );
-
-    println!("Now painting the picture!");
-    print_peak_memory_usage();
-
-    let instant = Instant::now();
-    let mut painter = painter::PngPainter::default();
-    let file_name = painter.paint(
-        IMAGE_RESOLUTION,
-        nid_to_node_data,
-        wid_to_way_data,
-        rid_to_relation_data,
-        vec![], // TODO
-    );
-
-    print_peak_memory_usage();
-
-    println!(
-        "Saved image successfully to {} (took {:.2?}).",
-        file_name,
-        instant.elapsed()
     );
 
     Ok(())

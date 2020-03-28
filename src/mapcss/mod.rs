@@ -3,7 +3,6 @@ pub mod error;
 pub mod parser;
 pub mod rule;
 pub mod selectors;
-pub mod style;
 
 use declaration::{MapCssDeclarationList, MapCssDeclarationProperty};
 

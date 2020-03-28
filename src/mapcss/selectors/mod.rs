@@ -48,7 +48,7 @@ impl SelectorCondition {
 
                 SelectorCondition::List(conditions)
             }
-            No => return new,
+            No => new,
 
             _ => SelectorCondition::List(vec![self, new]),
         }

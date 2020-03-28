@@ -215,27 +215,27 @@ pub enum ColorParseError {
 impl FromStr for RGBA {
     type Err = ColorParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let r;
-        let g;
-        let b;
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let red;
+        let green;
+        let blue;
         // default to no transparency
-        let mut a = 255u8;
+        let mut alpha = 255u8;
 
-        let mut chars = s.chars();
+        let mut chars = string.chars();
 
         if chars.next() == Some('#') {
             // ignore # at the front
-            let color_part_length = s.len() - 1;
+            let color_part_length = string.len() - 1;
 
             match color_part_length {
                 3 => {
-                    r = u8::from_str_radix(&chars.next().unwrap().to_string(), 16)?;
-                    g = u8::from_str_radix(&chars.next().unwrap().to_string(), 16)?;
-                    b = u8::from_str_radix(&chars.next().unwrap().to_string(), 16)?;
+                    red = u8::from_str_radix(&chars.next().unwrap().to_string(), 16)?;
+                    green = u8::from_str_radix(&chars.next().unwrap().to_string(), 16)?;
+                    blue = u8::from_str_radix(&chars.next().unwrap().to_string(), 16)?;
                 }
                 6 | 8 => {
-                    r = u8::from_str_radix(
+                    red = u8::from_str_radix(
                         &format!(
                             "{}{}",
                             chars.next().unwrap().to_string(),
@@ -243,7 +243,7 @@ impl FromStr for RGBA {
                         ),
                         16,
                     )?;
-                    g = u8::from_str_radix(
+                    green = u8::from_str_radix(
                         &format!(
                             "{}{}",
                             chars.next().unwrap().to_string(),
@@ -251,7 +251,7 @@ impl FromStr for RGBA {
                         ),
                         16,
                     )?;
-                    b = u8::from_str_radix(
+                    blue = u8::from_str_radix(
                         &format!(
                             "{}{}",
                             chars.next().unwrap().to_string(),
@@ -261,7 +261,7 @@ impl FromStr for RGBA {
                     )?;
 
                     if color_part_length == 8 {
-                        a = u8::from_str_radix(
+                        alpha = u8::from_str_radix(
                             &format!(
                                 "{}{}",
                                 chars.next().unwrap().to_string(),
@@ -273,8 +273,8 @@ impl FromStr for RGBA {
                 }
                 _ => return Err(ColorParseError::InvalidInput),
             }
-        } else if s.len() <= NAMED_CSS_COLOR_MAX_LENGTH {
-            let input = s.as_bytes();
+        } else if string.len() <= NAMED_CSS_COLOR_MAX_LENGTH {
+            let input = string.as_bytes();
             let mut name = [b'\0'; NAMED_CSS_COLOR_MAX_LENGTH];
             let name = &mut name[..input.len()];
             for (i, c) in input.iter().enumerate() {
@@ -291,10 +291,10 @@ impl FromStr for RGBA {
         }
 
         Ok(RGBA {
-            red: r,
-            green: g,
-            blue: b,
-            alpha: a,
+            red,
+            green,
+            blue,
+            alpha,
         })
     }
 }
