@@ -98,3 +98,71 @@ impl Selector {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::SelectorCondition;
+
+    #[test]
+    fn test_selector_condition_merge_no_simple() {
+        let a = SelectorCondition::No;
+
+        let b = SelectorCondition::HasExactTagValue("jens".into(), "awesome".into());
+
+        assert_eq!(a.add_condition(b.clone()), b);
+    }
+
+    #[test]
+    fn test_selector_condition_merge_no() {
+        let a = SelectorCondition::No;
+
+        let b = SelectorCondition::List(vec![
+            SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),
+            SelectorCondition::ClosedPath,
+        ]);
+
+        // b should still win no matter the order
+        assert_eq!(a.clone().add_condition(b.clone()), b);
+        assert_eq!(b.clone().add_condition(a.clone()), b);
+    }
+
+    #[test]
+    fn test_selector_condition_lists() {
+        let a = SelectorCondition::List(vec![
+            SelectorCondition::MinZoomLevel(8),
+            SelectorCondition::MaxZoomLevel(10),
+        ]);
+
+        let b = SelectorCondition::List(vec![
+            SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),
+            SelectorCondition::ClosedPath,
+        ]);
+
+        let result = SelectorCondition::List(vec![
+            SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),
+            SelectorCondition::ClosedPath,
+            SelectorCondition::MinZoomLevel(8),
+            SelectorCondition::MaxZoomLevel(10),
+        ]);
+
+        assert_eq!(
+            a.clone().add_condition(b.clone()),
+            SelectorCondition::List(vec![
+                SelectorCondition::MinZoomLevel(8),
+                SelectorCondition::MaxZoomLevel(10),
+                SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),
+                SelectorCondition::ClosedPath,
+            ])
+        );
+
+        assert_eq!(
+            b.clone().add_condition(a.clone()),
+            SelectorCondition::List(vec![
+                SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),
+                SelectorCondition::ClosedPath,
+                SelectorCondition::MinZoomLevel(8),
+                SelectorCondition::MaxZoomLevel(10),
+            ])
+        );
+    }
+}

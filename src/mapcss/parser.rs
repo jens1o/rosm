@@ -264,36 +264,36 @@ fn operator_to_condition(
     expected: pest::iterators::Pair<'_, Rule>,
     condition_list: &mut Vec<SelectorCondition>,
 ) {
-    match operator {
-        "=" => condition_list.push(SelectorCondition::HasExactTagValue(
+    condition_list.push(match operator {
+        "=" => SelectorCondition::HasExactTagValue(
             target.as_span().as_str().to_owned(),
             expected.as_span().as_str().to_owned(),
-        )),
-        "!=" => condition_list.push(SelectorCondition::HasNotTagValue(
+        ),
+        "!=" => SelectorCondition::HasNotTagValue(
             target.as_span().as_str().to_owned(),
             expected.as_span().as_str().to_owned(),
-        )),
-        ">" => condition_list.push(SelectorCondition::ValueGreaterThan(
+        ),
+        ">" => SelectorCondition::ValueGreaterThan(
             target.as_span().as_str().to_owned(),
             expected.as_span().as_str().to_owned(),
-        )),
-        ">=" => condition_list.push(SelectorCondition::ValueGreaterThanEqual(
+        ),
+        ">=" => SelectorCondition::ValueGreaterThanEqual(
             target.as_span().as_str().to_owned(),
             expected.as_span().as_str().to_owned(),
-        )),
-        "<" => condition_list.push(SelectorCondition::ValueLessThan(
+        ),
+        "<" => SelectorCondition::ValueLessThan(
             target.as_span().as_str().to_owned(),
             expected.as_span().as_str().to_owned(),
-        )),
-        "<=" => condition_list.push(SelectorCondition::ValueLessThanEqual(
+        ),
+        "<=" => SelectorCondition::ValueLessThanEqual(
             target.as_span().as_str().to_owned(),
             expected.as_span().as_str().to_owned(),
-        )),
+        ),
         _ => {
             dbg!(operator);
             todo!();
         }
-    }
+    })
 }
 
 fn handle_declaration(
