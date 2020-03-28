@@ -138,13 +138,6 @@ mod tests {
             SelectorCondition::ClosedPath,
         ]);
 
-        let result = SelectorCondition::List(vec![
-            SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),
-            SelectorCondition::ClosedPath,
-            SelectorCondition::MinZoomLevel(8),
-            SelectorCondition::MaxZoomLevel(10),
-        ]);
-
         assert_eq!(
             a.clone().add_condition(b.clone()),
             SelectorCondition::List(vec![
