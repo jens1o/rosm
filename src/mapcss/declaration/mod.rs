@@ -54,6 +54,13 @@ pub enum MapCssDeclarationProperty {
     Description,
     Acknowledgement,
 
+    // whether to show all lines by default or only the ones that are styled
+    // only able to be used on the canvas element
+    DefaultLines,
+    // whether to show all points by default or only the ones that are styled
+    // only able to be used on the canvas element
+    DefaultPoints,
+
     Linecap,
     Linejoin,
 

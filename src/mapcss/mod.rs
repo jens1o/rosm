@@ -18,7 +18,8 @@ use declaration::{MapCssDeclarationList, MapCssDeclarationProperty, ToFloatValue
 #[derive(Debug, Default)]
 pub struct MapCssAcknowledgement {
     pub title: String,
-    pub version: parser::FloatSize,
+    // FIXME: Should be a SemVer struct
+    pub version: String,
     pub description: String,
     pub acknowledgement: String,
 }
@@ -36,7 +37,7 @@ impl MapCssAcknowledgement {
 
         Ok(MapCssAcknowledgement {
             title: title.to_string(),
-            version: version.to_float(),
+            version: version.to_string(),
             description: description.to_string(),
             acknowledgement: acknowledgement.to_string(),
         })

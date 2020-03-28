@@ -56,8 +56,9 @@ impl MapCssParser {
 
                         acknowledgement =
                             MapCssAcknowledgement::from_declarations(declarations.into()).ok();
+                    } else {
+                        // dbg!(selector, declarations);
                     }
-                    break;
                 }
                 Rule::EOI => break,
                 _ => unreachable!(),
@@ -315,17 +316,17 @@ fn handle_declaration(
 
     macro_rules! to_float {
         () => {
-            // remove quotations
-            if inner_rule == Rule::double_quoted_string || inner_rule == Rule::single_quoted_string
-            {
-                let as_str = inner.as_span().as_str();
+            if inner_rule == Rule::float || inner_rule == Rule::int {
                 MapCssDeclarationValueType::Float(
-                    as_str[1..as_str.len() - 1]
+                    inner
+                        .as_span()
+                        .as_str()
                         .to_owned()
                         .parse::<FloatSize>()
                         .unwrap(),
                 )
             } else {
+                dbg!(declaration_name, inner_rule);
                 panic!("Invalid float AST!");
             }
         };
@@ -387,7 +388,7 @@ fn handle_declaration(
 
     Ok(match declaration_name.to_ascii_lowercase().as_str() {
         "title" => (MapCssDeclarationProperty::Title, to_string!()),
-        "version" => (MapCssDeclarationProperty::Version, to_float!()),
+        "version" => (MapCssDeclarationProperty::Version, to_string!()),
         "description" => (MapCssDeclarationProperty::Description, to_string!()),
         "acknowledgement" => (MapCssDeclarationProperty::Acknowledgement, to_string!()),
 
@@ -409,6 +410,9 @@ fn handle_declaration(
                 ),
             )
         }
+
+        "default-lines" => (MapCssDeclarationProperty::DefaultLines, to_bool!()),
+        "default-points" => (MapCssDeclarationProperty::DefaultPoints, to_bool!()),
 
         "text" => (MapCssDeclarationProperty::Text, to_string!()),
         "text-color" => (MapCssDeclarationProperty::TextColor, to_color!()),
