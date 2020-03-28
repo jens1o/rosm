@@ -1,6 +1,6 @@
-use crate::mapcss::parser::FloatSize;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
+use std::fmt;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
@@ -182,27 +182,29 @@ static NAMED_CSS_COLORS: Lazy<HashMap<&'static [u8], RGBA>> = Lazy::new(|| {
     m
 });
 
-#[derive(Debug)]
-pub enum MapCssDeclaration {
-    // meta {}
-    Title(String),
-    Version(String),
-    Description(String),
-    Acknowledgement(String),
-
-    Color(RGBA),
-    BackgroundColor(RGBA),
-    FontFamily(String),
-
-    FillOpacity(FloatSize),
-}
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct RGBA {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
     pub alpha: u8,
+}
+
+impl fmt::Display for RGBA {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "#{:02x}{:02x}{:02x}{}",
+            self.red,
+            self.green,
+            self.blue,
+            if self.alpha != 255 {
+                format!("{:02x}", self.alpha)
+            } else {
+                "".to_owned()
+            }
+        )
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -217,6 +219,7 @@ impl FromStr for RGBA {
         let r;
         let g;
         let b;
+        // default to no transparency
         let mut a = 255u8;
 
         let mut chars = s.chars();
@@ -330,5 +333,32 @@ mod tests {
             }),
             bg_color.parse::<RGBA>()
         );
+    }
+
+    #[test]
+    pub fn test_to_string() {
+        let color = RGBA {
+            red: 241,
+            green: 238,
+            blue: 232,
+            alpha: 255,
+        };
+
+        assert_eq!("#f1eee8", color.to_string());
+        assert_eq!(color.to_string().parse::<RGBA>(), Ok(color));
+    }
+
+    #[test]
+    pub fn test_to_string_with_transparency() {
+        let color = RGBA {
+            red: 225,
+            green: 236,
+            blue: 244,
+            alpha: 178,
+        };
+
+        assert_eq!("#e1ecf4b2", color.to_string());
+
+        assert_eq!(color.to_string().parse::<RGBA>(), Ok(color));
     }
 }

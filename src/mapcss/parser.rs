@@ -1,23 +1,26 @@
-use crate::mapcss::declaration::MapCssDeclaration;
-use crate::mapcss::error::MapCssError;
-use crate::mapcss::selectors::{Selector, SelectorCondition};
+use super::declaration::{
+    MapCssDeclaration, MapCssDeclarationProperty, MapCssDeclarationValueType,
+};
+use super::error::MapCssError;
+use super::rule::MapCssRule;
+use super::selectors::{Selector, SelectorCondition};
+use super::MapCssAcknowledgement;
 use pest::Parser;
 use std::rc::Rc;
 
 pub type FloatSize = f32;
 pub type IntSize = i32;
 
-pub enum MapCssProperty {
-    Width(FloatSize),
-}
-
 #[derive(Parser)]
 #[grammar = "grammar/mapcss.pest"]
 pub struct MapCssParser;
 
 impl MapCssParser {
-    pub fn parse_mapcss(mapcss: &str) {
+    pub fn parse_mapcss(mapcss: &str) -> (Option<MapCssAcknowledgement>, Vec<MapCssRule>) {
         let pairs = MapCssParser::parse(Rule::rule_list, mapcss).unwrap();
+
+        let mapcss_rules: Vec<MapCssRule> = Vec::new();
+        let mut acknowledgement = None;
 
         for rule in pairs {
             match rule.as_rule() {
@@ -42,12 +45,26 @@ impl MapCssParser {
                             _ => unreachable!(),
                         };
                     }
+
+                    // handle meta information like the meta mapcss block
                     debug_assert!(selector.is_some());
+
+                    if let Some(Selector::Meta(selector_condition)) = selector {
+                        if selector_condition != SelectorCondition::No {
+                            panic!("MapCSS meta tag must not have any selector condition!");
+                        }
+
+                        acknowledgement =
+                            MapCssAcknowledgement::from_declarations(declarations.into()).ok();
+                    }
+                    break;
                 }
                 Rule::EOI => break,
                 _ => unreachable!(),
-            }
+            };
         }
+
+        (acknowledgement, vec![])
     }
 }
 
@@ -283,59 +300,74 @@ fn handle_declaration(
     let inner = inner.next().unwrap();
     let inner_rule = inner.as_rule();
 
-    macro_rules! to_text {
+    macro_rules! to_string {
         () => {
             // remove quotations
             if inner_rule == Rule::double_quoted_string || inner_rule == Rule::single_quoted_string
             {
                 let as_str = inner.as_span().as_str();
-                as_str[1..as_str.len() - 1].to_owned()
+                MapCssDeclarationValueType::String(as_str[1..as_str.len() - 1].to_owned())
             } else {
-                inner.as_span().as_str().to_owned()
+                MapCssDeclarationValueType::String(inner.as_span().as_str().to_owned())
             }
         };
     }
 
     macro_rules! to_float {
         () => {
-            // TODO: Catch error
-            inner.as_span().as_str().parse::<FloatSize>().unwrap()
+            // remove quotations
+            if inner_rule == Rule::double_quoted_string || inner_rule == Rule::single_quoted_string
+            {
+                let as_str = inner.as_span().as_str();
+                MapCssDeclarationValueType::Float(
+                    as_str[1..as_str.len() - 1]
+                        .to_owned()
+                        .parse::<FloatSize>()
+                        .unwrap(),
+                )
+            } else {
+                panic!("Invalid float AST!");
+            }
         };
     }
 
     macro_rules! to_int {
         () => {
             // TODO: Catch error
-            inner.as_span().as_str().parse::<IntSize>().unwrap()
+            MapCssDeclarationValueType::Integer(
+                inner.as_span().as_str().parse::<IntSize>().unwrap(),
+            )
         };
     }
 
     macro_rules! to_bool {
         () => {
             // TODO: Catch error
-            match inner.as_span().as_str() {
+            MapCssDeclarationValueType::Boolean(match inner.as_span().as_str() {
                 "true" | "1" => true,
                 "false" | "0" => false,
-                _ => panic!(),
-            }
+                _ => panic!("Invalid boolean value"),
+            })
         };
     }
 
     macro_rules! to_color {
         () => {
             // TODO: Catch error
-            inner
-                .as_span()
-                .as_str()
-                .parse::<crate::mapcss::declaration::RGBA>()
-                .unwrap()
+            MapCssDeclarationValueType::Color(
+                inner
+                    .as_span()
+                    .as_str()
+                    .parse::<crate::mapcss::declaration::RGBA>()
+                    .unwrap(),
+            )
         };
     }
 
     macro_rules! maybe_url_to_string {
         () => {
             // TODO: Catch error
-            if inner_rule == Rule::url {
+            MapCssDeclarationValueType::String(if inner_rule == Rule::url {
                 let url_string = inner.into_inner().as_str();
                 url_string[1..url_string.len() - 1].to_owned()
             } else if inner_rule == Rule::double_quoted_string
@@ -345,7 +377,7 @@ fn handle_declaration(
                 as_str[1..as_str.len() - 1].to_owned()
             } else {
                 inner.as_span().as_str().to_owned()
-            }
+            })
         };
     }
 
@@ -354,71 +386,91 @@ fn handle_declaration(
     };
 
     Ok(match declaration_name.to_ascii_lowercase().as_str() {
-        "title" => MapCssDeclaration::Title(to_text!()),
-        "version" => MapCssDeclaration::Version(to_text!()),
-        "description" => MapCssDeclaration::Description(to_text!()),
-        "acknowledgement" => MapCssDeclaration::Acknowledgement(to_text!()),
+        "title" => (MapCssDeclarationProperty::Title, to_string!()),
+        "version" => (MapCssDeclarationProperty::Version, to_float!()),
+        "description" => (MapCssDeclarationProperty::Description, to_string!()),
+        "acknowledgement" => (MapCssDeclarationProperty::Acknowledgement, to_string!()),
 
-        "allow_overlap" => MapCssDeclaration::AllowOverlap(to_bool!()),
+        "allow_overlap" => (MapCssDeclarationProperty::AllowOverlap, to_bool!()),
 
         "dashes" => {
             // TODO: Make sure that the syntax is right
             // TODO: Prevent DoS?!
 
-            MapCssDeclaration::Dashes(
-                inner
-                    .as_span()
-                    .as_str()
-                    .split(',')
-                    .map(|x| x.parse::<IntSize>().unwrap())
-                    .collect::<Vec<IntSize>>(),
+            (
+                MapCssDeclarationProperty::Dashes,
+                MapCssDeclarationValueType::IntegerArray(
+                    inner
+                        .as_span()
+                        .as_str()
+                        .split(',')
+                        .map(|x| x.parse::<IntSize>().unwrap())
+                        .collect::<Vec<IntSize>>(),
+                ),
             )
         }
 
-        "text" => MapCssDeclaration::Text(to_text!()),
-        "text-color" => MapCssDeclaration::TextColor(to_color!()),
-        "text-position" => MapCssDeclaration::TextPosition(match inner.as_span().as_str() {
-            "center" => TextPositionDeclarationVariant::Center,
-            "line" => TextPositionDeclarationVariant::Line,
-            _ => panic!(),
-        }),
-        "text-spacing" => MapCssDeclaration::TextSpacing(to_int!()),
-        "text-halo-color" => MapCssDeclaration::TextHaloColor(to_color!()),
-        "text-halo-radius" => MapCssDeclaration::TextHaloRadius(to_int!()),
-        "text-wrap-width" => MapCssDeclaration::TextWrapWidth(to_int!()),
+        "text" => (MapCssDeclarationProperty::Text, to_string!()),
+        "text-color" => (MapCssDeclarationProperty::TextColor, to_color!()),
+        "text-position" => (
+            MapCssDeclarationProperty::TextPosition,
+            MapCssDeclarationValueType::TextPositionDeclarationVariant(
+                match inner.as_span().as_str() {
+                    "center" => TextPositionDeclarationVariant::Center,
+                    "line" => TextPositionDeclarationVariant::Line,
+                    _ => panic!(),
+                },
+            ),
+        ),
+        "text-spacing" => (MapCssDeclarationProperty::TextSpacing, to_int!()),
+        "text-halo-color" => (MapCssDeclarationProperty::TextHaloColor, to_color!()),
+        "text-halo-radius" => (MapCssDeclarationProperty::TextHaloRadius, to_int!()),
+        "text-wrap-width" => (MapCssDeclarationProperty::TextWrapWidth, to_int!()),
 
-        "background-color" => MapCssDeclaration::BackgroundColor(to_color!()),
-        "color" => MapCssDeclaration::Color(to_color!()),
-        "font-size" => MapCssDeclaration::FontSize(to_int!()),
-        "font-color" => MapCssDeclaration::FontColor(to_color!()),
-        "font-family" => MapCssDeclaration::FontFamily(to_text!()),
+        "background-color" => (MapCssDeclarationProperty::BackgroundColor, to_color!()),
+        "color" => (MapCssDeclarationProperty::Color, to_color!()),
+        // in MapCSS, the font size is always given in absolute pixels
+        "font-size" => (MapCssDeclarationProperty::FontSize, to_int!()),
+        "font-color" => (MapCssDeclarationProperty::FontColor, to_color!()),
+        "font-family" => (MapCssDeclarationProperty::FontFamily, to_string!()),
 
-        "linecap" => MapCssDeclaration::Linecap(match inner.as_span().as_str() {
-            "none" => LinecapDeclarationVariant::None,
-            "round" => LinecapDeclarationVariant::Round,
-            "square" => LinecapDeclarationVariant::Square,
-            _ => panic!(),
-        }),
+        "linecap" => (
+            MapCssDeclarationProperty::Linecap,
+            MapCssDeclarationValueType::LinecapDeclarationVariant(match inner.as_span().as_str() {
+                "none" => LinecapDeclarationVariant::None,
+                "round" => LinecapDeclarationVariant::Round,
+                "square" => LinecapDeclarationVariant::Square,
+                _ => panic!(),
+            }),
+        ),
 
-        "linejoin" => MapCssDeclaration::Linejoin(match inner.as_span().as_str() {
-            "round" => LinejoinDeclarationVariant::Round,
-            "miter" => LinejoinDeclarationVariant::Miter,
-            "bevel" => LinejoinDeclarationVariant::Bevel,
-            _ => panic!(),
-        }),
+        "linejoin" => (
+            MapCssDeclarationProperty::Linejoin,
+            MapCssDeclarationValueType::LinejoinDeclarationVariant(
+                match inner.as_span().as_str() {
+                    "round" => LinejoinDeclarationVariant::Round,
+                    "miter" => LinejoinDeclarationVariant::Miter,
+                    "bevel" => LinejoinDeclarationVariant::Bevel,
+                    _ => panic!(),
+                },
+            ),
+        ),
 
-        "fill-opacity" => MapCssDeclaration::FillOpacity(to_float!()),
-        "fill-color" => MapCssDeclaration::FillColor(to_color!()),
-        "fill-image" => MapCssDeclaration::FillImage(maybe_url_to_string!()),
+        "fill-opacity" => (MapCssDeclarationProperty::FillOpacity, to_float!()),
+        "fill-color" => (MapCssDeclarationProperty::FillColor, to_color!()),
+        "fill-image" => (MapCssDeclarationProperty::FillImage, maybe_url_to_string!()),
 
-        "icon-image" => MapCssDeclaration::IconImage(maybe_url_to_string!()),
+        "icon-image" => (MapCssDeclarationProperty::IconImage, maybe_url_to_string!()),
 
-        "pattern-image" => MapCssDeclaration::PatternImage(maybe_url_to_string!()),
+        "pattern-image" => (
+            MapCssDeclarationProperty::PatternImage,
+            maybe_url_to_string!(),
+        ),
 
-        "opacity" => MapCssDeclaration::Opacity(to_float!()),
-        "width" => MapCssDeclaration::Width(to_float!()),
+        "opacity" => (MapCssDeclarationProperty::Opacity, to_float!()),
+        "width" => (MapCssDeclarationProperty::Width, to_float!()),
 
-        "z-index" => MapCssDeclaration::ZIndex(to_float!()),
+        "z-index" => (MapCssDeclarationProperty::ZIndex, to_float!()),
 
         _ => {
             return Err(MapCssError::UnknownDeclarationName(

@@ -1,6 +1,6 @@
 use crate::data::{NodeData, RelationData, ToNodeRef, WayData};
 use crate::mapcss::style::Size;
-use crate::mapcss::{MapCssPropertyDeclaration, MapCssRule};
+use crate::mapcss::rule::MapCssRule;
 use kuchiki::{Node, NodeDataRef, NodeRef};
 use markup5ever::{Namespace, QualName};
 use rayon::prelude::*;
@@ -443,20 +443,20 @@ impl Painter for PngPainter {
         )
         .unwrap();
 
-        for mapcss_rule in mapcss_rules.iter() {
-            if mapcss_rule.original_rule.selectors.matches(&canvas_mapcss) {
-                for rule_declaration in &mapcss_rule.original_rule.declarations {
-                    use MapCssPropertyDeclaration::*;
+        // for mapcss_rule in mapcss_rules.iter() {
+        //     if mapcss_rule.original_rule.selectors.matches(&canvas_mapcss) {
+        //         for rule_declaration in &mapcss_rule.original_rule.declarations {
+        //             use MapCssPropertyDeclaration::*;
 
-                    match rule_declaration {
-                        BackgroundColor(bg_color) => {
-                            canvas_render_style.background_color = *bg_color
-                        }
-                        _ => panic!("Only background-color may be set for the canvas element!"),
-                    }
-                }
-            }
-        }
+        //             match rule_declaration {
+        //                 BackgroundColor(bg_color) => {
+        //                     canvas_render_style.background_color = *bg_color
+        //                 }
+        //                 _ => panic!("Only background-color may be set for the canvas element!"),
+        //             }
+        //         }
+        //     }
+        // }
 
         // order is changed to account for rotating by 270 degrees
         let mut image = image::ImageBuffer::from_pixel(
@@ -543,21 +543,21 @@ fn get_render_style_for_element<T: ToNodeRef>(
     let way_ref_data = NodeDataRef::new_opt(element.node_ref(), Node::as_element).unwrap();
 
     for mapcss_rule in mapcss_rules.iter() {
-        if mapcss_rule.original_rule.selectors.matches(&way_ref_data) {
-            for rule_declaration in &mapcss_rule.original_rule.declarations {
-                use MapCssPropertyDeclaration::*;
+        // if mapcss_rule.original_rule.selectors.matches(&way_ref_data) {
+        //     for rule_declaration in &mapcss_rule.original_rule.declarations {
+        //         use MapCssPropertyDeclaration::*;
 
-                match rule_declaration {
-                    Color(color) => render_style.color = *color,
-                    FillColor(fill_color) => render_style.fill_color = *fill_color,
-                    Width(width) => render_style.width = *width,
-                    ZIndex(z_index) => render_style.z_index = *z_index,
-                    BackgroundColor(_) => panic!(
-                        "Cannot declare background-color on this element, use fill-color instead!"
-                    ),
-                }
-            }
-        }
+        //         match rule_declaration {
+        //             Color(color) => render_style.color = *color,
+        //             FillColor(fill_color) => render_style.fill_color = *fill_color,
+        //             Width(width) => render_style.width = *width,
+        //             ZIndex(z_index) => render_style.z_index = *z_index,
+        //             BackgroundColor(_) => panic!(
+        //                 "Cannot declare background-color on this element, use fill-color instead!"
+        //             ),
+        //         }
+        //     }
+        // }
     }
 
     render_style
