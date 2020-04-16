@@ -37,6 +37,9 @@ impl SelectorCondition {
     pub fn add_condition(self, new: SelectorCondition) -> SelectorCondition {
         use SelectorCondition::*;
 
+        // TODO: Check whether merging the two conditions actually makes sense and simplify
+        // e.g. merge(SelectorCondition::MaxZoomLevel(10), SelectorCondition::MinZoomLevel(11)) => SelectorCondition::No
+
         if new == No {
             return self;
         }

@@ -1,4 +1,4 @@
-/*use crate::data::{NodeData, RelationData, RelationMember, RelationMemberType, WayData};
+use crate::data::{NodeData, RelationData, RelationMember, RelationMemberType, WayData};
 use std::collections::{HashMap, HashSet};
 use std::num::NonZeroI64;
 
@@ -33,7 +33,7 @@ pub fn extract_data_from_filepath(
 
                 use osmpbf::elements::RelMemberType;
                 members.push(RelationMember {
-                    member_type: match relation_member.member_type {
+                    member: match relation_member.member_type {
                         RelMemberType::Relation => RelationMemberType::Relation(member_id),
                         RelMemberType::Node => RelationMemberType::Node(member_id),
                         RelMemberType::Way => RelationMemberType::Way(member_id),
@@ -82,7 +82,7 @@ pub fn extract_data_from_filepath(
 
             // ignore invalid ways
             if ref_len < 2 {
-                eprintln!(
+                warn!(
                     "Dropped way #{} as it has less than two referenced nodes!",
                     wid
                 );
@@ -129,11 +129,11 @@ pub fn extract_data_from_filepath(
     dbg!(relation_types);
 
     // check whether we have all the data for the relations referencing them
-    // otherwise remove them
+    // otherwise remove them (because we possibly only deal with a data extract)
     let relation_ids = rid_to_relation_data.keys().copied().collect::<HashSet<_>>();
     rid_to_relation_data.retain(|_, relation_data| {
-        for member in &relation_data.members {
-            let entry_exists = match member.member_type {
+        for rel_member in &relation_data.members {
+            let entry_exists = match rel_member.member {
                 RelationMemberType::Way(wid) => wid_to_way_data.contains_key(&wid),
                 RelationMemberType::Relation(rid) => relation_ids.contains(&rid),
                 RelationMemberType::Node(nid) => nid_to_node_data.contains_key(&nid),
@@ -149,4 +149,3 @@ pub fn extract_data_from_filepath(
 
     Ok((nid_to_node_data, wid_to_way_data, rid_to_relation_data))
 }
-*/

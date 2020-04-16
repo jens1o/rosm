@@ -33,10 +33,10 @@ pub(crate) fn print_peak_memory_usage() {
         let cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
 
         if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, cb) == 0 {
-            eprintln!("getting memory info of process failed");
+            error!("getting memory info of process failed");
         }
 
-        println!(
+        info!(
             "Peak memory usage: {} MB",
             (pmc.PeakWorkingSetSize as u64) / 1024 / 1024
         );
@@ -68,24 +68,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     print_peak_memory_usage();
 
-    dbg!(rules.iter().take(3).collect::<Vec<_>>());
-
-    std::process::exit(0);
-    run_window(rules);
-
     println!("Extracting data!");
 
-    // let instant = Instant::now();
-    // let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
-    //     extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
+    let instant = Instant::now();
+    let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
+        extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
 
-    // print_peak_memory_usage();
-    // println!(
-    //     "Extracting the data from the given PBF file took {:.2?}. ({} nodes, {} ways)",
-    //     instant.elapsed(),
-    //     nid_to_node_data.len(),
-    //     wid_to_way_data.len()
-    // );
+    print_peak_memory_usage();
+    info!(
+        "Extracting the data from the given PBF file took {:.2?}. ({} nodes, {} ways, {} relations)",
+        instant.elapsed(),
+        nid_to_node_data.len(),
+        wid_to_way_data.len(),
+        rid_to_relation_data.len()
+    );
 
     Ok(())
 }
