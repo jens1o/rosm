@@ -1,4 +1,4 @@
-use crate::data::{NodeData, RelationData, RelationMember, RelationMemberType, WayData};
+/*use crate::data::{NodeData, RelationData, RelationMember, RelationMemberType, WayData};
 use std::collections::{HashMap, HashSet};
 use std::num::NonZeroI64;
 
@@ -149,3 +149,4 @@ pub fn extract_data_from_filepath(
 
     Ok((nid_to_node_data, wid_to_way_data, rid_to_relation_data))
 }
+*/

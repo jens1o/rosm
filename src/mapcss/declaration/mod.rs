@@ -1,4 +1,7 @@
 use crate::mapcss::parser::{FloatSize, IntSize};
+use crate::mapcss::selectors::{SelectorCondition, SelectorType};
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::fmt;
 
 mod color;
@@ -11,26 +14,48 @@ pub trait ToFloatValue {
     fn to_float(&self) -> FloatSize;
 }
 
-#[derive(Debug)]
+pub trait ToColorValue {
+    fn to_color(&self) -> RGBA;
+}
+
+#[derive(Debug, Clone)]
 pub struct MapCssDeclarationList {
-    declarations: Vec<MapCssDeclaration>,
+    declarations: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
 }
 
 // TODO: Add merge(MapCssDeclarationList) method merging the current list with the latter (latter wins) => cascading properties
 // being used in the rendering process
 impl MapCssDeclarationList {
-    pub fn new(declarations: Vec<MapCssDeclaration>) -> MapCssDeclarationList {
+    pub fn new(
+        declarations: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
+    ) -> MapCssDeclarationList {
         MapCssDeclarationList { declarations }
     }
 
     pub fn search_cascading_or_panic(
         &self,
+        selector_type: &SelectorType,
+        selector_condition: &SelectorCondition,
         declaration_property_name: &MapCssDeclarationProperty,
     ) -> &MapCssDeclarationValueType {
+        if selector_condition != &SelectorCondition::No {
+            todo!("Selector matching not yet implemented");
+        }
+
+        // TODO: Take SelectorCondition::Any into account as it applies to all elements
+
         self.declarations
-            .iter()
-            .rfind(|(name, _value)| name == declaration_property_name)
-            .and_then(|(_name, value)| Some(value))
+            .get(selector_type)
+            .and_then(|declaration_list| {
+                declaration_list
+                    .get(&SelectorCondition::No)
+                    .and_then(|map_css_declaration_list| {
+                        map_css_declaration_list
+                            .iter()
+                            .rfind(|(name, _value)| name == declaration_property_name)
+                            .and_then(|(_name, value)| Some(value))
+                    })
+            })
             .unwrap_or_else(|| {
                 panic!(
                     "Could not find required MapCSS declaration {:?} item!",
@@ -38,15 +63,35 @@ impl MapCssDeclarationList {
                 );
             })
     }
-}
 
-impl From<Vec<MapCssDeclaration>> for MapCssDeclarationList {
-    fn from(vec: Vec<MapCssDeclaration>) -> MapCssDeclarationList {
-        MapCssDeclarationList::new(vec)
+    pub fn search_or_default<'a>(
+        &'a self,
+        selector_type: &SelectorType,
+        selector_condition: &SelectorCondition,
+        declaration_property_name: &MapCssDeclarationProperty,
+        default: &'a MapCssDeclarationValueType,
+    ) -> &'a MapCssDeclarationValueType {
+        if selector_condition != &SelectorCondition::No {
+            todo!("Selector matching not yet implemented");
+        }
+
+        self.declarations
+            .get(&selector_type)
+            .and_then(|declaration_list| {
+                declaration_list
+                    .get(&SelectorCondition::No)
+                    .and_then(|map_css_declaration_list| {
+                        map_css_declaration_list
+                            .iter()
+                            .rfind(|(name, _value)| name == declaration_property_name)
+                            .and_then(|(_name, value)| Some(value))
+                    })
+            })
+            .unwrap_or(default)
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum MapCssDeclarationProperty {
     // meta {}
     Title,
@@ -94,7 +139,7 @@ pub enum MapCssDeclarationProperty {
     ZIndex,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum MapCssDeclarationValueType {
     Boolean(bool),
     String(String),
@@ -138,7 +183,19 @@ impl ToFloatValue for MapCssDeclarationValueType {
     }
 }
 
-#[derive(Debug, PartialEq)]
+impl ToColorValue for MapCssDeclarationValueType {
+    fn to_color(&self) -> RGBA {
+        use MapCssDeclarationValueType::*;
+
+        match self {
+            Color(color) => *color,
+
+            _ => panic!("Unable to {:?} convert to color!", &self),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum LinecapDeclarationVariant {
     None,
     Round,
@@ -167,7 +224,7 @@ impl fmt::Display for LinecapDeclarationVariant {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum LinejoinDeclarationVariant {
     Round,
     Miter,
@@ -196,7 +253,7 @@ impl fmt::Display for LinejoinDeclarationVariant {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TextPositionDeclarationVariant {
     Center,
     Line,

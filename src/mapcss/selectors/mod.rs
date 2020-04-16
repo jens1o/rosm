@@ -1,6 +1,9 @@
+use crate::mapcss::declaration::{MapCssDeclaration, MapCssDeclarationProperty};
+use crate::mapcss::error::MapCssError;
+use std::cmp::Eq;
 use std::rc::Rc;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum SelectorCondition {
     No,
 
@@ -55,47 +58,42 @@ impl SelectorCondition {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Selector {
-    Any(SelectorCondition),
-    Meta(SelectorCondition),
-    Node(SelectorCondition),
-    Way(SelectorCondition),
-    Relation(SelectorCondition),
-    Area(SelectorCondition),
-    Line(SelectorCondition),
-    Canvas(SelectorCondition),
+#[derive(Debug, PartialEq, Clone, Hash, Eq)]
+pub struct Selector {
+    selector_type: SelectorType,
+    conditions: SelectorCondition,
+}
+
+#[derive(Debug, PartialEq, Clone, Eq, Hash, Copy)]
+pub enum SelectorType {
+    Any,
+    Meta,
+    Node,
+    Way,
+    Relation,
+    Area,
+    Line,
+    Canvas,
 }
 
 impl Selector {
-    pub fn set_conditions(&self, conditions: SelectorCondition) -> Selector {
-        use Selector::*;
-
-        match self {
-            Any(_) => Any(conditions),
-            Meta(_) => Meta(conditions),
-            Node(_) => Node(conditions),
-            Way(_) => Way(conditions),
-            Relation(_) => Relation(conditions),
-            Area(_) => Area(conditions),
-            Line(_) => Line(conditions),
-            Canvas(_) => Canvas(conditions),
+    pub fn new(selector_type: SelectorType, conditions: SelectorCondition) -> Selector {
+        Selector {
+            selector_type,
+            conditions,
         }
     }
 
-    pub fn conditions(self) -> SelectorCondition {
-        use Selector::*;
+    pub fn set_conditions(&mut self, conditions: SelectorCondition) {
+        self.conditions = conditions;
+    }
 
-        match self {
-            Any(cond) => cond,
-            Meta(cond) => cond,
-            Node(cond) => cond,
-            Way(cond) => cond,
-            Relation(cond) => cond,
-            Area(cond) => cond,
-            Line(cond) => cond,
-            Canvas(cond) => cond,
-        }
+    pub fn conditions(&self) -> &SelectorCondition {
+        return &self.conditions;
+    }
+
+    pub fn selector_type(&self) -> SelectorType {
+        return self.selector_type;
     }
 }
 

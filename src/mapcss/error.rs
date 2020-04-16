@@ -4,6 +4,10 @@ use std::fmt;
 #[derive(Debug)]
 pub enum MapCssError {
     UnknownDeclarationName(String),
+    IllegalDeclaration {
+        declaration_name: String,
+        illegal_context: &'static str,
+    },
 }
 
 impl Error for MapCssError {}
@@ -17,6 +21,14 @@ impl fmt::Display for MapCssError {
                 f,
                 "Dropped unknown declaration name \"{}\".",
                 declaration_name
+            ),
+            IllegalDeclaration {
+                declaration_name,
+                illegal_context,
+            } => write!(
+                f,
+                "Declaration {} must not appear in {} block! Block dropped.",
+                declaration_name, illegal_context
             ),
         }
     }

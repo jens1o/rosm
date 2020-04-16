@@ -1,12 +1,13 @@
 use super::declaration::{
-    MapCssDeclaration, MapCssDeclarationProperty, MapCssDeclarationValueType,
+    MapCssDeclaration, MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType,
 };
 use super::error::MapCssError;
 use super::rule::MapCssRule;
-use super::selectors::{Selector, SelectorCondition};
+use super::selectors::{Selector, SelectorCondition, SelectorType};
 use super::MapCssAcknowledgement;
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub type FloatSize = f32;
@@ -22,23 +23,34 @@ impl MapCssParser {
         MapCssParser::parse(Rule::rule_list, mapcss).unwrap()
     }
 
-    pub fn parse_mapcss(mapcss: &str) -> (Option<MapCssAcknowledgement>, Vec<MapCssRule>) {
+    pub fn parse_mapcss(
+        mapcss: &str,
+    ) -> Result<
+        (
+            Option<MapCssAcknowledgement>,
+            HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
+        ),
+        MapCssError,
+    > {
         let pairs = MapCssParser::lex(mapcss);
 
-        let mapcss_rules: Vec<MapCssRule> = Vec::new();
+        let mut selector_to_declaration_list: HashMap<
+            SelectorType,
+            HashMap<SelectorCondition, Vec<MapCssDeclaration>>,
+        > = HashMap::new();
         let mut acknowledgement = None;
 
         for rule in pairs {
             match rule.as_rule() {
                 Rule::rule => {
                     let rule_contents = rule.into_inner();
-                    let mut selector: Option<Selector> = None;
+                    let mut selector_list: Vec<Selector> = Vec::with_capacity(2);
                     let mut declarations: Vec<MapCssDeclaration> = Vec::new();
 
                     for rule_content in rule_contents {
                         match rule_content.as_rule() {
                             Rule::rule_selector => {
-                                selector = Some(handle_selector(rule_content));
+                                selector_list.push(handle_selector(rule_content));
                             }
                             Rule::rule_declaration => match handle_declaration(rule_content) {
                                 Ok(dec) => {
@@ -53,17 +65,31 @@ impl MapCssParser {
                     }
 
                     // handle meta information like the meta mapcss block
-                    debug_assert!(selector.is_some());
+                    debug_assert!(!selector_list.is_empty());
+                    let selector_list_len = selector_list.len();
 
-                    if let Some(Selector::Meta(selector_condition)) = selector {
-                        if selector_condition != SelectorCondition::No {
-                            panic!("MapCSS meta tag must not have any selector condition!");
+                    for selector in selector_list.into_iter() {
+                        let selector_type = selector.selector_type();
+                        if selector_type == SelectorType::Meta {
+                            // TODO: Bail error
+                            debug_assert_eq!(selector_list_len, 1);
+
+                            if selector.conditions() == &SelectorCondition::No {
+                                acknowledgement =
+                                    MapCssAcknowledgement::from_declarations(declarations.clone())
+                                        .ok();
+                                break;
+                            } else {
+                                warn!("The meta {{}} block must not have any selector conditions, ignoring!");
+                            }
+                        } else {
+                            selector_to_declaration_list
+                                .entry(selector_type)
+                                .or_default()
+                                .entry(selector.conditions().clone())
+                                .or_default()
+                                .extend(declarations.clone());
                         }
-
-                        acknowledgement =
-                            MapCssAcknowledgement::from_declarations(declarations.into()).ok();
-                    } else {
-                        // dbg!(selector, declarations);
                     }
                 }
                 Rule::EOI => break,
@@ -71,7 +97,7 @@ impl MapCssParser {
             };
         }
 
-        (acknowledgement, vec![])
+        Ok((acknowledgement, selector_to_declaration_list))
     }
 }
 
@@ -82,12 +108,12 @@ fn handle_selector(selectors: Pair<'_, Rule>) -> Selector {
 
     debug_assert_eq!(main_selector.as_rule(), Rule::selector);
 
-    let main_selector = selector_span_to_type(
+    let mut main_selector = selector_span_to_type(
         main_selector.as_span().as_str(),
         selector_condition_from_rule_selectors(&mut rule_selectors.clone()),
     );
 
-    let mut main_selector_conditions = main_selector.clone().conditions();
+    let mut main_selector_conditions = main_selector.clone().conditions().clone();
 
     for descendant_selectors in rule_selectors.filter(|x| x.as_rule() == Rule::rule_descendant) {
         let descendant_selector =
@@ -98,23 +124,27 @@ fn handle_selector(selectors: Pair<'_, Rule>) -> Selector {
         );
     }
 
-    main_selector.set_conditions(main_selector_conditions)
+    main_selector.set_conditions(main_selector_conditions);
+
+    main_selector
 }
 
 #[inline]
 fn selector_span_to_type(span: &str, selector_conditions: SelectorCondition) -> Selector {
-    match span {
-        "*" => Selector::Any(selector_conditions),
-        "area" => Selector::Area(selector_conditions),
-        "canvas" => Selector::Canvas(selector_conditions),
-        "line" => Selector::Line(selector_conditions),
-        "meta" => Selector::Meta(selector_conditions),
-        "node" => Selector::Node(selector_conditions),
-        "relation" => Selector::Relation(selector_conditions),
-        "way" => Selector::Way(selector_conditions),
+    let selector_type = match span {
+        "*" => SelectorType::Any,
+        "area" => SelectorType::Area,
+        "canvas" => SelectorType::Canvas,
+        "line" => SelectorType::Line,
+        "meta" => SelectorType::Meta,
+        "node" => SelectorType::Node,
+        "relation" => SelectorType::Relation,
+        "way" => SelectorType::Way,
 
         _ => unreachable!(),
-    }
+    };
+
+    Selector::new(selector_type, selector_conditions)
 }
 
 fn selector_condition_from_rule_selectors(
@@ -264,31 +294,16 @@ fn operator_to_condition(
     expected: pest::iterators::Pair<'_, Rule>,
     condition_list: &mut Vec<SelectorCondition>,
 ) {
+    let target = target.as_span().as_str().to_owned();
+    let expected = expected.as_span().as_str().to_owned();
+
     condition_list.push(match operator {
-        "=" => SelectorCondition::HasExactTagValue(
-            target.as_span().as_str().to_owned(),
-            expected.as_span().as_str().to_owned(),
-        ),
-        "!=" => SelectorCondition::HasNotTagValue(
-            target.as_span().as_str().to_owned(),
-            expected.as_span().as_str().to_owned(),
-        ),
-        ">" => SelectorCondition::ValueGreaterThan(
-            target.as_span().as_str().to_owned(),
-            expected.as_span().as_str().to_owned(),
-        ),
-        ">=" => SelectorCondition::ValueGreaterThanEqual(
-            target.as_span().as_str().to_owned(),
-            expected.as_span().as_str().to_owned(),
-        ),
-        "<" => SelectorCondition::ValueLessThan(
-            target.as_span().as_str().to_owned(),
-            expected.as_span().as_str().to_owned(),
-        ),
-        "<=" => SelectorCondition::ValueLessThanEqual(
-            target.as_span().as_str().to_owned(),
-            expected.as_span().as_str().to_owned(),
-        ),
+        "=" => SelectorCondition::HasExactTagValue(target, expected),
+        "!=" => SelectorCondition::HasNotTagValue(target, expected),
+        ">" => SelectorCondition::ValueGreaterThan(target, expected),
+        ">=" => SelectorCondition::ValueGreaterThanEqual(target, expected),
+        "<" => SelectorCondition::ValueLessThan(target, expected),
+        "<=" => SelectorCondition::ValueLessThanEqual(target, expected),
         _ => {
             dbg!(operator);
             todo!();

@@ -1,7 +1,3 @@
-extern crate cssparser;
-extern crate image;
-extern crate line_drawing;
-extern crate markup5ever;
 extern crate once_cell;
 extern crate osmpbf;
 extern crate pest;
@@ -11,11 +7,18 @@ extern crate log;
 extern crate flexi_logger;
 #[macro_use]
 extern crate pest_derive;
+extern crate opengl_graphics;
+extern crate piston_window;
 
 mod data;
+mod element;
 mod extractor;
+mod gui;
 mod mapcss;
 
+use crate::mapcss::declaration::{MapCssDeclaration, MapCssDeclarationList};
+use crate::mapcss::selectors::{SelectorCondition, SelectorType};
+use std::collections::HashMap;
 use std::error::Error;
 use std::time::Instant;
 #[cfg(windows)]
@@ -52,7 +55,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let result =
         mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
 
-    let (map_css_acknowledgement, rules) = result;
+    let (map_css_acknowledgement, rules) = result.unwrap();
+    dbg!(rules.get(&SelectorType::Any).unwrap());
 
     dbg!(instant.elapsed());
 
@@ -64,21 +68,54 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     print_peak_memory_usage();
 
+    dbg!(rules.iter().take(3).collect::<Vec<_>>());
+
     std::process::exit(0);
+    run_window(rules);
 
     println!("Extracting data!");
 
-    let instant = Instant::now();
-    let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
-        extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
+    // let instant = Instant::now();
+    // let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
+    //     extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
 
-    print_peak_memory_usage();
-    println!(
-        "Extracting the data from the given PBF file took {:.2?}. ({} nodes, {} ways)",
-        instant.elapsed(),
-        nid_to_node_data.len(),
-        wid_to_way_data.len()
-    );
+    // print_peak_memory_usage();
+    // println!(
+    //     "Extracting the data from the given PBF file took {:.2?}. ({} nodes, {} ways)",
+    //     instant.elapsed(),
+    //     nid_to_node_data.len(),
+    //     wid_to_way_data.len()
+    // );
 
     Ok(())
+}
+
+fn run_window(
+    mapcss_ast: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
+) {
+    use opengl_graphics::{GlGraphics, OpenGL};
+    use piston_window::*;
+
+    let opengl = OpenGL::V4_5;
+
+    println!("Preparing window!");
+
+    let mut window: PistonWindow = WindowSettings::new("rosm", [640, 480])
+        .graphics_api(opengl)
+        .exit_on_esc(true)
+        .build()
+        .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e));
+
+    let mut gui = gui::Gui {
+        gl: GlGraphics::new(opengl),
+        canvas: element::canvas::CanvasElement {
+            mapcss_declarations: MapCssDeclarationList::new(mapcss_ast),
+        },
+    };
+
+    while let Some(e) = window.next() {
+        if let Some(args) = e.render_args() {
+            gui.render(&args);
+        }
+    }
 }

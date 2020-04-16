@@ -207,6 +207,17 @@ impl fmt::Display for RGBA {
     }
 }
 
+impl From<RGBA> for [f32; 4] {
+    fn from(color: RGBA) -> [f32; 4] {
+        [
+            (color.red / 255).into(),
+            (color.green / 255).into(),
+            (color.blue / 255).into(),
+            (color.alpha / 255).into(),
+        ]
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum ColorParseError {
     InvalidInput,

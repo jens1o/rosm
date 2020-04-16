@@ -4,7 +4,8 @@ pub mod parser;
 pub mod rule;
 pub mod selectors;
 
-use declaration::{MapCssDeclarationList, MapCssDeclarationProperty};
+use declaration::{MapCssDeclaration, MapCssDeclarationProperty};
+use selectors::{SelectorCondition, SelectorType};
 
 #[derive(Debug, Default)]
 pub struct MapCssAcknowledgement {
@@ -17,23 +18,38 @@ pub struct MapCssAcknowledgement {
 
 impl MapCssAcknowledgement {
     pub fn from_declarations(
-        declarations: MapCssDeclarationList,
+        declarations: Vec<MapCssDeclaration>,
     ) -> Result<MapCssAcknowledgement, MapCssParseError> {
-        let title = declarations.search_cascading_or_panic(&MapCssDeclarationProperty::Title);
-        let version = declarations.search_cascading_or_panic(&MapCssDeclarationProperty::Version);
-        let description =
-            declarations.search_cascading_or_panic(&MapCssDeclarationProperty::Description);
-        let acknowledgement =
-            declarations.search_cascading_or_panic(&MapCssDeclarationProperty::Acknowledgement);
+        let mut title: Option<String> = None;
+        let mut version: Option<String> = None;
+        let mut description: Option<String> = None;
+        let mut acknowledgement: Option<String> = None;
 
+        for (property, declaration) in declarations.iter() {
+            match property {
+                MapCssDeclarationProperty::Title => title = Some(declaration.to_string()),
+                MapCssDeclarationProperty::Version => version = Some(declaration.to_string()),
+                MapCssDeclarationProperty::Description => {
+                    description = Some(declaration.to_string())
+                }
+                MapCssDeclarationProperty::Acknowledgement => {
+                    acknowledgement = Some(declaration.to_string())
+                }
+
+                _ => (),
+            }
+        }
+
+        // TODO: Write error messages
         Ok(MapCssAcknowledgement {
-            title: title.to_string(),
-            version: version.to_string(),
-            description: description.to_string(),
-            acknowledgement: acknowledgement.to_string(),
+            title: title.unwrap(),
+            version: version.unwrap(),
+            description: description.unwrap(),
+            acknowledgement: acknowledgement.unwrap(),
         })
     }
 
+    // TODO: Return &'a str
     pub fn title(&self) -> String {
         self.title.clone()
     }
