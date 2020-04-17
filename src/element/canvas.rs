@@ -4,13 +4,11 @@ use crate::mapcss::declaration::{
 };
 use crate::mapcss::selectors::{SelectorCondition, SelectorType};
 
-pub struct CanvasElement {
-    pub mapcss_declarations: MapCssDeclarationList,
-}
+pub struct CanvasElement {}
 
 impl CanvasElement {
-    pub fn background_color(&self) -> RGBA {
-        self.mapcss_declarations
+    pub fn background_color(&self, mapcss_declarations: &MapCssDeclarationList) -> RGBA {
+        mapcss_declarations
             .search_or_default(
                 &SelectorType::Canvas,
                 // TODO: Calculate current conditions

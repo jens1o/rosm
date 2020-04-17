@@ -16,10 +16,13 @@ mod extractor;
 mod gui;
 mod mapcss;
 
+use crate::data::{NodeData, RelationData, RelationMember, RelationMemberType, WayData};
 use crate::mapcss::declaration::{MapCssDeclaration, MapCssDeclarationList};
 use crate::mapcss::selectors::{SelectorCondition, SelectorType};
+use piston_window::*;
 use std::collections::HashMap;
 use std::error::Error;
+use std::num::NonZeroI64;
 use std::time::Instant;
 #[cfg(windows)]
 use winapi::um::processthreadsapi::GetCurrentProcess;
@@ -56,7 +59,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
 
     let (map_css_acknowledgement, rules) = result.unwrap();
-    dbg!(rules.get(&SelectorType::Any).unwrap());
 
     dbg!(instant.elapsed());
 
@@ -83,14 +85,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         rid_to_relation_data.len()
     );
 
+    run_window(
+        rules,
+        nid_to_node_data,
+        wid_to_way_data,
+        rid_to_relation_data,
+    );
+
     Ok(())
 }
 
 fn run_window(
     mapcss_ast: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
+    nid_to_node_data: HashMap<NonZeroI64, NodeData>,
+    wid_to_way_data: HashMap<NonZeroI64, WayData>,
+    rid_to_relation_data: HashMap<NonZeroI64, RelationData>,
 ) {
-    use opengl_graphics::{GlGraphics, OpenGL};
-    use piston_window::*;
+    use opengl_graphics::GlGraphics;
 
     let opengl = OpenGL::V4_5;
 
@@ -104,14 +115,21 @@ fn run_window(
 
     let mut gui = gui::Gui {
         gl: GlGraphics::new(opengl),
-        canvas: element::canvas::CanvasElement {
-            mapcss_declarations: MapCssDeclarationList::new(mapcss_ast),
-        },
+        canvas: element::canvas::CanvasElement {},
+        ast: MapCssDeclarationList::new(mapcss_ast),
+        zoom_level: 5.0_f64,
+        nid_to_node_data,
+        wid_to_way_data,
+        rid_to_relation_data,
     };
 
     while let Some(e) = window.next() {
         if let Some(args) = e.render_args() {
             gui.render(&args);
+        }
+
+        if let Some(args) = e.mouse_scroll_args() {
+            gui.mouse_scroll(&args);
         }
     }
 }

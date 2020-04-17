@@ -210,10 +210,10 @@ impl fmt::Display for RGBA {
 impl From<RGBA> for [f32; 4] {
     fn from(color: RGBA) -> [f32; 4] {
         [
-            (color.red / 255).into(),
-            (color.green / 255).into(),
-            (color.blue / 255).into(),
-            (color.alpha / 255).into(),
+            (color.red as f32 / 255_f32),
+            (color.green as f32 / 255_f32),
+            (color.blue as f32 / 255_f32),
+            (color.alpha as f32 / 255_f32),
         ]
     }
 }
@@ -371,5 +371,25 @@ mod tests {
         assert_eq!("#e1ecf4b2", color.to_string());
 
         assert_eq!(color.to_string().parse::<RGBA>(), Ok(color));
+    }
+
+    #[test]
+    pub fn test_to_float_array() {
+        let bg_color = "yellow";
+
+        let rgba = bg_color.parse::<RGBA>().unwrap();
+
+        assert_eq!(
+            rgba,
+            RGBA {
+                red: 255,
+                green: 255,
+                blue: 0,
+                alpha: 255,
+            }
+        );
+
+        let float: [f32; 4] = rgba.into();
+        assert_eq!([1.0, 1.0, 0.0, 1.0], float);
     }
 }
