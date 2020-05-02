@@ -62,15 +62,18 @@ pub fn extract_data_from_filepath(
         } else if let osmpbf::Element::Node(_) = element {
             panic!("OSM-Nodes not supported (yet), use data extractions with DenseNodes instead!");
         } else if let osmpbf::Element::DenseNode(node) = element {
+            let mut tags = node
+                .tags()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect::<Vec<_>>();
+            tags.sort();
+
             nid_to_node_data.insert(
                 NonZeroI64::new(node.id).expect("Node id must not zero!"),
                 NodeData {
                     // unwrap is safe because we would panic in inserting the key into this hashmap already
                     nid: NonZeroI64::new(node.id).unwrap(),
-                    tags: node
-                        .tags()
-                        .map(|(k, v)| (k.to_string(), v.to_string()))
-                        .collect::<Vec<_>>(),
+                    tags,
                     lat: node.lat(),
                     lon: node.lon(),
                     way: None,
@@ -97,26 +100,26 @@ pub fn extract_data_from_filepath(
 
             wid_to_way_data.insert(
                 wid,
-                WayData {
+                WayData::new(
                     wid,
-                    tags: way
-                        .tags()
+                    way.tags()
                         .map(|(k, v)| (k.to_string(), v.to_string()))
                         .collect::<Vec<_>>(),
                     refs,
-                },
+                ),
             );
         }
     })?;
 
     wid_to_way_data.values().for_each(|way_data| {
-        way_data.refs.iter().for_each(|nid| {
+        way_data.refs().iter().for_each(|nid| {
             if let Some(node_data) = nid_to_node_data.get_mut(nid) {
-                node_data.way = Some(way_data.wid);
+                node_data.way = Some(way_data.way_id());
             } else {
                 panic!(
                     "No node found for #{} (belonging to way #{})!",
-                    nid, way_data.wid
+                    nid,
+                    way_data.way_id()
                 );
             }
         });

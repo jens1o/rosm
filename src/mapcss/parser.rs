@@ -10,7 +10,7 @@ use pest::Parser;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-pub type FloatSize = f32;
+pub type FloatSize = f64;
 pub type IntSize = i32;
 
 #[derive(Parser)]

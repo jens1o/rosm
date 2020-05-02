@@ -18,6 +18,10 @@ pub trait ToColorValue {
     fn to_color(&self) -> RGBA;
 }
 
+pub trait ToBooleanValue {
+    fn to_bool(&self) -> bool;
+}
+
 #[derive(Debug, Clone)]
 pub struct MapCssDeclarationList {
     declarations: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
@@ -30,6 +34,10 @@ impl MapCssDeclarationList {
         declarations: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
     ) -> MapCssDeclarationList {
         MapCssDeclarationList { declarations }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.declarations.is_empty()
     }
 
     pub fn search_cascading_or_panic(
@@ -191,6 +199,18 @@ impl ToColorValue for MapCssDeclarationValueType {
             Color(color) => *color,
 
             _ => panic!("Unable to {:?} convert to color!", &self),
+        }
+    }
+}
+
+impl ToBooleanValue for MapCssDeclarationValueType {
+    fn to_bool(&self) -> bool {
+        use MapCssDeclarationValueType::*;
+
+        match self {
+            Boolean(bool) => *bool,
+
+            _ => panic!("Unable to {:?} convert to boolean!", &self),
         }
     }
 }

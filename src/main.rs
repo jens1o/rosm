@@ -113,15 +113,15 @@ fn run_window(
         .build()
         .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e));
 
-    let mut gui = gui::Gui {
-        gl: GlGraphics::new(opengl),
-        canvas: element::canvas::CanvasElement {},
-        ast: MapCssDeclarationList::new(mapcss_ast),
-        zoom_level: 5.0_f64,
+    let mut gui = gui::Gui::new(
+        GlGraphics::new(opengl),
+        element::canvas::CanvasElement {},
+        MapCssDeclarationList::new(mapcss_ast),
         nid_to_node_data,
         wid_to_way_data,
         rid_to_relation_data,
-    };
+        10.0_f64,
+    );
 
     while let Some(e) = window.next() {
         if let Some(args) = e.render_args() {
@@ -130,6 +130,14 @@ fn run_window(
 
         if let Some(args) = e.mouse_scroll_args() {
             gui.mouse_scroll(&args);
+        }
+
+        if let Some(args) = e.mouse_cursor_args() {
+            gui.mouse_move(&args);
+        }
+
+        if let Some(args) = e.button_args() {
+            gui.mouse_button(&args);
         }
     }
 }
