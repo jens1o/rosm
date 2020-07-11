@@ -1,6 +1,7 @@
 extern crate once_cell;
 extern crate osmpbf;
 extern crate pest;
+#[cfg(windows)]
 extern crate winapi;
 #[macro_use]
 extern crate log;
@@ -110,6 +111,7 @@ fn run_window(
     let mut window: PistonWindow = WindowSettings::new("rosm", [640, 480])
         .graphics_api(opengl)
         .exit_on_esc(true)
+        .vsync(true)
         .build()
         .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e));
 
