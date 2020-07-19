@@ -22,7 +22,6 @@ pub fn extract_data_from_filepath(
     let mut relation_types: HashMap<String, u32> = HashMap::new();
 
     reader.for_each(|element| {
-        // TODO: Parse relations
         if let osmpbf::Element::Relation(relation) = element {
             let rid = NonZeroI64::new(relation.id()).expect("A relation must not have the ID 0!");
             let mut members = Vec::with_capacity(relation.members().len());

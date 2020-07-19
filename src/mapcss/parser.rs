@@ -300,10 +300,20 @@ fn operator_to_condition(
     condition_list.push(match operator {
         "=" => SelectorCondition::HasExactTagValue(target, expected),
         "!=" => SelectorCondition::HasNotTagValue(target, expected),
-        ">" => SelectorCondition::ValueGreaterThan(target, expected),
-        ">=" => SelectorCondition::ValueGreaterThanEqual(target, expected),
-        "<" => SelectorCondition::ValueLessThan(target, expected),
-        "<=" => SelectorCondition::ValueLessThanEqual(target, expected),
+        ">" | ">=" | "<" | "<=" => {
+            let numeric_expected_value = expected.parse::<isize>().ok();
+
+            match numeric_expected_value {
+                Some(numeric_value) => match operator {
+                    ">" => SelectorCondition::ValueGreaterThan(target, numeric_value),
+                    ">=" => SelectorCondition::ValueGreaterThanEqual(target, numeric_value),
+                    "<" => SelectorCondition::ValueLessThan(target, numeric_value),
+                    "<=" => SelectorCondition::ValueLessThanEqual(target, numeric_value),
+                    _ => unreachable!(),
+                },
+                None => return,
+            }
+        }
         _ => {
             dbg!(operator);
             todo!();

@@ -34,7 +34,9 @@ impl PngPainter {
     ) -> String {
         const IMAGE_PART_SIZE: u32 = 256;
         const IMAGE_PADDING: u32 = IMAGE_PART_SIZE / 4;
-        const DRAWN_WAYS: usize = 100_000;
+        const DRAWN_WAYS: usize = 1_000_000;
+
+        let mut rendered_ways = 0;
 
         let mut min_x = i32::MAX;
         let mut max_x = i32::MIN;
@@ -116,6 +118,12 @@ impl PngPainter {
                 } else {
                     panic!();
                 }
+            }
+
+            rendered_ways += 1;
+
+            if rendered_ways % 10000 == 0 {
+                println!("{}…", rendered_ways);
             }
         }
 

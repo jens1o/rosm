@@ -1,6 +1,7 @@
 use crate::mapcss::declaration::{MapCssDeclaration, MapCssDeclarationProperty};
 use crate::mapcss::error::MapCssError;
 use std::cmp::Eq;
+use std::marker::Sync;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
@@ -17,10 +18,10 @@ pub enum SelectorCondition {
     HasTag(String),
     HasExactTagValue(String, String),
     HasNotTagValue(String, String),
-    ValueGreaterThan(String, String),
-    ValueGreaterThanEqual(String, String),
-    ValueLessThan(String, String),
-    ValueLessThanEqual(String, String),
+    ValueGreaterThan(String, isize),
+    ValueGreaterThanEqual(String, isize),
+    ValueLessThan(String, isize),
+    ValueLessThanEqual(String, isize),
     ClosedPath,
 
     List(Vec<SelectorCondition>),
