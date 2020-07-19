@@ -1,3 +1,4 @@
+use std::fmt;
 use std::num::NonZeroI64;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -7,19 +8,19 @@ pub enum ElementID {
     Way(NonZeroI64),
 }
 
-impl Into<ElementID> for NodeData {
+impl Into<ElementID> for &NodeData {
     fn into(self) -> ElementID {
         ElementID::Node(self.nid)
     }
 }
 
-impl Into<ElementID> for &WayData {
+impl Into<ElementID> for WayData {
     fn into(self) -> ElementID {
-        ElementID::Way(self.way_id())
+        ElementID::Way(self.wid)
     }
 }
 
-impl Into<ElementID> for RelationData {
+impl Into<ElementID> for &RelationData {
     fn into(self) -> ElementID {
         ElementID::Relation(self.rid)
     }
@@ -57,10 +58,10 @@ pub struct NodeData {
     pub tags: Vec<(String, String)>,
     pub way: Option<NonZeroI64>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WayData {
-    wid: NonZeroI64,
-    /// true if this way encloses an area (i.e. the first and the last node is the same)
+    pub wid: NonZeroI64,
+    /// true if this way encloses an area (i.e. the first and the last node is the same) or area=yes is supplied
     is_closed: bool,
 
     tags: Vec<(String, String)>,
@@ -73,7 +74,10 @@ impl WayData {
 
         WayData {
             wid,
-            is_closed: refs.get(0).unwrap() == refs.get(refs.len() - 1).unwrap(),
+            is_closed: refs.get(0).unwrap() == refs.get(refs.len() - 1).unwrap()
+                || tags
+                    .iter()
+                    .any(|(tag_key, tag_value)| tag_key == "area" && tag_value == "yes"),
             tags,
             refs,
         }
@@ -83,16 +87,57 @@ impl WayData {
         self.wid
     }
 
-    #[inline(always)]
-    pub fn is_closed(&self) -> bool {
-        self.is_closed
-    }
-
     pub fn refs(&self) -> &Vec<NonZeroI64> {
         &self.refs
     }
+}
 
-    pub fn tags(&self) -> &[(String, String)] {
+pub trait ElementData: fmt::Debug {
+    fn tags(&self) -> &[(String, String)];
+
+    fn id(&self) -> ElementID;
+
+    fn is_closed(&self) -> bool;
+}
+
+impl ElementData for WayData {
+    fn tags(&self) -> &[(String, String)] {
         &self.tags
+    }
+
+    fn id(&self) -> ElementID {
+        ElementID::Way(self.wid)
+    }
+
+    fn is_closed(&self) -> bool {
+        self.is_closed
+    }
+}
+
+impl ElementData for NodeData {
+    fn tags(&self) -> &[(String, String)] {
+        &self.tags
+    }
+
+    fn id(&self) -> ElementID {
+        self.into()
+    }
+
+    fn is_closed(&self) -> bool {
+        false
+    }
+}
+
+impl ElementData for RelationData {
+    fn tags(&self) -> &[(String, String)] {
+        &self.tags
+    }
+
+    fn id(&self) -> ElementID {
+        self.into()
+    }
+
+    fn is_closed(&self) -> bool {
+        todo!();
     }
 }

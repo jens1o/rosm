@@ -218,6 +218,12 @@ impl From<RGBA> for [f32; 4] {
     }
 }
 
+impl Into<image::Rgba<u8>> for RGBA {
+    fn into(self) -> image::Rgba<u8> {
+        image::Rgba([self.red, self.green, self.blue, self.alpha])
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum ColorParseError {
     InvalidInput,

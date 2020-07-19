@@ -1,8 +1,10 @@
+use crate::data::{ElementData, ElementID};
 use crate::mapcss::parser::{FloatSize, IntSize};
 use crate::mapcss::selectors::{SelectorCondition, SelectorType};
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 mod color;
 
@@ -22,6 +24,10 @@ pub trait ToBooleanValue {
     fn to_bool(&self) -> bool;
 }
 
+static DID_BLAME_ZOOM_LEVEL_NOT_SUPPORTED: AtomicBool = AtomicBool::new(false);
+static DID_BLAME_HAS_PSEUDO_CLASS_NOT_SUPPORTED: AtomicBool = AtomicBool::new(false);
+static DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED: AtomicBool = AtomicBool::new(false);
+
 #[derive(Debug, Clone)]
 pub struct MapCssDeclarationList {
     declarations: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
@@ -40,62 +46,133 @@ impl MapCssDeclarationList {
         self.declarations.is_empty()
     }
 
-    pub fn search_cascading_or_panic(
+    fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCondition) -> bool {
+        use SelectorCondition::*;
+
+        match condition {
+            No => true,
+
+            ExactZoomLevel(_) | MinZoomLevel(_) | RangeZoomLevel(_, _) | MaxZoomLevel(_) => {
+                if !DID_BLAME_ZOOM_LEVEL_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
+                    warn!("Zoom level specific declarations are currently not supported. Discarding these conditions.");
+                }
+
+                true
+            }
+            List(_) => {
+                dbg!(condition, element_data);
+                unreachable!("Lists MUST NOT be passed to check_condition()")
+            }
+            GenericPseudoClass(_pseudo_class) => {
+                if !DID_BLAME_HAS_PSEUDO_CLASS_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
+                    warn!("Pseudo classes are currently not supported. Discarded condition.");
+                }
+
+                true
+            }
+            HasTag(condition_tag_key) => element_data
+                .tags()
+                .iter()
+                .any(|(element_tag_key, _element_tag_value)| element_tag_key == condition_tag_key),
+            HasExactTagValue(condition_tag_key, condition_tag_value) => element_data
+                .tags()
+                .iter()
+                .any(|(element_tag_key, element_tag_value)| {
+                    element_tag_key == condition_tag_key && element_tag_value == condition_tag_value
+                }),
+            HasDescendant(_) => {
+                if !DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
+                    warn!("The HasDescendant(_) condition is currently not supported. Discarding…");
+                }
+
+                true
+            }
+            _ => false,
+        }
+    }
+
+    fn search_cascading(
         &self,
-        selector_type: &SelectorType,
-        selector_condition: &SelectorCondition,
+        element_data: Box<dyn ElementData>,
         declaration_property_name: &MapCssDeclarationProperty,
-    ) -> &MapCssDeclarationValueType {
-        if selector_condition != &SelectorCondition::No {
-            todo!("Selector matching not yet implemented");
+    ) -> Option<&MapCssDeclarationValueType> {
+        // needs to be ordered from the less specific (* selector) to the most specific one (area)
+        let selectors: Vec<SelectorType> = match element_data.id() {
+            ElementID::Node(_) => [SelectorType::Any, SelectorType::Node].into(),
+            ElementID::Relation(_) => [SelectorType::Any, SelectorType::Relation].into(), // TODO: Support area
+            ElementID::Way(_) => match element_data.is_closed() {
+                true => [SelectorType::Any, SelectorType::Way, SelectorType::Area].into(),
+                false => [SelectorType::Any, SelectorType::Way, SelectorType::Line].into(),
+            },
+        };
+
+        let mut matching_selector_set_declaration_values: Vec<&MapCssDeclarationValueType> =
+            Vec::new();
+
+        for selector in selectors.iter() {
+            for declaration_list in self.declarations.get(selector) {
+                'declarationListLoop: for (selector_condition, declaration_property_to_value) in
+                    declaration_list
+                {
+                    if let SelectorCondition::List(condition_list) = selector_condition {
+                        for condition in condition_list {
+                            if let SelectorCondition::List(_) = condition {
+                                panic!("Sub-Lists in a SelectorCondition::List are not supported!");
+                            } else if !MapCssDeclarationList::check_condition(
+                                &element_data,
+                                condition,
+                            ) {
+                                continue 'declarationListLoop;
+                            }
+                        }
+                    } else {
+                        if !MapCssDeclarationList::check_condition(
+                            &element_data,
+                            selector_condition,
+                        ) {
+                            continue;
+                        }
+                    }
+
+                    // selector matches to our element, search for declarations that set our target property
+                    for (set_declaration_name, set_declaration_value) in
+                        declaration_property_to_value
+                    {
+                        if set_declaration_name == declaration_property_name {
+                            matching_selector_set_declaration_values.push(set_declaration_value);
+                        }
+                    }
+                }
+            }
         }
 
-        // TODO: Take SelectorCondition::Any into account as it applies to all elements
+        matching_selector_set_declaration_values.pop()
+    }
 
-        self.declarations
-            .get(selector_type)
-            .and_then(|declaration_list| {
-                declaration_list
-                    .get(&SelectorCondition::No)
-                    .and_then(|map_css_declaration_list| {
-                        map_css_declaration_list
-                            .iter()
-                            .rfind(|(name, _value)| name == declaration_property_name)
-                            .and_then(|(_name, value)| Some(value))
-                    })
-            })
-            .unwrap_or_else(|| {
-                panic!(
-                    "Could not find required MapCSS declaration {:?} item!",
-                    declaration_property_name
-                );
-            })
+    pub fn search_cascading_or_panic(
+        &self,
+        element_data: Box<dyn ElementData>,
+        declaration_property_name: &MapCssDeclarationProperty,
+    ) -> &MapCssDeclarationValueType {
+        match self.search_cascading(element_data, declaration_property_name) {
+            Some(value) => value,
+            None => panic!(
+                "Could not find required MapCSS declaration {:?} item.",
+                declaration_property_name
+            ),
+        }
     }
 
     pub fn search_or_default<'a>(
         &'a self,
-        selector_type: &SelectorType,
-        selector_condition: &SelectorCondition,
+        element_data: Box<dyn ElementData>,
         declaration_property_name: &MapCssDeclarationProperty,
         default: &'a MapCssDeclarationValueType,
     ) -> &'a MapCssDeclarationValueType {
-        if selector_condition != &SelectorCondition::No {
-            todo!("Selector matching not yet implemented");
+        match self.search_cascading(element_data, declaration_property_name) {
+            Some(value) => value,
+            None => default,
         }
-
-        self.declarations
-            .get(&selector_type)
-            .and_then(|declaration_list| {
-                declaration_list
-                    .get(&SelectorCondition::No)
-                    .and_then(|map_css_declaration_list| {
-                        map_css_declaration_list
-                            .iter()
-                            .rfind(|(name, _value)| name == declaration_property_name)
-                            .and_then(|(_name, value)| Some(value))
-                    })
-            })
-            .unwrap_or(default)
     }
 }
 

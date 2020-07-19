@@ -8,27 +8,49 @@ extern crate log;
 extern crate flexi_logger;
 #[macro_use]
 extern crate pest_derive;
-extern crate opengl_graphics;
-extern crate piston_window;
+extern crate image;
 
 mod data;
 mod element;
 mod extractor;
-mod gui;
 mod mapcss;
+mod painter;
 
-use crate::data::{NodeData, RelationData, RelationMember, RelationMemberType, WayData};
-use crate::mapcss::declaration::{MapCssDeclaration, MapCssDeclarationList};
-use crate::mapcss::selectors::{SelectorCondition, SelectorType};
-use piston_window::*;
-use std::collections::HashMap;
+use mapcss::declaration::MapCssDeclarationList;
 use std::error::Error;
-use std::num::NonZeroI64;
 use std::time::Instant;
 #[cfg(windows)]
 use winapi::um::processthreadsapi::GetCurrentProcess;
 #[cfg(windows)]
 use winapi::um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
+
+const IMAGE_PART_SIZE: u32 = 512;
+
+pub(crate) trait Zero {
+    fn zero() -> Self;
+}
+
+impl Zero for u32 {
+    fn zero() -> u32 {
+        0
+    }
+}
+
+pub(crate) fn round_up_to<T>(int: T, target: T) -> T
+where
+    T: std::cmp::PartialEq
+        + std::ops::Sub<Output = T>
+        + std::ops::Rem<Output = T>
+        + std::ops::Add<Output = T>
+        + Zero
+        + Copy,
+{
+    if int % target == T::zero() {
+        return int;
+    }
+
+    return (target - int % target) + int;
+}
 
 pub(crate) fn print_peak_memory_usage() {
     #[cfg(windows)]
@@ -75,7 +97,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
-        extractor::extract_data_from_filepath(String::from("bremen-latest.osm.pbf"))?;
+        extractor::extract_data_from_filepath(String::from("karlsruhe-regbez-latest.osm.pbf"))?;
 
     print_peak_memory_usage();
     info!(
@@ -86,60 +108,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         rid_to_relation_data.len()
     );
 
-    run_window(
-        rules,
+    let mut painter = painter::PngPainter::default();
+
+    painter.paint(
+        1000_f64,
+        MapCssDeclarationList::new(rules),
         nid_to_node_data,
         wid_to_way_data,
         rid_to_relation_data,
     );
 
     Ok(())
-}
-
-fn run_window(
-    mapcss_ast: HashMap<SelectorType, HashMap<SelectorCondition, Vec<MapCssDeclaration>>>,
-    nid_to_node_data: HashMap<NonZeroI64, NodeData>,
-    wid_to_way_data: HashMap<NonZeroI64, WayData>,
-    rid_to_relation_data: HashMap<NonZeroI64, RelationData>,
-) {
-    use opengl_graphics::GlGraphics;
-
-    let opengl = OpenGL::V4_5;
-
-    println!("Preparing window!");
-
-    let mut window: PistonWindow = WindowSettings::new("rosm", [640, 480])
-        .graphics_api(opengl)
-        .exit_on_esc(true)
-        .vsync(true)
-        .build()
-        .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e));
-
-    let mut gui = gui::Gui::new(
-        GlGraphics::new(opengl),
-        element::canvas::CanvasElement {},
-        MapCssDeclarationList::new(mapcss_ast),
-        nid_to_node_data,
-        wid_to_way_data,
-        rid_to_relation_data,
-        10.0_f64,
-    );
-
-    while let Some(e) = window.next() {
-        if let Some(args) = e.render_args() {
-            gui.render(&args);
-        }
-
-        if let Some(args) = e.mouse_scroll_args() {
-            gui.mouse_scroll(&args);
-        }
-
-        if let Some(args) = e.mouse_cursor_args() {
-            gui.mouse_move(&args);
-        }
-
-        if let Some(args) = e.button_args() {
-            gui.mouse_button(&args);
-        }
-    }
 }

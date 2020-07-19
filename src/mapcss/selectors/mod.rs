@@ -45,6 +45,7 @@ impl SelectorCondition {
         }
 
         match self {
+            // merge lists together instead of creating sublists
             List(mut conditions) => {
                 if let List(new_conditions) = new {
                     conditions.extend(new_conditions);
