@@ -77,7 +77,20 @@ impl PngPainter {
 
         for (_way_id, way_data) in wid_to_way_data.into_iter().take(DRAWN_WAYS) {
             let way_refs = way_data.refs();
-            let boxed_way = Box::new(way_data.clone());
+
+            let way_color = mapcss_ast
+                .search_or_default(
+                    Box::new(way_data.clone()),
+                    &MapCssDeclarationProperty::Color,
+                    &MapCssDeclarationValueType::Color(RGBA {
+                        red: 200,
+                        green: 200,
+                        blue: 200,
+                        alpha: 255,
+                    }),
+                )
+                .to_color()
+                .into();
 
             for ref_node_ids in way_refs[..].windows(2) {
                 if let [node_a_id, node_b_id] = ref_node_ids {
@@ -100,19 +113,7 @@ impl PngPainter {
                             (y - min_y + 2) as u32,
                             image_width - 2 - (x - min_x) as u32,
                             // image::Rgba([58, 136, 236, (alpha * 255.) as u8])
-                            mapcss_ast
-                                .search_or_default(
-                                    boxed_way.clone(),
-                                    &MapCssDeclarationProperty::Color,
-                                    &MapCssDeclarationValueType::Color(RGBA {
-                                        red: 200,
-                                        green: 200,
-                                        blue: 200,
-                                        alpha: 255,
-                                    }),
-                                )
-                                .to_color()
-                                .into(),
+                            way_color,
                         );
                     }
                 } else {
@@ -127,7 +128,13 @@ impl PngPainter {
             }
         }
 
-        info!("Rendering took {:.2?}", render_start_instant.elapsed());
+        let render_duration = render_start_instant.elapsed();
+
+        info!(
+            "Rendering took {:.2?}. {:.2} ways/sec",
+            render_duration,
+            rendered_ways as f64 / (render_duration.as_nanos() as f64 * 1e-9)
+        );
 
         let filename = String::from("test.png");
 

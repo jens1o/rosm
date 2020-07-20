@@ -69,7 +69,7 @@ pub struct Selector {
     conditions: SelectorCondition,
 }
 
-#[derive(Debug, PartialEq, Clone, Eq, Hash, Copy)]
+#[derive(Debug, PartialEq, Ord, PartialOrd, Clone, Eq, Hash, Copy)]
 pub enum SelectorType {
     Any,
     Meta,
