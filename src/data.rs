@@ -3,6 +3,7 @@ use std::num::NonZeroI64;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ElementID {
+    Canvas,
     Relation(NonZeroI64),
     Node(NonZeroI64),
     Way(NonZeroI64),
