@@ -78,8 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
     let instant = Instant::now();
-    let result =
-        mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
+    let result = mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/mapcss.css"));
 
     let (map_css_acknowledgement, rules) = result.unwrap();
 
@@ -111,7 +110,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut painter = painter::PngPainter::default();
 
     painter.paint(
-        1000_f64,
+        10_000_f64,
         MapCssDeclarationList::new(rules),
         nid_to_node_data,
         wid_to_way_data,

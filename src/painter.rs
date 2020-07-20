@@ -64,11 +64,9 @@ impl PngPainter {
         dbg!(min_x, max_x, min_y, max_y);
 
         let image_width =
-            crate::round_up_to((((max_x - min_x) as f64).abs()) as u32, IMAGE_PART_SIZE)
-                + IMAGE_PADDING;
+            crate::round_up_to((((max_x - min_x) as f64).abs()) as u32, IMAGE_PART_SIZE);
         let image_height =
-            crate::round_up_to((((max_y - min_y) as f64).abs()) as u32, IMAGE_PART_SIZE)
-                + IMAGE_PADDING;
+            crate::round_up_to((((max_y - min_y) as f64).abs()) as u32, IMAGE_PART_SIZE);
 
         let background_color: image::Rgba<u8> = canvas.background_color(&mapcss_ast).into();
 
@@ -76,6 +74,31 @@ impl PngPainter {
             image::ImageBuffer::from_pixel(image_height, image_width, background_color);
 
         let render_start_instant = Instant::now();
+
+        #[derive(Debug, Copy, Clone)]
+        struct AccumulatedPixelColor {
+            pub red: u16,
+            pub green: u16,
+            pub blue: u16,
+            pub alpha: u16,
+
+            pub pixel_count: u16,
+        }
+
+        let mut pixel_accumulator: Vec<Vec<AccumulatedPixelColor>> = vec![
+            vec![
+                    AccumulatedPixelColor {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        alpha: 0,
+
+                        pixel_count: 0,
+                    };
+                    image_height as usize
+                ];
+            image_width as usize
+        ];
 
         for (_way_id, way_data) in wid_to_way_data.into_iter().take(DRAWN_WAYS) {
             let way_refs = way_data.refs();
@@ -99,7 +122,7 @@ impl PngPainter {
                     let node_a = nid_to_node_data.get(node_a_id).unwrap();
                     let node_b = nid_to_node_data.get(node_b_id).unwrap();
 
-                    for ((x, y), alpha) in line_drawing::XiaolinWu::<f64, i32>::new(
+                    for ((x, y), _alpha) in line_drawing::XiaolinWu::<f64, i32>::new(
                         (
                             node_a.lat * image_resolution_factor,
                             node_a.lon * image_resolution_factor,
@@ -111,21 +134,26 @@ impl PngPainter {
                     ) {
                         // rotate image by 270 degrees means we need to swap x and y and the y pixel needs to be subtracted from the image width.
                         // Subtract / Add 2 from it as the image buffer uses 0-indexing AND we may not write to the last pixel.
-                        let image_x = (y - min_y + 2) as u32;
-                        let image_y = image_width - 2 - (x - min_x) as u32;
+                        let image_x = (y - min_y + 4) as u32;
+                        let image_y = image_width - 4 - (x - min_x) as u32;
 
-                        let pixel = image_buffer.get_pixel_mut(image_x, image_y);
+                        let accumulated_pixel: &mut AccumulatedPixelColor;
 
-                        if pixel == &background_color {
-                            *pixel = way_color;
-                        } else {
-                            *pixel = image::Rgba([
-                                ((pixel[0] as u16 + way_color[0] as u16) / 2) as u8,
-                                ((pixel[1] as u16 + way_color[1] as u16) / 2) as u8,
-                                ((pixel[2] as u16 + way_color[2] as u16) / 2) as u8,
-                                255,
-                            ]);
+                        debug_assert!(image_x <= image_height && image_y <= image_width);
+
+                        // Safe as we initalize the array with all possible values
+                        unsafe {
+                            accumulated_pixel = pixel_accumulator
+                                .get_unchecked_mut(image_y as usize)
+                                .get_unchecked_mut(image_x as usize);
                         }
+
+                        accumulated_pixel.pixel_count += 1;
+
+                        accumulated_pixel.red += way_color[0] as u16;
+                        accumulated_pixel.green += way_color[1] as u16;
+                        accumulated_pixel.blue += way_color[2] as u16;
+                        accumulated_pixel.alpha += 255;
                     }
                 } else {
                     panic!();
@@ -138,6 +166,25 @@ impl PngPainter {
                 println!("{}…", rendered_ways);
             }
         }
+
+        image_buffer
+            .enumerate_pixels_mut()
+            .for_each(|(x, y, pixel)| {
+                let accumulated_pixel: &AccumulatedPixelColor;
+
+                unsafe {
+                    accumulated_pixel = pixel_accumulator
+                        .get_unchecked(y as usize)
+                        .get_unchecked(x as usize);
+                }
+
+                if accumulated_pixel.pixel_count != 0 {
+                    pixel[0] = (accumulated_pixel.red / accumulated_pixel.pixel_count) as u8;
+                    pixel[1] = (accumulated_pixel.green / accumulated_pixel.pixel_count) as u8;
+                    pixel[2] = (accumulated_pixel.blue / accumulated_pixel.pixel_count) as u8;
+                    pixel[3] = (accumulated_pixel.alpha / accumulated_pixel.pixel_count) as u8;
+                }
+            });
 
         let render_duration = render_start_instant.elapsed();
 

@@ -106,7 +106,7 @@ fn handle_selector(selectors: Pair<'_, Rule>) -> Selector {
 
     let main_selector = rule_selectors.next().unwrap();
 
-    debug_assert_eq!(main_selector.as_rule(), Rule::selector);
+    assert_eq!(main_selector.as_rule(), Rule::selector);
 
     let mut main_selector = selector_span_to_type(
         main_selector.as_span().as_str(),
@@ -268,6 +268,11 @@ fn selector_condition_from_rule_selectors(
                             ));
                         }
                     }
+                    Rule::not_pseudo_class => {
+                        selector_conditions.push(SelectorCondition::Not(Rc::new(handle_selector(
+                            pseudo_class,
+                        ))));
+                    }
                     _ => {
                         dbg!(pseudo_class);
                         unreachable!();
@@ -324,7 +329,7 @@ fn operator_to_condition(
 fn handle_declaration(
     declaration: pest::iterators::Pair<'_, Rule>,
 ) -> Result<MapCssDeclaration, MapCssError> {
-    debug_assert_eq!(declaration.as_rule(), Rule::rule_declaration);
+    assert_eq!(declaration.as_rule(), Rule::rule_declaration);
 
     let mut inner = declaration.into_inner();
 
