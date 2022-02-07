@@ -42,6 +42,9 @@ impl MapCssParser {
 
         for rule in pairs {
             match rule.as_rule() {
+                Rule::COMMENT => {
+                    // ignore comments for now
+                }
                 Rule::rule => {
                     let rule_contents = rule.into_inner();
                     let mut selector_list: Vec<Selector> = Vec::with_capacity(2);

@@ -70,15 +70,15 @@ pub(crate) fn print_peak_memory_usage() {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    flexi_logger::Logger::with_str("debug")
+    flexi_logger::Logger::try_with_str("debug")?
         .format(flexi_logger::colored_detailed_format)
-        .start()
-        .unwrap();
+        .start()?;
 
     print_peak_memory_usage();
 
     let instant = Instant::now();
-    let result = mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/mapcss.css"));
+    let result =
+        mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/unsupported.css"));
 
     let (map_css_acknowledgement, rules) = result.unwrap();
 

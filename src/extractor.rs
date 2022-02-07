@@ -21,6 +21,17 @@ pub fn extract_data_from_filepath(
 
     let mut relation_types: HashMap<String, u32> = HashMap::new();
 
+    #[derive(Debug)]
+    struct MostTaggedNode {
+        id: Option<NonZeroI64>,
+        tag_count: usize,
+    }
+
+    let mut most_tagged_node = MostTaggedNode {
+        id: None,
+        tag_count: 0,
+    };
+
     reader.for_each(|element| {
         if let osmpbf::Element::Relation(relation) = element {
             let rid = NonZeroI64::new(relation.id()).expect("A relation must not have the ID 0!");
@@ -66,6 +77,12 @@ pub fn extract_data_from_filepath(
                 .map(|(k, v)| (k.to_string(), v.to_string()))
                 .collect::<Vec<_>>();
             tags.sort();
+
+            if tags.len() > most_tagged_node.tag_count {
+                most_tagged_node.id =
+                    Some(NonZeroI64::new(node.id).expect("Node id must not be zero!"));
+                most_tagged_node.tag_count = tags.len();
+            }
 
             nid_to_node_data.insert(
                 NonZeroI64::new(node.id).expect("Node id must not zero!"),
@@ -129,6 +146,7 @@ pub fn extract_data_from_filepath(
     rid_to_relation_data.shrink_to_fit();
 
     dbg!(relation_types);
+    dbg!(most_tagged_node);
 
     // check whether we have all the data for the relations referencing them
     // otherwise remove them (because we possibly only deal with a data extract)

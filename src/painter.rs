@@ -96,7 +96,7 @@ impl PngPainter {
                         pixel_count: 0,
                     };
                     image_height as usize
-                ];
+            ];
             image_width as usize
         ];
 
@@ -189,7 +189,7 @@ impl PngPainter {
         let render_duration = render_start_instant.elapsed();
 
         info!(
-            "Rendering took {:.2?}. {:.2} ways/sec",
+            "Rendering took {:.2?}. {:.2} ways/sec. Saving …",
             render_duration,
             rendered_ways as f64 / (render_duration.as_nanos() as f64 * 1e-9)
         );
@@ -197,6 +197,8 @@ impl PngPainter {
         let filename = String::from("test.png");
 
         image_buffer.save(&filename).unwrap();
+
+        info!("Image saved");
 
         filename
     }
