@@ -1,7 +1,4 @@
-use crate::mapcss::declaration::{MapCssDeclaration, MapCssDeclarationProperty};
-use crate::mapcss::error::MapCssError;
 use std::cmp::Eq;
-use std::marker::Sync;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]

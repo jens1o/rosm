@@ -45,51 +45,6 @@ impl MapCssDeclarationList {
         self.declarations.is_empty()
     }
 
-    fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCondition) -> bool {
-        use SelectorCondition::*;
-
-        match condition {
-            No => true,
-
-            ExactZoomLevel(_) | MinZoomLevel(_) | RangeZoomLevel(_, _) | MaxZoomLevel(_) => {
-                if !DID_BLAME_ZOOM_LEVEL_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
-                    warn!("Zoom level specific declarations are currently not supported. Discarding these conditions.");
-                }
-
-                true
-            }
-            List(_) => {
-                dbg!(condition, element_data);
-                unreachable!("Lists MUST NOT be passed to check_condition()")
-            }
-            GenericPseudoClass(_pseudo_class) => {
-                if !DID_BLAME_HAS_PSEUDO_CLASS_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
-                    warn!("Pseudo classes are currently not supported. Discarded condition.");
-                }
-
-                true
-            }
-            HasTag(condition_tag_key) => element_data
-                .tags()
-                .iter()
-                .any(|(element_tag_key, _element_tag_value)| element_tag_key == condition_tag_key),
-            HasExactTagValue(condition_tag_key, condition_tag_value) => element_data
-                .tags()
-                .iter()
-                .any(|(element_tag_key, element_tag_value)| {
-                    element_tag_key == condition_tag_key && element_tag_value == condition_tag_value
-                }),
-            HasDescendant(_) => {
-                if !DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
-                    warn!("The HasDescendant(_) condition is currently not supported. Discarding…");
-                }
-
-                true
-            }
-            _ => false,
-        }
-    }
-
     fn search_cascading(
         &self,
         element_data: Box<dyn ElementData>,
@@ -111,24 +66,8 @@ impl MapCssDeclarationList {
 
         for selector in selectors.iter() {
             for declaration_list in self.declarations.get(selector) {
-                'declarationListLoop: for (selector_condition, declaration_property_to_value) in
-                    declaration_list
-                {
-                    if let SelectorCondition::List(condition_list) = selector_condition {
-                        for condition in condition_list {
-                            if let SelectorCondition::List(_) = condition {
-                                panic!("Sub-Lists in a SelectorCondition::List are not supported!");
-                            } else if !MapCssDeclarationList::check_condition(
-                                &element_data,
-                                condition,
-                            ) {
-                                continue 'declarationListLoop;
-                            }
-                        }
-                    } else if !MapCssDeclarationList::check_condition(
-                        &element_data,
-                        selector_condition,
-                    ) {
+                for (selector_condition, declaration_property_to_value) in declaration_list {
+                    if !check_condition(&element_data, selector_condition) {
                         continue;
                     }
 
@@ -372,5 +311,57 @@ impl fmt::Display for TextPositionDeclarationVariant {
                 Line => "line",
             }
         )
+    }
+}
+
+fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCondition) -> bool {
+    use SelectorCondition::*;
+
+    match condition {
+        No => true,
+
+        ExactZoomLevel(_) | MinZoomLevel(_) | RangeZoomLevel(_, _) | MaxZoomLevel(_) => {
+            if !DID_BLAME_ZOOM_LEVEL_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
+                warn!("Zoom level specific declarations are currently not supported. Discarding these conditions.");
+            }
+
+            true
+        }
+        List(condition_list) => {
+            for condition in condition_list {
+                if !check_condition(element_data, condition) {
+                    return false;
+                }
+            }
+
+            true
+        }
+        GenericPseudoClass(_pseudo_class) => {
+            if !DID_BLAME_HAS_PSEUDO_CLASS_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
+                warn!("Pseudo classes are currently not supported. Discarded condition.");
+            }
+
+            true
+        }
+        HasTag(condition_tag_key) => element_data
+            .tags()
+            .iter()
+            .any(|(element_tag_key, _element_tag_value)| element_tag_key == condition_tag_key),
+        HasExactTagValue(condition_tag_key, condition_tag_value) => {
+            element_data
+                .tags()
+                .iter()
+                .any(|(element_tag_key, element_tag_value)| {
+                    element_tag_key == condition_tag_key && element_tag_value == condition_tag_value
+                })
+        }
+        HasDescendant(_) => {
+            if !DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
+                warn!("The HasDescendant(_) condition is currently not supported. Discarding…");
+            }
+
+            true
+        }
+        _ => false,
     }
 }
