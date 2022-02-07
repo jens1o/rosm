@@ -67,7 +67,7 @@ impl MapCssDeclarationList {
         for selector in selectors.iter() {
             for declaration_list in self.declarations.get(selector) {
                 for (selector_condition, declaration_property_to_value) in declaration_list {
-                    if !check_condition(&element_data, selector_condition) {
+                    if !check_conditions(&element_data, selector_condition) {
                         continue;
                     }
 
@@ -314,12 +314,31 @@ impl fmt::Display for TextPositionDeclarationVariant {
     }
 }
 
-fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCondition) -> bool {
+fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCondition) -> bool {
     use SelectorCondition::*;
 
     match condition {
         No => true,
 
+        Not(selector) => match selector.selector_type() {
+            SelectorType::Any => !check_conditions(element_data, selector.conditions()),
+            SelectorType::Canvas => {
+                if element_data.id() == ElementID::Canvas {
+                    !check_conditions(element_data, selector.conditions())
+                } else {
+                    true
+                }
+            }
+
+            _ => {
+                warn!(
+                    "todo add Not() implementation for {:?}",
+                    selector.selector_type()
+                );
+
+                true
+            }
+        },
         ExactZoomLevel(_) | MinZoomLevel(_) | RangeZoomLevel(_, _) | MaxZoomLevel(_) => {
             if !DID_BLAME_ZOOM_LEVEL_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
                 warn!("Zoom level specific declarations are currently not supported. Discarding these conditions.");
@@ -327,15 +346,11 @@ fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCond
 
             true
         }
-        List(condition_list) => {
-            for condition in condition_list {
-                if !check_condition(element_data, condition) {
-                    return false;
-                }
-            }
 
-            true
-        }
+        List(condition_list) => condition_list
+            .iter()
+            .all(|condition| check_conditions(element_data, condition)),
+
         GenericPseudoClass(_pseudo_class) => {
             if !DID_BLAME_HAS_PSEUDO_CLASS_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
                 warn!("Pseudo classes are currently not supported. Discarded condition.");
@@ -343,10 +358,12 @@ fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCond
 
             true
         }
+
         HasTag(condition_tag_key) => element_data
             .tags()
             .iter()
             .any(|(element_tag_key, _element_tag_value)| element_tag_key == condition_tag_key),
+
         HasExactTagValue(condition_tag_key, condition_tag_value) => {
             element_data
                 .tags()
@@ -355,6 +372,7 @@ fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCond
                     element_tag_key == condition_tag_key && element_tag_value == condition_tag_value
                 })
         }
+
         HasDescendant(_) => {
             if !DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
                 warn!("The HasDescendant(_) condition is currently not supported. Discarding…");
@@ -362,6 +380,14 @@ fn check_condition(element_data: &Box<dyn ElementData>, condition: &SelectorCond
 
             true
         }
-        _ => false,
+
+        condition => {
+            warn!(
+                "No steps defined to check condition {:?} on element {:?}!",
+                condition, element_data
+            );
+
+            false
+        }
     }
 }
