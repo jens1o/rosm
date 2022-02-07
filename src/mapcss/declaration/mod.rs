@@ -1,7 +1,6 @@
 use crate::data::{ElementData, ElementID};
 use crate::mapcss::parser::{FloatSize, IntSize};
 use crate::mapcss::selectors::{SelectorCondition, SelectorType};
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -126,13 +125,11 @@ impl MapCssDeclarationList {
                                 continue 'declarationListLoop;
                             }
                         }
-                    } else {
-                        if !MapCssDeclarationList::check_condition(
-                            &element_data,
-                            selector_condition,
-                        ) {
-                            continue;
-                        }
+                    } else if !MapCssDeclarationList::check_condition(
+                        &element_data,
+                        selector_condition,
+                    ) {
+                        continue;
                     }
 
                     // selector matches to our element, search for declarations that set our target property

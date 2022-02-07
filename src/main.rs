@@ -49,7 +49,7 @@ where
         return int;
     }
 
-    return (target - int % target) + int;
+    (target - int % target) + int
 }
 
 pub(crate) fn print_peak_memory_usage() {
@@ -77,8 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
     let instant = Instant::now();
-    let result =
-        mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/unsupported.css"));
+    let result = mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/mapcss.css"));
 
     let (map_css_acknowledgement, rules) = result.unwrap();
 

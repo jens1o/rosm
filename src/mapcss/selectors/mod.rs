@@ -94,11 +94,11 @@ impl Selector {
     }
 
     pub fn conditions(&self) -> &SelectorCondition {
-        return &self.conditions;
+        &self.conditions
     }
 
     pub fn selector_type(&self) -> SelectorType {
-        return self.selector_type;
+        self.selector_type
     }
 }
 
