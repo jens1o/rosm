@@ -13,8 +13,8 @@ pest = "2"
 pest_derive = "2"
 log = "0.4"
 flexi_logger = "0.18"
-image = "^0.23"
-line_drawing = "^0.8"
+image = "^0.24"
+line_drawing = "1"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["std", "psapi", "processthreadsapi"] }
