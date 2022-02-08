@@ -59,7 +59,7 @@ impl MapCssDeclarationList {
             ElementID::Canvas => &[SelectorType::Any, SelectorType::Canvas],
             ElementID::Node(_) => &[SelectorType::Any, SelectorType::Node],
             ElementID::Relation(_) => &[SelectorType::Any, SelectorType::Relation], // TODO: Support area
-            ElementID::Way(_) => match element_data.is_closed() {
+            ElementID::Way(_) => match element_data.has_closed_path() {
                 true => &[SelectorType::Any, SelectorType::Way, SelectorType::Area],
                 false => &[SelectorType::Any, SelectorType::Way, SelectorType::Line],
             },
@@ -356,6 +356,9 @@ fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCon
                 true
             }
         },
+
+        ClosedPath => element_data.has_closed_path(),
+
         ExactZoomLevel(_) | MinZoomLevel(_) | RangeZoomLevel(_, _) | MaxZoomLevel(_) => {
             if !DID_BLAME_ZOOM_LEVEL_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
                 warn!("Zoom level specific declarations are currently not supported. Discarding these conditions.");
@@ -387,6 +390,15 @@ fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCon
                 .iter()
                 .any(|(element_tag_key, element_tag_value)| {
                     element_tag_key == condition_tag_key && element_tag_value == condition_tag_value
+                })
+        }
+
+        HasNotTagValue(condition_tag_key, condition_tag_value) => {
+            element_data
+                .tags()
+                .iter()
+                .all(|(element_tag_key, element_tag_value)| {
+                    element_tag_key != condition_tag_key || element_tag_value != condition_tag_value
                 })
         }
 

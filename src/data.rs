@@ -98,7 +98,7 @@ pub trait ElementData: fmt::Debug {
 
     fn id(&self) -> ElementID;
 
-    fn is_closed(&self) -> bool;
+    fn has_closed_path(&self) -> bool;
 }
 
 impl ElementData for WayData {
@@ -110,7 +110,7 @@ impl ElementData for WayData {
         ElementID::Way(self.wid)
     }
 
-    fn is_closed(&self) -> bool {
+    fn has_closed_path(&self) -> bool {
         self.is_closed
     }
 }
@@ -124,7 +124,7 @@ impl ElementData for NodeData {
         self.into()
     }
 
-    fn is_closed(&self) -> bool {
+    fn has_closed_path(&self) -> bool {
         false
     }
 }
@@ -138,7 +138,7 @@ impl ElementData for RelationData {
         self.into()
     }
 
-    fn is_closed(&self) -> bool {
+    fn has_closed_path(&self) -> bool {
         todo!();
     }
 }

@@ -22,7 +22,7 @@ impl ElementData for CanvasElement {
         ElementID::Canvas
     }
 
-    fn is_closed(&self) -> bool {
+    fn has_closed_path(&self) -> bool {
         false
     }
 }

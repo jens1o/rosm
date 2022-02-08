@@ -3,3 +3,4 @@
 test*
 *.osm.pbf
 tiles/
+.DS_STORE

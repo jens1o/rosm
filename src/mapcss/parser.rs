@@ -63,7 +63,8 @@ impl MapCssParser {
                                     eprintln!("{}", err);
                                 }
                             },
-                            _ => unreachable!(),
+                            Rule::COMMENT => (),
+                            _ => todo!("{rule_content}"),
                         };
                     }
 
