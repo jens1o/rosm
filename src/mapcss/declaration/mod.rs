@@ -61,8 +61,7 @@ impl MapCssDeclarationList {
             },
         };
 
-        let mut matching_selector_set_declaration_values: Vec<&MapCssDeclarationValueType> =
-            Vec::new();
+        let mut last_seen_declaration_value_type: Option<&MapCssDeclarationValueType> = None;
 
         for selector in selectors.iter() {
             for declaration_list in self.declarations.get(selector) {
@@ -76,14 +75,14 @@ impl MapCssDeclarationList {
                         declaration_property_to_value
                     {
                         if set_declaration_name == declaration_property_name {
-                            matching_selector_set_declaration_values.push(set_declaration_value);
+                            last_seen_declaration_value_type = Some(set_declaration_value);
                         }
                     }
                 }
             }
         }
 
-        matching_selector_set_declaration_values.pop()
+        last_seen_declaration_value_type
     }
 
     pub fn search_cascading_or_panic(

@@ -61,8 +61,6 @@ impl Painter for PngPainter {
             }
         }
 
-        dbg!(min_x, max_x, min_y, max_y);
-
         let image_width =
             crate::round_up_to((((max_x - min_x) as f64).abs()) as u32, IMAGE_PART_SIZE);
         let image_height =
@@ -156,16 +154,18 @@ impl Painter for PngPainter {
                         accumulated_pixel.alpha += 255;
                     }
                 } else {
-                    panic!();
+                    unreachable!();
                 }
             }
 
             rendered_ways += 1;
 
-            if rendered_ways % 10000 == 0 {
-                println!("{}…", rendered_ways);
+            if rendered_ways % 15000 == 0 {
+                info!("{} ways rendered…", rendered_ways);
             }
         }
+
+        info!("Finalizing pixel values…");
 
         image_buffer
             .enumerate_pixels_mut()
@@ -189,8 +189,8 @@ impl Painter for PngPainter {
         let render_duration = render_start_instant.elapsed();
 
         info!(
-            "Rendering took {:.2?}. {:.2} ways/sec. Saving …",
-            render_duration,
+            "Rendering took {:.2}s. {:.2} ways/sec. Saving …",
+            render_duration.as_secs_f32(),
             rendered_ways as f64 / (render_duration.as_nanos() as f64 * 1e-9)
         );
 
@@ -198,7 +198,7 @@ impl Painter for PngPainter {
 
         image_buffer.save(&filename).unwrap();
 
-        info!("Image saved");
+        info!("Image saved successfully.");
 
         filename
     }
