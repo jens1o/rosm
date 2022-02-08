@@ -11,6 +11,10 @@ pub use color::RGBA;
 
 pub type MapCssDeclaration = (MapCssDeclarationProperty, MapCssDeclarationValueType);
 
+pub trait ToIntegerValue {
+    fn to_integer(&self) -> IntSize;
+}
+
 pub trait ToFloatValue {
     fn to_float(&self) -> FloatSize;
 }
@@ -50,14 +54,14 @@ impl MapCssDeclarationList {
         element_data: Box<dyn ElementData>,
         declaration_property_name: &MapCssDeclarationProperty,
     ) -> Option<&MapCssDeclarationValueType> {
-        // needs to be ordered from the less specific (* selector) to the most specific one (area)
-        let selectors: Vec<SelectorType> = match element_data.id() {
-            ElementID::Canvas => [SelectorType::Any, SelectorType::Canvas].into(),
-            ElementID::Node(_) => [SelectorType::Any, SelectorType::Node].into(),
-            ElementID::Relation(_) => [SelectorType::Any, SelectorType::Relation].into(), // TODO: Support area
+        // needs to be ordered from the less specific (SelectorType::Any) to the most specific one
+        let selectors: &[SelectorType] = match element_data.id() {
+            ElementID::Canvas => &[SelectorType::Any, SelectorType::Canvas],
+            ElementID::Node(_) => &[SelectorType::Any, SelectorType::Node],
+            ElementID::Relation(_) => &[SelectorType::Any, SelectorType::Relation], // TODO: Support area
             ElementID::Way(_) => match element_data.is_closed() {
-                true => [SelectorType::Any, SelectorType::Way, SelectorType::Area].into(),
-                false => [SelectorType::Any, SelectorType::Way, SelectorType::Line].into(),
+                true => &[SelectorType::Any, SelectorType::Way, SelectorType::Area],
+                false => &[SelectorType::Any, SelectorType::Way, SelectorType::Line],
             },
         };
 
@@ -187,6 +191,19 @@ impl fmt::Display for MapCssDeclarationValueType {
             IntegerArray(ints) => write!(f, "{:?}", ints),
             Integer(int) => write!(f, "{}", int),
             Float(float) => write!(f, "{}", float),
+        }
+    }
+}
+
+impl ToIntegerValue for MapCssDeclarationValueType {
+    fn to_integer(&self) -> IntSize {
+        use MapCssDeclarationValueType::*;
+
+        match self {
+            Float(float) => *float as IntSize,
+            Integer(int) => *int,
+
+            _ => panic!("Unable to {:?} convert to float!", &self),
         }
     }
 }

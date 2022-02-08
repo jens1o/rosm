@@ -2,8 +2,9 @@ use crate::data::{NodeData, RelationData, WayData};
 use crate::element::canvas::CanvasElement;
 use crate::mapcss::declaration::{
     MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType, ToBooleanValue,
-    ToColorValue, ToFloatValue, RGBA,
+    ToColorValue, ToIntegerValue, RGBA,
 };
+use crate::mapcss::parser::IntSize;
 use std::cmp;
 use std::collections::HashMap;
 use std::num::NonZeroI64;
@@ -73,32 +74,28 @@ impl Painter for PngPainter {
 
         let render_start_instant = Instant::now();
 
-        #[derive(Debug, Copy, Clone)]
-        struct AccumulatedPixelColor {
-            pub red: u16,
-            pub green: u16,
-            pub blue: u16,
-            pub alpha: u16,
-
-            pub pixel_count: u16,
+        struct WayWithZIndex<'a> {
+            z_index: IntSize,
+            way_data: &'a WayData,
         }
 
-        let mut pixel_accumulator: Vec<Vec<AccumulatedPixelColor>> = vec![
-            vec![
-                    AccumulatedPixelColor {
-                        red: 0,
-                        green: 0,
-                        blue: 0,
-                        alpha: 0,
+        let mut z_index_ordered_ways = wid_to_way_data
+            .values()
+            .map(|way_data| WayWithZIndex {
+                z_index: mapcss_ast
+                    .search_or_default(
+                        Box::new(way_data.clone()),
+                        &MapCssDeclarationProperty::ZIndex,
+                        &MapCssDeclarationValueType::Integer(0),
+                    )
+                    .to_integer(),
+                way_data,
+            })
+            .collect::<Vec<_>>();
 
-                        pixel_count: 0,
-                    };
-                    image_height as usize
-            ];
-            image_width as usize
-        ];
+        z_index_ordered_ways.sort_by(|a, b| a.z_index.cmp(&b.z_index));
 
-        for (_way_id, way_data) in wid_to_way_data.into_iter().take(DRAWN_WAYS) {
+        for way_data in z_index_ordered_ways.iter().map(|x| x.way_data) {
             let way_refs = way_data.refs();
 
             let way_color: image::Rgba<u8> = mapcss_ast
@@ -135,23 +132,11 @@ impl Painter for PngPainter {
                         let image_x = (y - min_y + 4) as u32;
                         let image_y = image_width - 4 - (x - min_x) as u32;
 
-                        let accumulated_pixel: &mut AccumulatedPixelColor;
-
-                        debug_assert!(image_x <= image_height && image_y <= image_width);
-
-                        // Safe as we initalize the array with all possible values
-                        unsafe {
-                            accumulated_pixel = pixel_accumulator
-                                .get_unchecked_mut(image_y as usize)
-                                .get_unchecked_mut(image_x as usize);
-                        }
-
-                        accumulated_pixel.pixel_count += 1;
-
-                        accumulated_pixel.red += way_color[0] as u16;
-                        accumulated_pixel.green += way_color[1] as u16;
-                        accumulated_pixel.blue += way_color[2] as u16;
-                        accumulated_pixel.alpha += 255;
+                        image_buffer.put_pixel(
+                            image_x,
+                            image_y,
+                            image::Rgba([way_color[0], way_color[1], way_color[2], 255]),
+                        );
                     }
                 } else {
                     unreachable!();
@@ -164,27 +149,6 @@ impl Painter for PngPainter {
                 info!("{} ways rendered…", rendered_ways);
             }
         }
-
-        info!("Finalizing pixel values…");
-
-        image_buffer
-            .enumerate_pixels_mut()
-            .for_each(|(x, y, pixel)| {
-                let accumulated_pixel: &AccumulatedPixelColor;
-
-                unsafe {
-                    accumulated_pixel = pixel_accumulator
-                        .get_unchecked(y as usize)
-                        .get_unchecked(x as usize);
-                }
-
-                if accumulated_pixel.pixel_count != 0 {
-                    pixel[0] = (accumulated_pixel.red / accumulated_pixel.pixel_count) as u8;
-                    pixel[1] = (accumulated_pixel.green / accumulated_pixel.pixel_count) as u8;
-                    pixel[2] = (accumulated_pixel.blue / accumulated_pixel.pixel_count) as u8;
-                    pixel[3] = (accumulated_pixel.alpha / accumulated_pixel.pixel_count) as u8;
-                }
-            });
 
         let render_duration = render_start_instant.elapsed();
 
