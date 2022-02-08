@@ -3,7 +3,6 @@ use crate::mapcss::declaration::{
     MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType, ToBooleanValue,
     ToColorValue, RGBA,
 };
-use crate::mapcss::selectors::{SelectorCondition, SelectorType};
 
 #[derive(Debug)]
 pub struct CanvasElement {}

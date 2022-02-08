@@ -317,7 +317,8 @@ fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCon
     use SelectorCondition::*;
 
     match condition {
-        No => true,
+        True => true,
+        False => false,
 
         Not(selector) => match selector.selector_type() {
             SelectorType::Any => !check_conditions(element_data, selector.conditions()),

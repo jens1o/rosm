@@ -59,8 +59,9 @@ impl MapCssAcknowledgement {
 pub enum MapCssParseError {
     InvalidSelector,
     CurrentColorInColor,
+    /// holds the property name that is unknown
     UnknownPropertyName(String),
-    // expected unit
+    /// holds the expected unit
     InvalidUnit(&'static str),
     OutOfRange,
 }

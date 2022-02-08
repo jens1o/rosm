@@ -3,7 +3,10 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum SelectorCondition {
-    No,
+    /// Always evaluates to `true`, automatically set in case there are no conditions
+    True,
+    /// Always evalutes to `false`
+    False,
 
     ExactZoomLevel(u8),
     MinZoomLevel(u8),
@@ -26,19 +29,19 @@ pub enum SelectorCondition {
 
 impl Default for SelectorCondition {
     fn default() -> Self {
-        SelectorCondition::No
+        SelectorCondition::True
     }
 }
 
 impl SelectorCondition {
-    /// Merges two conditionsets together
+    /// Merges two (sets of) conditions together
     pub fn add_condition(self, new: SelectorCondition) -> SelectorCondition {
         use SelectorCondition::*;
 
         // TODO: Check whether merging the two conditions actually makes sense and simplify
-        // e.g. merge(SelectorCondition::MaxZoomLevel(10), SelectorCondition::MinZoomLevel(11)) => SelectorCondition::No
+        // e.g. merge(SelectorCondition::MaxZoomLevel(10), SelectorCondition::MinZoomLevel(11)) => SelectorCondition::False
 
-        if new == No {
+        if new == True {
             return self;
         }
 
@@ -53,7 +56,7 @@ impl SelectorCondition {
 
                 SelectorCondition::List(conditions)
             }
-            No => new,
+            True => new,
 
             _ => SelectorCondition::List(vec![self, new]),
         }
@@ -104,8 +107,8 @@ mod tests {
     use super::SelectorCondition;
 
     #[test]
-    fn test_selector_condition_merge_no_simple() {
-        let a = SelectorCondition::No;
+    fn test_selector_condition_merge_true_simple() {
+        let a = SelectorCondition::True;
 
         let b = SelectorCondition::HasExactTagValue("jens".into(), "awesome".into());
 
@@ -113,8 +116,8 @@ mod tests {
     }
 
     #[test]
-    fn test_selector_condition_merge_no() {
-        let a = SelectorCondition::No;
+    fn test_selector_condition_merge_true() {
+        let a = SelectorCondition::True;
 
         let b = SelectorCondition::List(vec![
             SelectorCondition::HasExactTagValue("jens".into(), "awesome".into()),

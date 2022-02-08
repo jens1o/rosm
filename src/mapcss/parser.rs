@@ -74,10 +74,10 @@ impl MapCssParser {
                     for selector in selector_list.into_iter() {
                         let selector_type = selector.selector_type();
                         if selector_type == SelectorType::Meta {
-                            // TODO: Bail error
+                            // TODO: Bail semantic error (the meta block has unique MapCSS properties that may not appear in any other ruleset)
                             debug_assert_eq!(selector_list_len, 1);
 
-                            if selector.conditions() == &SelectorCondition::No {
+                            if selector.conditions() == &SelectorCondition::True {
                                 acknowledgement =
                                     MapCssAcknowledgement::from_declarations(declarations.clone())
                                         .ok();
@@ -154,7 +154,7 @@ fn selector_condition_from_rule_selectors(
     rules: &mut pest::iterators::Pairs<'_, Rule>,
 ) -> SelectorCondition {
     if rules.peek().is_none() {
-        return SelectorCondition::No;
+        return SelectorCondition::True;
     }
 
     let mut selector_conditions = Vec::new();
@@ -290,7 +290,7 @@ fn selector_condition_from_rule_selectors(
     }
 
     match selector_conditions.len() {
-        0 => SelectorCondition::No,
+        0 => SelectorCondition::True,
         1 => selector_conditions.into_iter().next().unwrap(),
         _ => SelectorCondition::List(selector_conditions),
     }
