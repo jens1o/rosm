@@ -17,6 +17,7 @@ mod mapcss;
 mod painter;
 
 use mapcss::declaration::MapCssDeclarationList;
+use painter::Painter;
 use std::error::Error;
 use std::time::Instant;
 #[cfg(windows)]

@@ -13,7 +13,7 @@ pub trait Painter {
     /// Paints the given data styled by the mapcss ast and returns the filename of the saved file.
     fn paint(
         &mut self,
-        image_resolution_factor: f32,
+        image_resolution_factor: f64,
         mapcss_ast: MapCssDeclarationList,
         nid_to_node_data: HashMap<NonZeroI64, NodeData>,
         wid_to_way_data: HashMap<NonZeroI64, WayData>,
@@ -24,8 +24,8 @@ pub trait Painter {
 #[derive(Default)]
 pub struct PngPainter {}
 
-impl PngPainter {
-    pub fn paint(
+impl Painter for PngPainter {
+    fn paint(
         &mut self,
         image_resolution_factor: f64,
         mapcss_ast: MapCssDeclarationList,
