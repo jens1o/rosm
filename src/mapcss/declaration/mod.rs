@@ -203,7 +203,7 @@ impl ToIntegerValue for MapCssDeclarationValueType {
             Float(float) => *float as IntSize,
             Integer(int) => *int,
 
-            _ => panic!("Unable to {:?} convert to float!", &self),
+            _ => panic!("Unable to {:?} convert to int!", &self),
         }
     }
 }
