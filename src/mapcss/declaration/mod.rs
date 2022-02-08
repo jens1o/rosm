@@ -402,6 +402,36 @@ fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCon
                 })
         }
 
+        ValueGreaterThanEqual(condition_tag_key, condition_tag_value) => element_data
+            .tags()
+            .iter()
+            .find(|(element_tag_key, element_tag_value)| {
+                if condition_tag_key != element_tag_key {
+                    return false;
+                }
+
+                element_tag_value
+                    .parse::<isize>()
+                    .map(|tag_value| &tag_value >= condition_tag_value)
+                    .unwrap_or(false)
+            })
+            .is_some(),
+
+        ValueGreaterThan(condition_tag_key, condition_tag_value) => element_data
+            .tags()
+            .iter()
+            .find(|(element_tag_key, element_tag_value)| {
+                if condition_tag_key != element_tag_key {
+                    return false;
+                }
+
+                element_tag_value
+                    .parse::<isize>()
+                    .map(|tag_value| &tag_value > condition_tag_value)
+                    .unwrap_or(false)
+            })
+            .is_some(),
+
         HasDescendant(_) => {
             if !DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {
                 warn!("The HasDescendant(_) condition is currently not supported. Discarding…");
