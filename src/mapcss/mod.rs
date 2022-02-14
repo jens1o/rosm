@@ -40,12 +40,11 @@ impl MapCssAcknowledgement {
             }
         }
 
-        // TODO: Write error messages
         Ok(MapCssAcknowledgement {
-            title: title.unwrap(),
-            version: version.unwrap(),
-            description: description.unwrap(),
-            acknowledgement: acknowledgement.unwrap(),
+            title: title.unwrap_or_default(),
+            version: version.unwrap_or_default(),
+            description: description.unwrap_or_default(),
+            acknowledgement: acknowledgement.unwrap_or_default(),
         })
     }
 
