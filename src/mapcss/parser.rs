@@ -450,9 +450,6 @@ fn handle_declaration(
             )
         }
 
-        "default-lines" => (MapCssDeclarationProperty::DefaultLines, to_bool!()),
-        "default-points" => (MapCssDeclarationProperty::DefaultPoints, to_bool!()),
-
         "text" => (MapCssDeclarationProperty::Text, to_string!()),
         "text-color" => (MapCssDeclarationProperty::TextColor, to_color!()),
         "text-position" => (

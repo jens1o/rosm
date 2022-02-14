@@ -119,6 +119,27 @@ impl Painter for PngPainter {
 
             let way_color = way_color.unwrap();
 
+            let way_fill_color = mapcss_ast
+                .search_cascading(
+                    Box::new(way_data.clone()),
+                    &MapCssDeclarationProperty::FillColor,
+                )
+                .map(|x| x.to_color().into())
+                .unwrap_or(way_color);
+
+            let way_width: u32 = mapcss_ast
+                .search_cascading(
+                    Box::new(way_data.clone()),
+                    &MapCssDeclarationProperty::Width,
+                )
+                .map(|x| x.to_integer())
+                .and_then(|x| x.try_into().ok())
+                .unwrap_or(1);
+
+            if way_width == 0 {
+                continue;
+            }
+
             let is_closed_way = way_data.has_closed_path();
 
             let mut pixeled_boundaries = HashSet::new();
@@ -145,22 +166,52 @@ impl Painter for PngPainter {
                         let image_x = (y - min_y + 4) as u32;
                         let image_y = image_width - 4 - (x - min_x) as u32;
 
-                        image_buffer.put_pixel(
-                            image_x,
-                            image_y,
-                            image::Rgb([way_color[0], way_color[1], way_color[2]]),
-                        );
+                        if way_width == 1 {
+                            image_buffer.put_pixel(
+                                image_x,
+                                image_y,
+                                image::Rgb([way_color[0], way_color[1], way_color[2]]),
+                            );
 
-                        if is_closed_way {
-                            pixeled_boundaries.insert((image_x, image_y));
+                            if is_closed_way {
+                                pixeled_boundaries.insert((image_x, image_y));
 
-                            // speedup "are we inside the drawn way boundaries?"
-                            if image_x > pixeled_max_x_coordinates.0 {
-                                pixeled_max_x_coordinates = (image_x, image_y);
+                                // speedup "are we inside the drawn way boundaries?"
+                                if image_x > pixeled_max_x_coordinates.0 {
+                                    pixeled_max_x_coordinates = (image_x, image_y);
+                                }
+
+                                if image_x < pixeled_min_x_coordinates.0 {
+                                    pixeled_min_x_coordinates = (image_x, image_y);
+                                }
+                            }
+                        } else {
+                            let start_x = (image_x - way_width / 2).max(0);
+                            let end_x = (image_x + way_width / 2).min(image_width);
+
+                            for x in start_x..=end_x {
+                                image_buffer.put_pixel(
+                                    x,
+                                    image_y,
+                                    image::Rgb([
+                                        way_fill_color[0],
+                                        way_fill_color[1],
+                                        way_fill_color[2],
+                                    ]),
+                                );
+
+                                if is_closed_way {
+                                    pixeled_boundaries.insert((x, image_y));
+                                }
                             }
 
-                            if image_x < pixeled_min_x_coordinates.0 {
-                                pixeled_min_x_coordinates = (image_x, image_y);
+                            // speedup "are we inside the drawn way boundaries?"
+                            if end_x > pixeled_max_x_coordinates.0 {
+                                pixeled_max_x_coordinates = (end_x, image_y);
+                            }
+
+                            if start_x < pixeled_min_x_coordinates.0 {
+                                pixeled_min_x_coordinates = (start_x, image_y);
                             }
                         }
                     }
@@ -290,7 +341,11 @@ impl Painter for PngPainter {
                             image_buffer.put_pixel(
                                 flood_filled_pixel.0,
                                 flood_filled_pixel.1,
-                                image::Rgb([way_color[0], way_color[1], way_color[2]]),
+                                image::Rgb([
+                                    way_fill_color[0],
+                                    way_fill_color[1],
+                                    way_fill_color[2],
+                                ]),
                             );
                         }
                         break;

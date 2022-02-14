@@ -1,7 +1,5 @@
 canvas {
 	fill-color: #f1eee8;
-	default-points: false;
-	default-lines: false;
 }
 
 /* ===== Landuse ===== */

@@ -226,7 +226,7 @@ way[natural=wood], way[landuse=forest], way[landcover=trees] {
     z-index: 100;
 }
 
-way[landuse=grass], way[landcover=grass], way[landuse=meadow], way[natural=scrub] {
+way[landuse=grass], way[landcover=grass], way[landuse=meadow] {
     color: #9bbd7c;
     fill-color: #cdebb0;
 }
@@ -296,11 +296,11 @@ way[tourism=camp_site] {
     fill-color: #def6c0;
 }
 
-/*way[fixme], node[fixme] {
+way[fixme], node[fixme] {
     color: red;
-}*/
+}
 
 way[bridge] {
-    z-index: 10000;
+    z-index: 100000;
     color: #6e6e6e;
 }

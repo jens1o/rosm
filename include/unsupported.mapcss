@@ -1,5 +1,5 @@
-// test
-
-way {
-    color: red;
+way[landuse=reservoir] {
+    color: #aad3df;
+    fill-color: #aad3df;
+    z-index: 10;
 }
