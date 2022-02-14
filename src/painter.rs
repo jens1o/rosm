@@ -67,9 +67,9 @@ impl Painter for PngPainter {
         let image_height =
             crate::round_up_to((((max_y - min_y) as f64).abs()) as u32, IMAGE_PART_SIZE);
 
-        let background_color: image::Rgba<u8> = canvas.background_color(&mapcss_ast).into();
+        let background_color: image::Rgb<u8> = canvas.background_color(&mapcss_ast).into();
 
-        let mut image_buffer: image::RgbaImage =
+        let mut image_buffer: image::RgbImage =
             image::ImageBuffer::from_pixel(image_height, image_width, background_color);
 
         let render_start_instant = Instant::now();
@@ -143,7 +143,7 @@ impl Painter for PngPainter {
                         image_buffer.put_pixel(
                             image_x,
                             image_y,
-                            image::Rgba([way_color[0], way_color[1], way_color[2], 255]),
+                            image::Rgb([way_color[0], way_color[1], way_color[2]]),
                         );
 
                         if is_closed_way {
@@ -201,11 +201,9 @@ impl Painter for PngPainter {
                     pixeled_boundaries: &HashSet<(u32, u32)>,
                 ) -> Vec<(u32, u32)> {
                     if !is_inside((x, y), min_x, max_x, pixeled_boundaries) {
-                        warn!("initial value is not inside the boundaries");
+                        // warn!("initial value is not inside the boundaries");
                         return Vec::new();
                     }
-
-                    info!("Flood filling polynom…");
 
                     let mut flood_filled_pixels: Vec<(u32, u32)> = Vec::new();
 
@@ -214,8 +212,6 @@ impl Painter for PngPainter {
 
                     while let Some((mut x1, x2, y, dy)) = stack.pop() {
                         x = x1;
-
-                        debug!("Substep 1, stack size: {}", stack.len());
 
                         if is_inside((x, y), min_x, max_x, pixeled_boundaries) {
                             while x > 1 && is_inside((x - 1, y), min_x, max_x, pixeled_boundaries) {
@@ -229,8 +225,6 @@ impl Painter for PngPainter {
                         if x < x1 {
                             stack.push((x, x1 - 1, y - dy, -dy));
                         }
-
-                        debug!("Substep 2, stack size: {}", stack.len());
 
                         while x1 < x2 {
                             while is_inside((x1, y), min_x, max_x, pixeled_boundaries) {
@@ -264,19 +258,21 @@ impl Painter for PngPainter {
                     flood_filled_pixels
                 }
 
+                // dbg!(pixeled_min_x_coordinates, pixeled_max_x_coordinates);
+
                 for flood_filled_pixel in get_flood_filled_pixels(
                     (
-                        (pixeled_max_x_coordinates.0 - 1).into(),
-                        pixeled_max_x_coordinates.1.into(),
+                        (pixeled_min_x_coordinates.0 + 1).into(),
+                        (pixeled_min_x_coordinates.1 + 1).into(),
                     ),
-                    pixeled_min_x_coordinates.1.into(),
-                    pixeled_max_x_coordinates.1.into(),
+                    pixeled_min_x_coordinates.0.into(),
+                    pixeled_max_x_coordinates.0.into(),
                     &pixeled_boundaries,
                 ) {
                     image_buffer.put_pixel(
                         flood_filled_pixel.0,
                         flood_filled_pixel.1,
-                        image::Rgba([way_color[0], way_color[1], way_color[2], 255]),
+                        image::Rgb([way_color[0], way_color[1], way_color[2]]),
                     );
                 }
             }
@@ -301,9 +297,14 @@ impl Painter for PngPainter {
 
         let filename = String::from("test.png");
 
+        let save_start_instant = Instant::now();
+
         image_buffer.save(&filename).unwrap();
 
-        info!("Image saved successfully.");
+        info!(
+            "Image saved successfully, took {:.2}s.",
+            save_start_instant.elapsed().as_secs_f32()
+        );
 
         filename
     }

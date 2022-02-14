@@ -27,11 +27,6 @@ pub fn extract_data_from_filepath(
         tag_count: usize,
     }
 
-    let mut most_tagged_node = MostTaggedNode {
-        id: None,
-        tag_count: 0,
-    };
-
     reader.for_each(|element| {
         if let osmpbf::Element::Relation(relation) = element {
             let rid = NonZeroI64::new(relation.id()).expect("A relation must not have the ID 0!");
@@ -78,12 +73,6 @@ pub fn extract_data_from_filepath(
                 .collect::<Vec<_>>();
             tags.sort();
 
-            if tags.len() > most_tagged_node.tag_count {
-                most_tagged_node.id =
-                    Some(NonZeroI64::new(node.id).expect("Node id must not be zero!"));
-                most_tagged_node.tag_count = tags.len();
-            }
-
             nid_to_node_data.insert(
                 NonZeroI64::new(node.id).expect("Node id must not zero!"),
                 NodeData {
@@ -108,11 +97,12 @@ pub fn extract_data_from_filepath(
                 return;
             }
 
-            let mut refs = Vec::with_capacity(ref_len);
-
-            for reference in way.refs() {
-                refs.push(NonZeroI64::new(reference).expect("Node id must not be zero"));
-            }
+            let refs = way
+                .refs()
+                .map(|ref_id| {
+                    NonZeroI64::new(ref_id).expect("a way must not reference a node with id zero!")
+                })
+                .collect();
 
             wid_to_way_data.insert(
                 wid,
@@ -146,7 +136,6 @@ pub fn extract_data_from_filepath(
     rid_to_relation_data.shrink_to_fit();
 
     dbg!(relation_types);
-    dbg!(most_tagged_node);
 
     // check whether we have all the data for the relations referencing them
     // otherwise remove them (because we possibly only deal with a data extract)
