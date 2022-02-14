@@ -5,7 +5,6 @@ pub mod rule;
 pub mod selectors;
 
 use declaration::{MapCssDeclaration, MapCssDeclarationProperty};
-use selectors::{SelectorCondition, SelectorType};
 
 #[derive(Debug, Default)]
 pub struct MapCssAcknowledgement {

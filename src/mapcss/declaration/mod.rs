@@ -68,7 +68,7 @@ impl MapCssDeclarationList {
         let mut last_seen_declaration_value_type: Option<&MapCssDeclarationValueType> = None;
 
         for selector in selectors.iter() {
-            for declaration_list in self.declarations.get(selector) {
+            if let Some(declaration_list) = self.declarations.get(selector) {
                 for (selector_condition, declaration_property_to_value) in declaration_list {
                     if !check_conditions(&element_data, selector_condition) {
                         continue;
@@ -405,7 +405,7 @@ fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCon
         ValueGreaterThanEqual(condition_tag_key, condition_tag_value) => element_data
             .tags()
             .iter()
-            .find(|(element_tag_key, element_tag_value)| {
+            .any(|(element_tag_key, element_tag_value)| {
                 if condition_tag_key != element_tag_key {
                     return false;
                 }
@@ -414,23 +414,23 @@ fn check_conditions(element_data: &Box<dyn ElementData>, condition: &SelectorCon
                     .parse::<isize>()
                     .map(|tag_value| &tag_value >= condition_tag_value)
                     .unwrap_or(false)
-            })
-            .is_some(),
+            }),
 
-        ValueGreaterThan(condition_tag_key, condition_tag_value) => element_data
-            .tags()
-            .iter()
-            .find(|(element_tag_key, element_tag_value)| {
-                if condition_tag_key != element_tag_key {
-                    return false;
-                }
+        ValueGreaterThan(condition_tag_key, condition_tag_value) => {
+            element_data
+                .tags()
+                .iter()
+                .any(|(element_tag_key, element_tag_value)| {
+                    if condition_tag_key != element_tag_key {
+                        return false;
+                    }
 
-                element_tag_value
-                    .parse::<isize>()
-                    .map(|tag_value| &tag_value > condition_tag_value)
-                    .unwrap_or(false)
-            })
-            .is_some(),
+                    element_tag_value
+                        .parse::<isize>()
+                        .map(|tag_value| &tag_value > condition_tag_value)
+                        .unwrap_or(false)
+                })
+        }
 
         HasDescendant(_) => {
             if !DID_BLAME_HAS_DESCENDANT_NOT_SUPPORTED.swap(true, Ordering::SeqCst) {

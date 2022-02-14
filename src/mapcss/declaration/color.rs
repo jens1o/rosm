@@ -253,37 +253,21 @@ impl FromStr for RGBA {
                 }
                 6 | 8 => {
                     red = u8::from_str_radix(
-                        &format!(
-                            "{}{}",
-                            chars.next().unwrap().to_string(),
-                            chars.next().unwrap().to_string()
-                        ),
+                        &format!("{}{}", chars.next().unwrap(), chars.next().unwrap()),
                         16,
                     )?;
                     green = u8::from_str_radix(
-                        &format!(
-                            "{}{}",
-                            chars.next().unwrap().to_string(),
-                            chars.next().unwrap().to_string()
-                        ),
+                        &format!("{}{}", chars.next().unwrap(), chars.next().unwrap()),
                         16,
                     )?;
                     blue = u8::from_str_radix(
-                        &format!(
-                            "{}{}",
-                            chars.next().unwrap().to_string(),
-                            chars.next().unwrap().to_string()
-                        ),
+                        &format!("{}{}", chars.next().unwrap(), chars.next().unwrap()),
                         16,
                     )?;
 
                     if color_part_length == 8 {
                         alpha = u8::from_str_radix(
-                            &format!(
-                                "{}{}",
-                                chars.next().unwrap().to_string(),
-                                chars.next().unwrap().to_string()
-                            ),
+                            &format!("{}{}", chars.next().unwrap(), chars.next().unwrap()),
                             16,
                         )?;
                     }

@@ -61,7 +61,7 @@ pub fn extract_data_from_filepath(
                         .map(|(k, v)| (k.to_string(), v.to_string()))
                         // TODO: Debug
                         .inspect(|(k, v)| {
-                            if k == &"type" {
+                            if k == "type" {
                                 *relation_types.entry(v.to_string()).or_default() += 1;
                             }
                         })

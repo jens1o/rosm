@@ -78,7 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     print_peak_memory_usage();
 
     let instant = Instant::now();
-    let result = mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/target.mapcss"));
+    let result = mapcss::parser::MapCssParser::parse_mapcss(include_str!("../include/mapcss.css"));
 
     let (map_css_acknowledgement, rules) = result.unwrap();
 
@@ -96,7 +96,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
-        extractor::extract_data_from_filepath(String::from("saarland-latest.osm.pbf"))?;
+        extractor::extract_data_from_filepath(String::from(
+            "sao-tome-and-principe-latest.osm.pbf",
+        ))?;
 
     print_peak_memory_usage();
     info!(

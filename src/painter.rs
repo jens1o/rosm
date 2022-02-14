@@ -209,10 +209,8 @@ impl Painter for PngPainter {
 
                     let mut flood_filled_pixels: Vec<(u32, u32)> = Vec::new();
 
-                    let mut stack: Vec<(i64, i64, i64, i64)> = Vec::new();
-
-                    stack.push((x, x, y, 1));
-                    stack.push((x, x, y - 1, -1));
+                    let mut stack: Vec<(i64, i64, i64, i64)> =
+                        vec![(x, x, y, 1), (x, x, y - 1, -1)];
 
                     while let Some((mut x1, x2, y, dy)) = stack.pop() {
                         x = x1;

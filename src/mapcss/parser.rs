@@ -2,7 +2,6 @@ use super::declaration::{
     MapCssDeclaration, MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType,
 };
 use super::error::MapCssError;
-use super::rule::MapCssRule;
 use super::selectors::{Selector, SelectorCondition, SelectorType};
 use super::MapCssAcknowledgement;
 use pest::iterators::{Pair, Pairs};
