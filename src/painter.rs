@@ -100,19 +100,17 @@ impl Painter for PngPainter {
         for way_data in z_index_ordered_ways.iter().map(|x| x.way_data) {
             let way_refs = way_data.refs();
 
-            let way_color: image::Rgba<u8> = mapcss_ast
-                .search_or_default(
+            let way_color: Option<image::Rgba<u8>> = mapcss_ast
+                .search_cascading(
                     Box::new(way_data.clone()),
                     &MapCssDeclarationProperty::Color,
-                    &MapCssDeclarationValueType::Color(RGBA {
-                        red: 200,
-                        green: 200,
-                        blue: 200,
-                        alpha: 255,
-                    }),
-                )
-                .to_color()
-                .into();
+                ).map(|x| x.to_color().into());
+
+            if way_color.is_none() {
+                continue;
+            }
+
+            let way_color = way_color.unwrap();
 
             let is_closed_way = way_data.has_closed_path();
 

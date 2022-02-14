@@ -470,7 +470,6 @@ fn handle_declaration(
         "text-halo-radius" => (MapCssDeclarationProperty::TextHaloRadius, to_int!()),
         "text-wrap-width" => (MapCssDeclarationProperty::TextWrapWidth, to_int!()),
 
-        "background-color" => (MapCssDeclarationProperty::BackgroundColor, to_color!()),
         "color" => (MapCssDeclarationProperty::Color, to_color!()),
         // in MapCSS, the font size is always given in absolute pixels
         "font-size" => (MapCssDeclarationProperty::FontSize, to_int!()),
@@ -500,7 +499,6 @@ fn handle_declaration(
         ),
 
         "fill-opacity" => (MapCssDeclarationProperty::FillOpacity, to_float!()),
-        "fill-color" => (MapCssDeclarationProperty::FillColor, to_color!()),
         "fill-image" => (MapCssDeclarationProperty::FillImage, maybe_url_to_string!()),
 
         "icon-image" => (MapCssDeclarationProperty::IconImage, maybe_url_to_string!()),

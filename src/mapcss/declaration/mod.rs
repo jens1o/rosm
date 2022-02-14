@@ -49,7 +49,7 @@ impl MapCssDeclarationList {
         self.declarations.is_empty()
     }
 
-    fn search_cascading(
+    pub fn search_cascading(
         &self,
         element_data: Box<dyn ElementData>,
         declaration_property_name: &MapCssDeclarationProperty,
@@ -146,7 +146,6 @@ pub enum MapCssDeclarationProperty {
     TextWrapWidth,
     TextSpacing,
 
-    BackgroundColor,
     Color,
     FontSize,
     FontColor,

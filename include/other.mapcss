@@ -1,5 +1,5 @@
 canvas {
-	background-color: #f1eee8;
+	fill-color: #f1eee8;
 	default-points: false;
 	default-lines: false;
 }
@@ -3095,4 +3095,3 @@ area|z17-[addr:housenumber] {
     text-color: #444444;
     text-position: center;
 }
-

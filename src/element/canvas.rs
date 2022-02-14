@@ -32,7 +32,7 @@ impl CanvasElement {
         mapcss_declarations
             .search_or_default(
                 Box::new(self),
-                &MapCssDeclarationProperty::BackgroundColor,
+                &MapCssDeclarationProperty::FillColor,
                 &MapCssDeclarationValueType::Color(RGBA {
                     red: 255,
                     green: 255,
@@ -41,10 +41,5 @@ impl CanvasElement {
                 }),
             )
             .to_color()
-    }
-
-    /// Returns true if all lines are drawn by default. Returns false when only those with a matching rule shall be drawn.
-    pub fn draw_lines_by_default(&self, mapcss_declarations: &MapCssDeclarationList) -> bool {
-        todo!()
     }
 }
