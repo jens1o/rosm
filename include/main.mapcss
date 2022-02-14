@@ -8,13 +8,6 @@ canvas {
     fill-color: #f1eee8;
 }
 
-way {
-    color: grey;
-}
-node {
-    color: beige;
-}
-
 way[natural=water], way[landuse=reservoir], way[landuse=basin] {
     color: #aad3df;
     fill-color: #aad3df;

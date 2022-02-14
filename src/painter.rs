@@ -40,7 +40,7 @@ impl Painter for PngPainter {
 
         let canvas = CanvasElement {};
 
-        let mut rendered_ways = 0;
+        let mut processed_ways = 0;
 
         let mut min_x = i32::MAX;
         let mut max_x = i32::MIN;
@@ -98,13 +98,20 @@ impl Painter for PngPainter {
 
         info!("Rasterizing ways…");
         for way_data in z_index_ordered_ways.iter().map(|x| x.way_data) {
+            processed_ways += 1;
+
+            if processed_ways % 15000 == 0 {
+                info!("{} ways rendered…", processed_ways);
+            }
+
             let way_refs = way_data.refs();
 
             let way_color: Option<image::Rgba<u8>> = mapcss_ast
                 .search_cascading(
                     Box::new(way_data.clone()),
                     &MapCssDeclarationProperty::Color,
-                ).map(|x| x.to_color().into());
+                )
+                .map(|x| x.to_color().into());
 
             if way_color.is_none() {
                 continue;
@@ -290,12 +297,6 @@ impl Painter for PngPainter {
                     }
                 }
             }
-
-            rendered_ways += 1;
-
-            if rendered_ways % 15000 == 0 {
-                info!("{} ways rendered…", rendered_ways);
-            }
         }
 
         let render_duration = render_start_instant.elapsed();
@@ -303,7 +304,7 @@ impl Painter for PngPainter {
         info!(
             "Rendering took {:.2}s. {:.2} ways/sec. Saving …",
             render_duration.as_secs_f32(),
-            rendered_ways as f64 / (render_duration.as_nanos() as f64 * 1e-9)
+            processed_ways as f64 / (render_duration.as_nanos() as f64 * 1e-9)
         );
 
         dbg!(image_height);

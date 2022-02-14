@@ -499,6 +499,7 @@ fn handle_declaration(
         ),
 
         "fill-opacity" => (MapCssDeclarationProperty::FillOpacity, to_float!()),
+        "fill-color" => (MapCssDeclarationProperty::FillColor, to_color!()),
         "fill-image" => (MapCssDeclarationProperty::FillImage, maybe_url_to_string!()),
 
         "icon-image" => (MapCssDeclarationProperty::IconImage, maybe_url_to_string!()),
