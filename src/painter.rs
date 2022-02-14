@@ -165,7 +165,14 @@ impl Painter for PngPainter {
             }
 
             // flood fill the closed way using the algorithm specified here: https://en.wikipedia.org/wiki/Flood_fill#Span_Filling
-            if is_closed_way {
+            // if there are holes
+            if is_closed_way
+                && pixeled_min_x_coordinates != pixeled_max_x_coordinates
+                && !are_image_coordinates_horizontally_next_to_each_other(
+                    pixeled_min_x_coordinates,
+                    pixeled_max_x_coordinates,
+                )
+            {
                 fn is_inside(
                     (mut x, y): (i64, i64),
                     min_x: i64,
@@ -201,7 +208,7 @@ impl Painter for PngPainter {
                     pixeled_boundaries: &HashSet<(u32, u32)>,
                 ) -> Vec<(u32, u32)> {
                     if !is_inside((x, y), min_x, max_x, pixeled_boundaries) {
-                        // warn!("initial value is not inside the boundaries");
+                        warn!("initial value is not inside the boundaries");
                         return Vec::new();
                     }
 
@@ -253,27 +260,36 @@ impl Painter for PngPainter {
                         }
                     }
 
-                    info!("Filled polynom with {} pixels", flood_filled_pixels.len());
-
                     flood_filled_pixels
                 }
 
-                // dbg!(pixeled_min_x_coordinates, pixeled_max_x_coordinates);
-
-                for flood_filled_pixel in get_flood_filled_pixels(
-                    (
-                        (pixeled_min_x_coordinates.0 + 1).into(),
-                        (pixeled_min_x_coordinates.1 + 1).into(),
-                    ),
-                    pixeled_min_x_coordinates.0.into(),
-                    pixeled_max_x_coordinates.0.into(),
-                    &pixeled_boundaries,
-                ) {
-                    image_buffer.put_pixel(
-                        flood_filled_pixel.0,
-                        flood_filled_pixel.1,
-                        image::Rgb([way_color[0], way_color[1], way_color[2]]),
-                    );
+                for (x, y) in [(-1, -1), (-1, 0), (0, -1), (0, 1), (1, 0), (1, -1), (1, 1)] {
+                    if is_inside(
+                        (
+                            pixeled_min_x_coordinates.0 as i64 + x,
+                            pixeled_min_x_coordinates.1 as i64 + y,
+                        ),
+                        pixeled_min_x_coordinates.0.into(),
+                        pixeled_max_x_coordinates.0.into(),
+                        &pixeled_boundaries,
+                    ) {
+                        for flood_filled_pixel in get_flood_filled_pixels(
+                            (
+                                pixeled_min_x_coordinates.0 as i64 + x,
+                                pixeled_min_x_coordinates.1 as i64 + y,
+                            ),
+                            pixeled_min_x_coordinates.0.into(),
+                            pixeled_max_x_coordinates.0.into(),
+                            &pixeled_boundaries,
+                        ) {
+                            image_buffer.put_pixel(
+                                flood_filled_pixel.0,
+                                flood_filled_pixel.1,
+                                image::Rgb([way_color[0], way_color[1], way_color[2]]),
+                            );
+                        }
+                        break;
+                    }
                 }
             }
 
@@ -308,4 +324,12 @@ impl Painter for PngPainter {
 
         filename
     }
+}
+
+fn are_image_coordinates_horizontally_next_to_each_other(a: (u32, u32), b: (u32, u32)) -> bool {
+    if a.1 != b.1 {
+        return false;
+    }
+
+    return a.0.max(b.0) - a.0.min(b.0) == 1;
 }

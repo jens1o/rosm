@@ -1,3 +1,3 @@
 # rosm
 ![example image](example.png)
-(Featuring the Regierungsbezirk Karlsruhe map, generated on 19th July 2020)
+(Featuring Liechtenstein, rendered on 14th February 2022)
