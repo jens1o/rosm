@@ -35,8 +35,7 @@ impl Painter for PngPainter {
         wid_to_way_data: HashMap<NonZeroI64, WayData>,
         rid_to_relation_data: HashMap<NonZeroI64, RelationData>,
     ) -> String {
-        const IMAGE_PART_SIZE: u32 = 256;
-        const DRAWN_WAYS: usize = 1_000_000;
+        const IMAGE_PART_SIZE: u32 = 64;
 
         let canvas = CanvasElement {};
 
@@ -47,7 +46,7 @@ impl Painter for PngPainter {
         let mut min_y = i32::MAX;
         let mut max_y = i32::MIN;
 
-        for way_refs in wid_to_way_data.values().take(DRAWN_WAYS).map(|x| x.refs()) {
+        for way_refs in wid_to_way_data.values().map(|x| x.refs()) {
             for ref_node_id in way_refs {
                 let ref_data = nid_to_node_data.get(ref_node_id).unwrap();
 
@@ -319,6 +318,8 @@ impl Painter for PngPainter {
                     flood_filled_pixels
                 }
 
+                let mut has_found_inside = false;
+
                 for (x, y) in [(-1, -1), (-1, 0), (0, -1), (0, 1), (1, 0), (1, -1), (1, 1)] {
                     if is_inside(
                         (
@@ -329,6 +330,7 @@ impl Painter for PngPainter {
                         pixeled_max_x_coordinates.0.into(),
                         &pixeled_boundaries,
                     ) {
+                        has_found_inside = true;
                         for flood_filled_pixel in get_flood_filled_pixels(
                             (
                                 pixeled_min_x_coordinates.0 as i64 + x,
@@ -350,6 +352,10 @@ impl Painter for PngPainter {
                         }
                         break;
                     }
+                }
+
+                if !has_found_inside {
+                    warn!("couldn't find inside area");
                 }
             }
         }
