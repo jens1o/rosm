@@ -9,7 +9,7 @@ use std::cmp;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::num::NonZeroI64;
-use std::path::Path;
+use std::path::PathBuf;
 use std::time::Instant;
 
 pub trait Painter {
@@ -21,7 +21,7 @@ pub trait Painter {
         nid_to_node_data: HashMap<NonZeroI64, NodeData>,
         wid_to_way_data: HashMap<NonZeroI64, WayData>,
         rid_to_relation_data: HashMap<NonZeroI64, RelationData>,
-    ) -> Path;
+    ) -> PathBuf;
 }
 
 #[derive(Default)]
@@ -35,7 +35,7 @@ impl Painter for PngPainter {
         nid_to_node_data: HashMap<NonZeroI64, NodeData>,
         wid_to_way_data: HashMap<NonZeroI64, WayData>,
         rid_to_relation_data: HashMap<NonZeroI64, RelationData>,
-    ) -> Path {
+    ) -> PathBuf {
         const IMAGE_PART_SIZE: u32 = 64;
 
         let canvas = CanvasElement {};
@@ -372,7 +372,7 @@ impl Painter for PngPainter {
         dbg!(image_height);
         dbg!(image_width);
 
-        let file_path = Path::new("test.png");
+        let file_path = PathBuf::from("test.png");
 
         let save_start_instant = Instant::now();
 
