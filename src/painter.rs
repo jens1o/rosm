@@ -73,6 +73,8 @@ impl Painter for PngPainter {
             image::ImageBuffer::from_pixel(image_height, image_width, background_color);
 
         let render_start_instant = Instant::now();
+        let mut no_inside_count: u32 = 0;
+        let mut flood_fill_pixel_count: u32 = 0;
 
         struct WayWithZIndex<'a> {
             z_index: IntSize,
@@ -92,7 +94,10 @@ impl Painter for PngPainter {
                     .to_integer(),
                 way_data,
             })
+            .filter(|way| way.way_data.way_id() == NonZeroI64::new(366476165).unwrap())
             .collect::<Vec<_>>();
+
+        dbg!(z_index_ordered_ways.len());
 
         z_index_ordered_ways.sort_by(|a, b| a.z_index.cmp(&b.z_index));
 
@@ -139,12 +144,17 @@ impl Painter for PngPainter {
             if way_width == 0 {
                 continue;
             }
+            info!("checking whether way is closed");
 
             let is_closed_way = way_data.has_closed_path();
 
-            let mut pixeled_boundaries = HashSet::new();
             let mut pixeled_min_x_coordinates: (u32, u32) = (u32::MAX, u32::MAX);
             let mut pixeled_max_x_coordinates: (u32, u32) = (u32::MIN, u32::MIN);
+
+            // draw the outline of the way and remember it
+            let mut outline_pixels: HashMap<u32, Vec<u32>> = HashMap::new();
+
+            assert!(way_refs.len() > 0);
 
             for ref_node_ids in way_refs[..].windows(2) {
                 if let [node_a_id, node_b_id] = ref_node_ids {
@@ -163,8 +173,8 @@ impl Painter for PngPainter {
                     ) {
                         // rotate image by 270 degrees means we need to swap x and y and the y pixel needs to be subtracted from the image width.
                         // Subtract / Add 2 from it as the image buffer uses 0-indexing AND we may not write to the last pixel.
-                        let image_x = (y - min_y + 4) as u32;
-                        let image_y = image_width - 4 - (x - min_x) as u32;
+                        let image_x = (y - min_y + 2) as u32;
+                        let image_y = image_width - 2 - (x - min_x) as u32;
 
                         if way_width == 1 {
                             image_buffer.put_pixel(
@@ -174,7 +184,7 @@ impl Painter for PngPainter {
                             );
 
                             if is_closed_way {
-                                pixeled_boundaries.insert((image_x, image_y));
+                                outline_pixels.entry(image_y).or_default().push(image_x);
 
                                 // speedup "are we inside the drawn way boundaries?"
                                 if image_x > pixeled_max_x_coordinates.0 {
@@ -186,8 +196,12 @@ impl Painter for PngPainter {
                                 }
                             }
                         } else {
-                            let start_x = (image_x - way_width / 2).max(0);
-                            let end_x = (image_x + way_width / 2).min(image_width);
+                            let start_x = (image_x + way_width / 2).min(image_width - 1);
+                            let end_x = if way_width / 2 > image_x {
+                                0
+                            } else {
+                                image_x - way_width / 2
+                            };
 
                             for x in start_x..=end_x {
                                 image_buffer.put_pixel(
@@ -201,17 +215,17 @@ impl Painter for PngPainter {
                                 );
 
                                 if is_closed_way {
-                                    pixeled_boundaries.insert((x, image_y));
+                                    outline_pixels.entry(image_y).or_default().push(x);
+
+                                    // speedup "are we inside the drawn way boundaries?"
+                                    if image_x > pixeled_max_x_coordinates.0 {
+                                        pixeled_max_x_coordinates = (image_x, image_y);
+                                    }
+
+                                    if image_x < pixeled_min_x_coordinates.0 {
+                                        pixeled_min_x_coordinates = (image_x, image_y);
+                                    }
                                 }
-                            }
-
-                            // speedup "are we inside the drawn way boundaries?"
-                            if end_x > pixeled_max_x_coordinates.0 {
-                                pixeled_max_x_coordinates = (end_x, image_y);
-                            }
-
-                            if start_x < pixeled_min_x_coordinates.0 {
-                                pixeled_min_x_coordinates = (start_x, image_y);
                             }
                         }
                     }
@@ -220,8 +234,9 @@ impl Painter for PngPainter {
                 }
             }
 
+            dbg!(pixeled_max_x_coordinates, pixeled_min_x_coordinates);
+
             // flood fill the closed way using the algorithm specified here: https://en.wikipedia.org/wiki/Flood_fill#Span_Filling
-            // if there are holes
             if is_closed_way
                 && pixeled_min_x_coordinates != pixeled_max_x_coordinates
                 && !are_image_coordinates_horizontally_next_to_each_other(
@@ -229,44 +244,19 @@ impl Painter for PngPainter {
                     pixeled_max_x_coordinates,
                 )
             {
-                fn is_inside(
-                    (mut x, y): (i64, i64),
-                    min_x: i64,
-                    max_x: i64,
-                    pixeled_boundaries: &HashSet<(u32, u32)>,
-                ) -> bool {
-                    if x < min_x {
-                        return false;
-                    }
-
-                    let mut intersected_boundary_times: u8 = 0;
-
-                    loop {
-                        if x > max_x {
-                            break;
-                        }
-                        x += 1;
-
-                        if pixeled_boundaries
-                            .contains(&(x.try_into().unwrap(), y.try_into().unwrap()))
-                        {
-                            intersected_boundary_times += 1;
-                        }
-                    }
-
-                    intersected_boundary_times % 2 != 0
-                }
+                info!("trying to find inside to start flood filling");
 
                 fn get_flood_filled_pixels(
-                    (mut x, y): (i64, i64),
-                    min_x: i64,
-                    max_x: i64,
-                    pixeled_boundaries: &HashSet<(u32, u32)>,
+                    (x, y): (u32, u32),
+                    outline_pixels: &HashMap<u32, Vec<u32>>,
                 ) -> Vec<(u32, u32)> {
-                    if !is_inside((x, y), min_x, max_x, pixeled_boundaries) {
+                    if !is_inside(&(x, y), outline_pixels) {
                         warn!("initial value is not inside the boundaries");
                         return Vec::new();
                     }
+
+                    let mut x = x as i64;
+                    let y = y as i64;
 
                     let mut flood_filled_pixels: Vec<(u32, u32)> = Vec::new();
 
@@ -276,8 +266,14 @@ impl Painter for PngPainter {
                     while let Some((mut x1, x2, y, dy)) = stack.pop() {
                         x = x1;
 
-                        if is_inside((x, y), min_x, max_x, pixeled_boundaries) {
-                            while x > 1 && is_inside((x - 1, y), min_x, max_x, pixeled_boundaries) {
+                        if is_inside(
+                            &(x.try_into().unwrap(), y.try_into().unwrap()),
+                            outline_pixels,
+                        ) {
+                            while is_inside(
+                                &((x - 1).try_into().unwrap(), y.try_into().unwrap()),
+                                outline_pixels,
+                            ) {
                                 flood_filled_pixels
                                     .push(((x - 1).try_into().unwrap(), y.try_into().unwrap()));
 
@@ -286,61 +282,100 @@ impl Painter for PngPainter {
                         }
 
                         if x < x1 {
-                            stack.push((x, x1 - 1, y - dy, -dy));
+                            stack.push((x, x1 - 1, (y - dy), -dy));
                         }
 
-                        while x1 < x2 {
-                            while is_inside((x1, y), min_x, max_x, pixeled_boundaries) {
+                        while x1 <= x2 {
+                            while is_inside(
+                                &(x1.try_into().unwrap(), y.try_into().unwrap()),
+                                outline_pixels,
+                            ) {
                                 flood_filled_pixels
                                     .push((x1.try_into().unwrap(), y.try_into().unwrap()));
 
                                 x1 += 1;
+
+                                stack.push((x, x1 - 1, (y + dy), dy));
+
+                                if x1 - 1 > x2 {
+                                    stack.push((x2 + 1, x1 - 1, y - dy, -dy));
+                                }
                             }
 
-                            stack.push((x, x1 - 1, y + dy, dy));
+                            x1 += 1;
 
-                            if x1 - 1 > x2 {
-                                stack.push((x2 + 1, x1 - 1, y - dy, -dy));
-                            }
-
-                            while x1 < x2 && !is_inside((x1, y), min_x, max_x, pixeled_boundaries) {
+                            while x1 < x2
+                                && !is_inside(
+                                    &(x1.try_into().unwrap(), y.try_into().unwrap()),
+                                    outline_pixels,
+                                )
+                            {
                                 x1 += 1;
                             }
 
                             x = x1;
-                        }
 
-                        if stack.len() > 15 {
-                            warn!("stack size exploded, not filling polynom");
-                            return Vec::new();
+                            if stack.len() > 10_000 {
+                                warn!("stack size exploded, not filling polygon");
+                                return Vec::new();
+                            }
                         }
                     }
+                    assert!(flood_filled_pixels.len() > 0);
 
                     flood_filled_pixels
                 }
 
                 let mut has_found_inside = false;
 
-                for (x, y) in [(-1, -1), (-1, 0), (0, -1), (0, 1), (1, 0), (1, -1), (1, 1)] {
-                    if is_inside(
-                        (
-                            pixeled_min_x_coordinates.0 as i64 + x,
-                            pixeled_min_x_coordinates.1 as i64 + y,
-                        ),
-                        pixeled_min_x_coordinates.0.into(),
-                        pixeled_max_x_coordinates.0.into(),
-                        &pixeled_boundaries,
-                    ) {
+                for (x, y) in [
+                    (-1, -1),
+                    (-1, 0),
+                    (-1, 1),
+                    (0, -1),
+                    // (0, 0) is always not inside the outline
+                    (0, 1),
+                    (1, -1),
+                    (1, 0),
+                    (1, 1),
+                ] {
+                    let new_x: u32;
+                    if let Ok(x) = (pixeled_min_x_coordinates.0 as i64 + x).try_into() {
+                        new_x = x;
+                    } else {
+                        continue;
+                    }
+
+                    let new_y: u32;
+                    if let Ok(y) = (pixeled_min_x_coordinates.1 as i64 + y).try_into() {
+                        new_y = y;
+                    } else {
+                        continue;
+                    }
+
+                    if new_x >= image_buffer.width() || new_y >= image_buffer.height() {
+                        continue;
+                    }
+
+                    if is_inside(&(new_x, new_y), &outline_pixels) {
                         has_found_inside = true;
-                        for flood_filled_pixel in get_flood_filled_pixels(
-                            (
-                                pixeled_min_x_coordinates.0 as i64 + x,
-                                pixeled_min_x_coordinates.1 as i64 + y,
-                            ),
-                            pixeled_min_x_coordinates.0.into(),
-                            pixeled_max_x_coordinates.0.into(),
-                            &pixeled_boundaries,
-                        ) {
+
+                        info!("has found inside");
+
+                        for flood_filled_pixel in
+                            get_flood_filled_pixels((new_x, new_y), &outline_pixels)
+                        {
+                            dbg!(&flood_filled_pixel);
+
+                            // validate results
+                            if flood_filled_pixel.0 >= image_buffer.width()
+                                || flood_filled_pixel.1 >= image_buffer.height()
+                            {
+                                continue;
+                            }
+
+                            flood_fill_pixel_count += 1;
+
                             image_buffer.put_pixel(
                                 flood_filled_pixel.0,
                                 flood_filled_pixel.1,
@@ -351,12 +386,13 @@ impl Painter for PngPainter {
                                 ]),
                             );
                         }
+
                         break;
                     }
                 }
 
                 if !has_found_inside {
-                    warn!("couldn't find inside area");
+                    no_inside_count += 1;
                 }
             }
         }
@@ -371,6 +407,7 @@ impl Painter for PngPainter {
 
         dbg!(image_height);
         dbg!(image_width);
+        dbg!(flood_fill_pixel_count);
 
         let file_path = PathBuf::from("test.png");
 
@@ -382,8 +419,29 @@ impl Painter for PngPainter {
             "Image saved successfully, took {:.2}s.",
             save_start_instant.elapsed().as_secs_f32()
         );
+        if no_inside_count > 0 {
+            warn!("couldn't find a starting point to flood fill {no_inside_count} time(s)");
+        }
 
         file_path
+    }
+}
+
+/// Determines whether the given point is inside the outline given by `outline_pixels`.
+fn is_inside(image_point: &(u32, u32), outline_pixels: &HashMap<u32, Vec<u32>>) -> bool {
+    if let Some(x_pixels) = outline_pixels.get(&image_point.1) {
+        if x_pixels.len() < 2 {
+            return false;
+        }
+
+        let mut x_pixels = x_pixels.clone();
+        x_pixels.sort_unstable();
+        // TODO: Check whether there is a case where we need dedup()?
+
+        let partition_point = x_pixels.partition_point(|x| x < &image_point.0);
+        partition_point > 0 && partition_point < x_pixels.len()
+    } else {
+        false
     }
 }
 

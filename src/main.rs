@@ -96,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let instant = Instant::now();
     let (nid_to_node_data, wid_to_way_data, rid_to_relation_data) =
-        extractor::extract_data_from_filepath(String::from("liechtenstein-latest.osm.pbf"))?;
+        extractor::extract_data_from_filepath(String::from("saarland-latest.osm.pbf"))?;
 
     print_peak_memory_usage();
     info!(
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut painter = painter::PngPainter::default();
 
     painter.paint(
-        1_000f64,
+        10_000f64,
         MapCssDeclarationList::new(rules),
         nid_to_node_data,
         wid_to_way_data,
