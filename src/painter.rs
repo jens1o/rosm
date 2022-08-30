@@ -94,7 +94,6 @@ impl Painter for PngPainter {
                     .to_integer(),
                 way_data,
             })
-            .filter(|way| way.way_data.way_id() == NonZeroI64::new(366476165).unwrap())
             .collect::<Vec<_>>();
 
         dbg!(z_index_ordered_ways.len());
@@ -144,7 +143,6 @@ impl Painter for PngPainter {
             if way_width == 0 {
                 continue;
             }
-            info!("checking whether way is closed");
 
             let is_closed_way = way_data.has_closed_path();
 
@@ -234,8 +232,6 @@ impl Painter for PngPainter {
                 }
             }
 
-            dbg!(pixeled_max_x_coordinates, pixeled_min_x_coordinates);
-
             // flood fill the closed way using the algorithm specified here: https://en.wikipedia.org/wiki/Flood_fill#Span_Filling
             if is_closed_way
                 && pixeled_min_x_coordinates != pixeled_max_x_coordinates
@@ -244,100 +240,62 @@ impl Painter for PngPainter {
                     pixeled_max_x_coordinates,
                 )
             {
-                info!("trying to find inside to start flood filling");
-
                 fn get_flood_filled_pixels(
                     (x, y): (u32, u32),
-                    outline_pixels: &HashMap<u32, Vec<u32>>,
+                    outline_pixels: &mut HashMap<u32, Vec<u32>>,
                 ) -> Vec<(u32, u32)> {
-                    if !is_inside(&(x, y), outline_pixels) {
-                        warn!("initial value is not inside the boundaries");
-                        return Vec::new();
+                    let mut flood_filled_pixels = Vec::new();
+                    let mut queue = vec![(x, y)];
+
+                    while let Some((x, y)) = queue.pop() {
+                        if !is_inside(&(x, y), outline_pixels) {
+                            return flood_filled_pixels;
+                        }
+
+                        flood_filled_pixels.push((x, y));
+                        outline_pixels.entry(y).or_default().push(x);
+
+                        queue.push((x, y + 1));
+                        queue.push((x, y - 1));
+                        queue.push((x + 1, y));
+                        queue.push((x - 1, y));
                     }
-
-                    let mut x = x as i64;
-                    let y = y as i64;
-
-                    let mut flood_filled_pixels: Vec<(u32, u32)> = Vec::new();
-
-                    let mut stack: Vec<(i64, i64, i64, i64)> =
-                        vec![(x, x, y, 1), (x, x, y - 1, -1)];
-
-                    while let Some((mut x1, x2, y, dy)) = stack.pop() {
-                        x = x1;
-
-                        if is_inside(
-                            &(x.try_into().unwrap(), y.try_into().unwrap()),
-                            outline_pixels,
-                        ) {
-                            while is_inside(
-                                &((x - 1).try_into().unwrap(), y.try_into().unwrap()),
-                                outline_pixels,
-                            ) {
-                                flood_filled_pixels
-                                    .push(((x - 1).try_into().unwrap(), y.try_into().unwrap()));
-
-                                x -= 1;
-                            }
-                        }
-
-                        if x < x1 {
-                            stack.push((x, x1 - 1, (y - dy), -dy));
-                        }
-
-                        while x1 <= x2 {
-                            while is_inside(
-                                &(x1.try_into().unwrap(), y.try_into().unwrap()),
-                                outline_pixels,
-                            ) {
-                                flood_filled_pixels
-                                    .push((x1.try_into().unwrap(), y.try_into().unwrap()));
-
-                                x1 += 1;
-
-                                stack.push((x, x1 - 1, (y + dy), dy));
-
-                                if x1 - 1 > x2 {
-                                    stack.push((x2 + 1, x1 - 1, y - dy, -dy));
-                                }
-                            }
-
-                            x1 += 1;
-
-                            while x1 < x2
-                                && !is_inside(
-                                    &(x1.try_into().unwrap(), y.try_into().unwrap()),
-                                    outline_pixels,
-                                )
-                            {
-                                x1 += 1;
-                            }
-
-                            x = x1;
-
-                            if stack.len() > 10_000 {
-                                warn!("stack size exploded, not filling polygon");
-                                return Vec::new();
-                            }
-                        }
-                    }
-                    assert!(flood_filled_pixels.len() > 0);
 
                     flood_filled_pixels
                 }
 
                 let mut has_found_inside = false;
 
+                // TODO: Do not use brute force to find inside
                 for (x, y) in [
-                    (-1, -1),
-                    (-1, 0),
-                    (-1, 1),
+                    (0, -3),
+                    (0, -2),
                     (0, -1),
                     // (0, 0) is always not inside the outline
                     (0, 1),
+                    (0, 2),
+                    (0, 3),
+                    (1, -3),
+                    (1, -2),
                     (1, -1),
                     (1, 0),
                     (1, 1),
+                    (1, 2),
+                    (1, 3),
+                    (2, -2),
+                    (2, -2),
+                    (2, -1),
+                    (2, 0),
+                    (2, 1),
+                    (2, 2),
+                    (2, 3),
+                    (3, -3),
+                    (3, -2),
+                    (3, -1),
+                    (3, 0),
+                    (3, 1),
+                    (3, 2),
+                    (3, 3),
                 ] {
                     let new_x: u32;
                     if let Ok(x) = (pixeled_min_x_coordinates.0 as i64 + x).try_into() {
@@ -360,13 +318,9 @@ impl Painter for PngPainter {
                     if is_inside(&(new_x, new_y), &outline_pixels) {
                         has_found_inside = true;
 
-                        info!("has found inside");
-
                         for flood_filled_pixel in
-                            get_flood_filled_pixels((new_x, new_y), &outline_pixels)
+                            get_flood_filled_pixels((new_x, new_y), &mut outline_pixels)
                         {
-                            dbg!(&flood_filled_pixel);
-
                             // validate results
                             if flood_filled_pixel.0 >= image_buffer.width()
                                 || flood_filled_pixel.1 >= image_buffer.height()
@@ -380,9 +334,10 @@ impl Painter for PngPainter {
                                 flood_filled_pixel.0,
                                 flood_filled_pixel.1,
                                 image::Rgb([
-                                    way_fill_color[0],
-                                    way_fill_color[1],
-                                    way_fill_color[2],
+                                    255, 0,
+                                    0, // way_fill_color[0],
+                                      // way_fill_color[1],
+                                      // way_fill_color[2],
                                 ]),
                             );
                         }
@@ -436,10 +391,12 @@ fn is_inside(image_point: &(u32, u32), outline_pixels: &HashMap<u32, Vec<u32>>) 
 
         let mut x_pixels = x_pixels.clone();
         x_pixels.sort_unstable();
-        // TODO: Check whether there is a case where we need dedup()?
+        x_pixels.dedup();
 
         let partition_point = x_pixels.partition_point(|x| x < &image_point.0);
-        partition_point > 0 && partition_point < x_pixels.len()
+        partition_point > 0
+            && partition_point < x_pixels.len()
+            && x_pixels[partition_point] != image_point.0
     } else {
         false
     }
