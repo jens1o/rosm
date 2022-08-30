@@ -104,7 +104,7 @@ impl Painter for PngPainter {
         for way_data in z_index_ordered_ways.iter().map(|x| x.way_data) {
             processed_ways += 1;
 
-            if processed_ways % 15000 == 0 {
+            if processed_ways % 10000 == 0 {
                 info!("{} ways rendered…", processed_ways);
             }
 
@@ -194,12 +194,12 @@ impl Painter for PngPainter {
                                 }
                             }
                         } else {
-                            let start_x = (image_x + way_width / 2).min(image_width - 1);
-                            let end_x = if way_width / 2 > image_x {
+                            let start_x = if way_width / 2 > image_x {
                                 0
                             } else {
                                 image_x - way_width / 2
                             };
+                            let end_x = (image_x + way_width / 2).min(image_width - 1);
 
                             for x in start_x..=end_x {
                                 image_buffer.put_pixel(
@@ -264,89 +264,33 @@ impl Painter for PngPainter {
                     flood_filled_pixels
                 }
 
-                let mut has_found_inside = false;
+                let min_y = pixeled_min_x_coordinates.1.min(pixeled_max_x_coordinates.1);
+                let max_y = pixeled_min_x_coordinates.1.max(pixeled_max_x_coordinates.1);
 
-                // TODO: Do not use brute force to find inside
-                for (x, y) in [
-                    (0, -3),
-                    (0, -2),
-                    (0, -1),
-                    // (0, 0) is always not inside the outline
-                    (0, 1),
-                    (0, 2),
-                    (0, 3),
-                    (1, -3),
-                    (1, -2),
-                    (1, -1),
-                    (1, 0),
-                    (1, 1),
-                    (1, 2),
-                    (1, 3),
-                    (2, -2),
-                    (2, -2),
-                    (2, -1),
-                    (2, 0),
-                    (2, 1),
-                    (2, 2),
-                    (2, 3),
-                    (3, -3),
-                    (3, -2),
-                    (3, -1),
-                    (3, 0),
-                    (3, 1),
-                    (3, 2),
-                    (3, 3),
-                ] {
-                    let new_x: u32;
-                    if let Ok(x) = (pixeled_min_x_coordinates.0 as i64 + x).try_into() {
-                        new_x = x;
-                    } else {
-                        continue;
+                if let Some((inner_x, inner_y)) = get_inside_point(min_y, max_y, &outline_pixels) {
+                    if inner_x >= image_buffer.width() || inner_y >= image_buffer.height() {
+                        panic!("inner point is bigger than the image's dimension(s)!");
                     }
 
-                    let new_y: u32;
-                    if let Ok(y) = (pixeled_min_x_coordinates.1 as i64 + y).try_into() {
-                        new_y = y;
-                    } else {
-                        continue;
-                    }
-
-                    if new_x >= image_buffer.width() || new_y >= image_buffer.height() {
-                        continue;
-                    }
-
-                    if is_inside(&(new_x, new_y), &outline_pixels) {
-                        has_found_inside = true;
-
-                        for flood_filled_pixel in
-                            get_flood_filled_pixels((new_x, new_y), &mut outline_pixels)
+                    for flood_filled_pixel in
+                        get_flood_filled_pixels((inner_x, inner_y), &mut outline_pixels)
+                    {
+                        // validate results
+                        if flood_filled_pixel.0 >= image_buffer.width()
+                            || flood_filled_pixel.1 >= image_buffer.height()
                         {
-                            // validate results
-                            if flood_filled_pixel.0 >= image_buffer.width()
-                                || flood_filled_pixel.1 >= image_buffer.height()
-                            {
-                                continue;
-                            }
-
-                            flood_fill_pixel_count += 1;
-
-                            image_buffer.put_pixel(
-                                flood_filled_pixel.0,
-                                flood_filled_pixel.1,
-                                image::Rgb([
-                                    255, 0,
-                                    0, // way_fill_color[0],
-                                      // way_fill_color[1],
-                                      // way_fill_color[2],
-                                ]),
-                            );
+                            continue;
                         }
 
-                        break;
-                    }
-                }
+                        flood_fill_pixel_count += 1;
 
-                if !has_found_inside {
+                        image_buffer.put_pixel(
+                            flood_filled_pixel.0,
+                            flood_filled_pixel.1,
+                            image::Rgb([way_fill_color[0], way_fill_color[1], way_fill_color[2]]),
+                        );
+                    }
+                } else {
                     no_inside_count += 1;
                 }
             }
@@ -355,7 +299,7 @@ impl Painter for PngPainter {
         let render_duration = render_start_instant.elapsed();
 
         info!(
-            "Rendering took {:.2}s. {:.2} ways/sec. Saving …",
+            "Rendering took {:.2} s. {:.2} ways/sec. Saving …",
             render_duration.as_secs_f32(),
             processed_ways as f64 / (render_duration.as_nanos() as f64 * 1e-9)
         );
@@ -371,7 +315,7 @@ impl Painter for PngPainter {
         image_buffer.save(&file_path).unwrap();
 
         info!(
-            "Image saved successfully, took {:.2}s.",
+            "Image saved successfully, took {:.2} s.",
             save_start_instant.elapsed().as_secs_f32()
         );
         if no_inside_count > 0 {
@@ -408,4 +352,37 @@ fn are_image_coordinates_horizontally_next_to_each_other(a: (u32, u32), b: (u32,
     }
 
     return a.0.max(b.0) - a.0.min(b.0) == 1;
+}
+
+fn get_inside_point(
+    min_y: u32,
+    max_y: u32,
+    outline_pixels: &HashMap<u32, Vec<u32>>,
+) -> Option<(u32, u32)> {
+    debug_assert!(min_y < max_y);
+
+    for y in min_y..=max_y {
+        // find hole in the outlined pixels at the height of the y
+        if let Some(x_pixels) = outline_pixels.get(&y) {
+            if x_pixels.len() < 2 {
+                continue;
+            }
+
+            let mut last_x = x_pixels[0];
+
+            for x_pixel in &x_pixels[1..] {
+                let last_x_plus_one = last_x.checked_add(1);
+
+                if let Some(last_x_plus_one) = last_x_plus_one {
+                    if x_pixel != &last_x_plus_one {
+                        return Some((x_pixel + 1, y));
+                    }
+
+                    last_x = *x_pixel;
+                }
+            }
+        }
+    }
+
+    None
 }
