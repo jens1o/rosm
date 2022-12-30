@@ -109,13 +109,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut painter = painter::PngPainter::default();
 
-    painter.paint(
-        10_000f64,
-        MapCssDeclarationList::new(rules),
-        nid_to_node_data,
-        wid_to_way_data,
-        rid_to_relation_data,
-    );
+    for res in [100_f64, 1_000_f64, 10_000_f64] {
+        let mapcss_ast = MapCssDeclarationList::new(rules.clone());
+
+        painter.paint(
+            res,
+            mapcss_ast,
+            nid_to_node_data.clone(),
+            wid_to_way_data.clone(),
+            rid_to_relation_data.clone(),
+        );
+    }
 
     Ok(())
 }

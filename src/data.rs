@@ -34,14 +34,14 @@ pub enum RelationMemberType {
     Way(NonZeroI64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RelationMember {
     pub member: RelationMemberType,
     // TODO: Transform to enum?
     pub role: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RelationData {
     pub rid: NonZeroI64,
     pub tags: Vec<(String, String)>,

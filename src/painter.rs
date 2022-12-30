@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::num::NonZeroI64;
 use std::path::PathBuf;
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
 pub trait Painter {
     /// Paints the given data styled by the mapcss ast and returns the filename of the saved file.
@@ -249,7 +249,7 @@ impl Painter for PngPainter {
 
                     while let Some((x, y)) = queue.pop() {
                         if !is_inside(&(x, y), outline_pixels) {
-                            return flood_filled_pixels;
+                            continue;
                         }
 
                         flood_filled_pixels.push((x, y));
@@ -308,7 +308,13 @@ impl Painter for PngPainter {
         dbg!(image_width);
         dbg!(flood_fill_pixel_count);
 
-        let file_path = PathBuf::from("test.png");
+        let file_path = PathBuf::from(format!(
+            "render-{}.png",
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+        ));
 
         let save_start_instant = Instant::now();
 
