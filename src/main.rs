@@ -89,6 +89,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             "Using MapCSS stylesheet \"{}\" for rendering. Parsed successfully.",
             map_css_acknowledgement.title()
         );
+    } else {
+        info!("Using MapCSS stylesheet for rendering. Parsed successfully.");
     }
     print_peak_memory_usage();
 
@@ -109,7 +111,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut painter = painter::PngPainter::default();
 
-    for res in [100_f64, 1_000_f64, 10_000_f64] {
+    for res in [25_000.0f64] {
         let mapcss_ast = MapCssDeclarationList::new(rules.clone());
 
         painter.paint(

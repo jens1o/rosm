@@ -152,7 +152,7 @@ impl Painter for PngPainter {
             // draw the outline of the way and remember it
             let mut outline_pixels: HashMap<u32, Vec<u32>> = HashMap::new();
 
-            assert!(way_refs.len() > 0);
+            assert!(!way_refs.is_empty());
 
             for ref_node_ids in way_refs[..].windows(2) {
                 if let [node_a_id, node_b_id] = ref_node_ids {
@@ -354,10 +354,12 @@ fn is_inside(image_point: &(u32, u32), outline_pixels: &HashMap<u32, Vec<u32>>) 
 
 fn are_image_coordinates_horizontally_next_to_each_other(a: (u32, u32), b: (u32, u32)) -> bool {
     if a.1 != b.1 {
+        // not horizontally on the same line
         return false;
     }
 
-    return a.0.max(b.0) - a.0.min(b.0) == 1;
+    // check if they are next to each other
+    a.0.abs_diff(b.0) == 1
 }
 
 fn get_inside_point(
