@@ -245,9 +245,12 @@ impl Painter for PngPainter {
                     outline_pixels: &mut HashMap<u32, Vec<u32>>,
                 ) -> Vec<(u32, u32)> {
                     let mut flood_filled_pixels = Vec::new();
-                    let mut queue = vec![(x, y)];
+                    let mut stack = vec![(x, y)];
+                    // we will put at least 4 more items on the stack during the first loop, take account for that
+                    // after that, it is not really possible before-hand to guess how much capacity we'll need overall
+                    stack.reserve(4);
 
-                    while let Some((x, y)) = queue.pop() {
+                    while let Some((x, y)) = stack.pop() {
                         if !is_inside(&(x, y), outline_pixels) {
                             continue;
                         }
@@ -255,10 +258,10 @@ impl Painter for PngPainter {
                         flood_filled_pixels.push((x, y));
                         outline_pixels.entry(y).or_default().push(x);
 
-                        queue.push((x, y + 1));
-                        queue.push((x, y - 1));
-                        queue.push((x + 1, y));
-                        queue.push((x - 1, y));
+                        stack.push((x, y + 1));
+                        stack.push((x, y - 1));
+                        stack.push((x + 1, y));
+                        stack.push((x - 1, y));
                     }
 
                     flood_filled_pixels
@@ -292,6 +295,7 @@ impl Painter for PngPainter {
                     }
                 } else {
                     no_inside_count += 1;
+                    dbg!(pixeled_min_x_coordinates, pixeled_max_x_coordinates);
                 }
             }
         }

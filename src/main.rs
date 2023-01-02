@@ -111,7 +111,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut painter = painter::PngPainter::default();
 
-    for res in [25_000.0f64] {
+    for res in [2_500.0f64] {
         let mapcss_ast = MapCssDeclarationList::new(rules.clone());
 
         painter.paint(

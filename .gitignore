@@ -1,6 +1,8 @@
 /target
 **/*.rs.bk
 test*
+render-*.png
 *.osm.pbf
 tiles/
 .DS_STORE
+flamegraph.svg

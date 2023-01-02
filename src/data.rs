@@ -71,7 +71,7 @@ pub struct WayData {
 
 impl WayData {
     pub fn new(wid: NonZeroI64, tags: Vec<(String, String)>, refs: Vec<NonZeroI64>) -> WayData {
-        debug_assert!(refs.len() >= 2);
+        assert!(refs.len() >= 2);
 
         WayData {
             wid,

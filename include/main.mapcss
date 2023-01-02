@@ -263,7 +263,7 @@ way[landuse=commercial] {
 
 way[landuse=industrial] {
     color: #ebdbe8;
-    fill-color: pink;
+    fill-color: #ebdbe8;
     z-index: 10;
 }
 
