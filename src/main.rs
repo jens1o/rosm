@@ -21,10 +21,11 @@ use painter::Painter;
 use std::error::Error;
 use std::time::Instant;
 #[cfg(windows)]
-use winapi::um::processthreadsapi::GetCurrentProcess;
-#[cfg(windows)]
-use winapi::um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
-
+use winapi::{
+    shared::minwindef::FALSE,
+    um::processthreadsapi::GetCurrentProcess,
+    um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS},
+};
 const IMAGE_PART_SIZE: u32 = 512;
 
 pub(crate) trait Zero {
@@ -59,14 +60,14 @@ pub(crate) fn print_peak_memory_usage() {
         let mut pmc = std::mem::zeroed::<PROCESS_MEMORY_COUNTERS>();
         let cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
 
-        if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, cb) == 0 {
-            error!("getting memory info of process failed");
+        if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, cb) == FALSE {
+            error!("Getting memory info of current process failed!");
+        } else {
+            info!(
+                "Peak memory usage: {} MB",
+                (pmc.PeakWorkingSetSize as u64) / 1024 / 1024
+            );
         }
-
-        info!(
-            "Peak memory usage: {} MB",
-            (pmc.PeakWorkingSetSize as u64) / 1024 / 1024
-        );
     }
 }
 
