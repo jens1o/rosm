@@ -64,19 +64,17 @@ impl MapCssDeclarationList {
         let mut last_seen_declaration_value_type: Option<&MapCssDeclarationValueType> = None;
 
         for selector in selectors.iter() {
-            if let Some(declaration_list) = self.declarations.get(selector) {
-                for (selector_condition, declaration_property_to_value) in declaration_list {
-                    if !check_conditions(&element_data, selector_condition) {
-                        continue;
-                    }
+            let Some(declaration_list) = self.declarations.get(selector) else { continue; };
 
-                    // selector matches to our element, search for declarations that set our target property
-                    for (set_declaration_name, set_declaration_value) in
-                        declaration_property_to_value
-                    {
-                        if set_declaration_name == declaration_property_name {
-                            last_seen_declaration_value_type = Some(set_declaration_value);
-                        }
+            for (selector_condition, declaration_property_to_value) in declaration_list {
+                if !check_conditions(&element_data, selector_condition) {
+                    continue;
+                }
+
+                // selector matches to our element, search for declarations that set our target property
+                for (set_declaration_name, set_declaration_value) in declaration_property_to_value {
+                    if set_declaration_name == declaration_property_name {
+                        last_seen_declaration_value_type = Some(set_declaration_value);
                     }
                 }
             }

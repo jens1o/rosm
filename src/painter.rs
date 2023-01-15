@@ -155,34 +155,66 @@ impl Painter for PngPainter {
             assert!(!way_refs.is_empty());
 
             for ref_node_ids in way_refs[..].windows(2) {
-                if let [node_a_id, node_b_id] = ref_node_ids {
-                    let node_a = nid_to_node_data.get(node_a_id).unwrap();
-                    let node_b = nid_to_node_data.get(node_b_id).unwrap();
+                let [node_a_id, node_b_id] = ref_node_ids else { unreachable!() };
 
-                    for ((x, y), _alpha) in line_drawing::XiaolinWu::<f64, i32>::new(
-                        (
-                            node_a.lat * image_resolution_factor,
-                            node_a.lon * image_resolution_factor,
-                        ),
-                        (
-                            node_b.lat * image_resolution_factor,
-                            node_b.lon * image_resolution_factor,
-                        ),
-                    ) {
-                        // rotate image by 270 degrees means we need to swap x and y and the y pixel needs to be subtracted from the image width.
-                        // Subtract / Add 2 from it as the image buffer uses 0-indexing AND we may not write to the last pixel.
-                        let image_x = (y - min_y + 2) as u32;
-                        let image_y = image_width - 2 - (x - min_x) as u32;
+                let node_a = nid_to_node_data.get(node_a_id).unwrap();
+                let node_b = nid_to_node_data.get(node_b_id).unwrap();
 
-                        if way_width == 1 {
+                for ((x, y), _alpha) in line_drawing::XiaolinWu::<f64, i32>::new(
+                    (
+                        node_a.lat * image_resolution_factor,
+                        node_a.lon * image_resolution_factor,
+                    ),
+                    (
+                        node_b.lat * image_resolution_factor,
+                        node_b.lon * image_resolution_factor,
+                    ),
+                ) {
+                    // rotate image by 270 degrees means we need to swap x and y and the y pixel needs to be subtracted from the image width.
+                    // Subtract / Add 2 from it as the image buffer uses 0-indexing AND we may not write to the last pixel.
+                    let image_x = (y - min_y + 2) as u32;
+                    let image_y = image_width - 2 - (x - min_x) as u32;
+
+                    if way_width == 1 {
+                        image_buffer.put_pixel(
+                            image_x,
+                            image_y,
+                            image::Rgb([way_color[0], way_color[1], way_color[2]]),
+                        );
+
+                        if is_closed_way {
+                            outline_pixels.entry(image_y).or_default().push(image_x);
+
+                            // speedup "are we inside the drawn way boundaries?"
+                            if image_x > pixeled_max_x_coordinates.0 {
+                                pixeled_max_x_coordinates = (image_x, image_y);
+                            }
+
+                            if image_x < pixeled_min_x_coordinates.0 {
+                                pixeled_min_x_coordinates = (image_x, image_y);
+                            }
+                        }
+                    } else {
+                        let start_x = if way_width / 2 > image_x {
+                            0
+                        } else {
+                            image_x - way_width / 2
+                        };
+                        let end_x = (image_x + way_width / 2).min(image_width - 1);
+
+                        for x in start_x..=end_x {
                             image_buffer.put_pixel(
-                                image_x,
+                                x,
                                 image_y,
-                                image::Rgb([way_color[0], way_color[1], way_color[2]]),
+                                image::Rgb([
+                                    way_fill_color[0],
+                                    way_fill_color[1],
+                                    way_fill_color[2],
+                                ]),
                             );
 
                             if is_closed_way {
-                                outline_pixels.entry(image_y).or_default().push(image_x);
+                                outline_pixels.entry(image_y).or_default().push(x);
 
                                 // speedup "are we inside the drawn way boundaries?"
                                 if image_x > pixeled_max_x_coordinates.0 {
@@ -193,42 +225,8 @@ impl Painter for PngPainter {
                                     pixeled_min_x_coordinates = (image_x, image_y);
                                 }
                             }
-                        } else {
-                            let start_x = if way_width / 2 > image_x {
-                                0
-                            } else {
-                                image_x - way_width / 2
-                            };
-                            let end_x = (image_x + way_width / 2).min(image_width - 1);
-
-                            for x in start_x..=end_x {
-                                image_buffer.put_pixel(
-                                    x,
-                                    image_y,
-                                    image::Rgb([
-                                        way_fill_color[0],
-                                        way_fill_color[1],
-                                        way_fill_color[2],
-                                    ]),
-                                );
-
-                                if is_closed_way {
-                                    outline_pixels.entry(image_y).or_default().push(x);
-
-                                    // speedup "are we inside the drawn way boundaries?"
-                                    if image_x > pixeled_max_x_coordinates.0 {
-                                        pixeled_max_x_coordinates = (image_x, image_y);
-                                    }
-
-                                    if image_x < pixeled_min_x_coordinates.0 {
-                                        pixeled_min_x_coordinates = (image_x, image_y);
-                                    }
-                                }
-                            }
                         }
                     }
-                } else {
-                    unreachable!();
                 }
             }
 
