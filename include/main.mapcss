@@ -5,7 +5,7 @@
 }
 
 canvas {
-    fill-color: #f1eee8;
+    fill-color: #333333;
 }
 
 way[natural=water], way[landuse=reservoir], way[landuse=basin] {

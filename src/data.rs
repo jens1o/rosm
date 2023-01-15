@@ -9,21 +9,21 @@ pub enum ElementID {
     Way(NonZeroI64),
 }
 
-impl Into<ElementID> for &NodeData {
-    fn into(self) -> ElementID {
-        ElementID::Node(self.nid)
+impl From<&NodeData> for ElementID {
+    fn from(val: &NodeData) -> Self {
+        ElementID::Node(val.nid)
     }
 }
 
-impl Into<ElementID> for WayData {
-    fn into(self) -> ElementID {
-        ElementID::Way(self.wid)
+impl From<WayData> for ElementID {
+    fn from(val: WayData) -> Self {
+        ElementID::Way(val.wid)
     }
 }
 
-impl Into<ElementID> for &RelationData {
-    fn into(self) -> ElementID {
-        ElementID::Relation(self.rid)
+impl From<&RelationData> for ElementID {
+    fn from(val: &RelationData) -> Self {
+        ElementID::Relation(val.rid)
     }
 }
 

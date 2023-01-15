@@ -1,12 +1,12 @@
 use crate::data::{ElementData, NodeData, RelationData, WayData};
 use crate::element::canvas::CanvasElement;
 use crate::mapcss::declaration::{
-    MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType, ToBooleanValue,
-    ToColorValue, ToIntegerValue, RGBA,
+    MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType, ToColorValue,
+    ToIntegerValue,
 };
 use crate::mapcss::parser::IntSize;
 use std::cmp;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::convert::TryInto;
 use std::num::NonZeroI64;
 use std::path::PathBuf;
@@ -104,7 +104,7 @@ impl Painter for PngPainter {
         for way_data in z_index_ordered_ways.iter().map(|x| x.way_data) {
             processed_ways += 1;
 
-            if processed_ways % 10000 == 0 {
+            if processed_ways % 15000 == 0 {
                 info!("{} ways rendered…", processed_ways);
             }
 
@@ -138,7 +138,7 @@ impl Painter for PngPainter {
                 )
                 .map(|x| x.to_integer())
                 .and_then(|x| x.try_into().ok())
-                .unwrap_or(1);
+                .unwrap_or(0);
 
             if way_width == 0 {
                 continue;
@@ -232,7 +232,7 @@ impl Painter for PngPainter {
                 }
             }
 
-            // flood fill the closed way using the algorithm specified here: https://en.wikipedia.org/wiki/Flood_fill#Span_Filling
+            // determine whether we can fill the area
             if is_closed_way
                 && pixeled_min_x_coordinates != pixeled_max_x_coordinates
                 && !are_image_coordinates_horizontally_next_to_each_other(
@@ -240,33 +240,6 @@ impl Painter for PngPainter {
                     pixeled_max_x_coordinates,
                 )
             {
-                fn get_flood_filled_pixels(
-                    (x, y): (u32, u32),
-                    outline_pixels: &mut HashMap<u32, Vec<u32>>,
-                ) -> Vec<(u32, u32)> {
-                    let mut flood_filled_pixels = Vec::new();
-                    let mut stack = vec![(x, y)];
-                    // we will put at least 4 more items on the stack during the first loop, take account for that
-                    // after that, it is not really possible before-hand to guess how much capacity we'll need overall
-                    stack.reserve(4);
-
-                    while let Some((x, y)) = stack.pop() {
-                        if !is_inside(&(x, y), outline_pixels) {
-                            continue;
-                        }
-
-                        flood_filled_pixels.push((x, y));
-                        outline_pixels.entry(y).or_default().push(x);
-
-                        stack.push((x, y + 1));
-                        stack.push((x, y - 1));
-                        stack.push((x + 1, y));
-                        stack.push((x - 1, y));
-                    }
-
-                    flood_filled_pixels
-                }
-
                 let min_y = pixeled_min_x_coordinates.1.min(pixeled_max_x_coordinates.1);
                 let max_y = pixeled_min_x_coordinates.1.max(pixeled_max_x_coordinates.1);
 
@@ -397,4 +370,37 @@ fn get_inside_point(
     }
 
     None
+}
+
+/// Runs a flood fill implementation based on the given (x, y) point, filling it until hitting
+/// the outline everywhere
+fn get_flood_filled_pixels(
+    (x, y): (u32, u32),
+    outline_pixels: &mut HashMap<u32, Vec<u32>>,
+) -> Vec<(u32, u32)> {
+    let mut flood_filled_pixels = Vec::new();
+
+    // we will put at least 4 more items on the stack during the first loop (assuming that we are inside the outline),
+    // take account for that
+    // after that, it is not really possible before-hand to guess how much capacity we'll need overall
+    let mut stack = Vec::with_capacity(4);
+
+    // use given point as a starting point for flood filling
+    stack.push((x, y));
+
+    while let Some((x, y)) = stack.pop() {
+        if !is_inside(&(x, y), outline_pixels) {
+            continue;
+        }
+
+        flood_filled_pixels.push((x, y));
+        outline_pixels.entry(y).or_default().push(x);
+
+        stack.push((x, y + 1));
+        stack.push((x, y - 1));
+        stack.push((x + 1, y));
+        stack.push((x - 1, y));
+    }
+
+    flood_filled_pixels
 }

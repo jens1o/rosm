@@ -45,10 +45,6 @@ impl MapCssDeclarationList {
         MapCssDeclarationList { declarations }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.declarations.is_empty()
-    }
-
     pub fn search_cascading(
         &self,
         element_data: Box<dyn ElementData>,

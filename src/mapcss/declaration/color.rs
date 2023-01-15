@@ -281,14 +281,7 @@ impl FromStr for RGBA {
                 _ => return Err(ColorParseError::InvalidInput),
             }
         } else if string.len() <= NAMED_CSS_COLOR_MAX_LENGTH {
-            let input = string.as_bytes();
-            let mut name = [b'\0'; NAMED_CSS_COLOR_MAX_LENGTH];
-            let name = &mut name[..input.len()];
-            for (i, c) in input.iter().enumerate() {
-                name[i] = c.to_ascii_lowercase();
-            }
-
-            if let Some(&color) = NAMED_CSS_COLORS.get(name) {
+            if let Some(&color) = NAMED_CSS_COLORS.get(string.to_ascii_lowercase().as_bytes()) {
                 return Ok(color);
             } else {
                 return Err(ColorParseError::InvalidInput);

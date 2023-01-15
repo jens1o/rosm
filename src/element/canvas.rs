@@ -1,7 +1,7 @@
 use crate::data::{ElementData, ElementID};
 use crate::mapcss::declaration::{
-    MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType, ToBooleanValue,
-    ToColorValue, RGBA,
+    MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType, ToColorValue,
+    RGBA,
 };
 
 #[derive(Debug)]

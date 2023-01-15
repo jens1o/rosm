@@ -21,12 +21,6 @@ pub fn extract_data_from_filepath(
 
     let mut relation_types: HashMap<String, u32> = HashMap::new();
 
-    #[derive(Debug)]
-    struct MostTaggedNode {
-        id: Option<NonZeroI64>,
-        tag_count: usize,
-    }
-
     reader.for_each(|element| {
         if let osmpbf::Element::Relation(relation) = element {
             let rid = NonZeroI64::new(relation.id()).expect("A relation must not have the ID 0!");
@@ -43,7 +37,10 @@ pub fn extract_data_from_filepath(
                         RelMemberType::Node => RelationMemberType::Node(member_id),
                         RelMemberType::Way => RelationMemberType::Way(member_id),
                     },
-                    role: relation_member.role().unwrap_or("").to_string(),
+                    role: relation_member
+                        .role()
+                        .map(|x| x.to_string())
+                        .unwrap_or_default(),
                 });
             }
 

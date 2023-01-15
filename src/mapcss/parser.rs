@@ -1,5 +1,5 @@
 use super::declaration::{
-    MapCssDeclaration, MapCssDeclarationList, MapCssDeclarationProperty, MapCssDeclarationValueType,
+    MapCssDeclaration, MapCssDeclarationProperty, MapCssDeclarationValueType,
 };
 use super::error::MapCssError;
 use super::selectors::{Selector, SelectorCondition, SelectorType};
@@ -153,6 +153,7 @@ fn selector_span_to_type(span: &str, selector_conditions: SelectorCondition) -> 
 fn selector_condition_from_rule_selectors(
     rules: &mut pest::iterators::Pairs<'_, Rule>,
 ) -> SelectorCondition {
+    // fast path if we have no rules to extract
     if rules.peek().is_none() {
         return SelectorCondition::True;
     }
@@ -169,75 +170,76 @@ fn selector_condition_from_rule_selectors(
 
                 let inner_rule = inner_rules.next();
 
-                if let Some(inner_rule) = inner_rule {
-                    match inner_rule.as_rule() {
-                        Rule::tag_value => {
-                            let next_rule = inner_rules.peek();
+                let Some(inner_rule) = inner_rule else { continue; };
 
-                            match next_rule.map(|r| r.as_rule()) {
-                                Some(Rule::comparison) => {
-                                    let operator = inner_rules.next().unwrap().as_span().as_str();
+                match inner_rule.as_rule() {
+                    Rule::tag_value => {
+                        let next_rule = inner_rules.peek();
 
-                                    operator_to_condition(
-                                        operator,
-                                        inner_rule,
-                                        inner_rules
-                                            .next()
-                                            .expect("Target required when doing an comparison!"),
-                                        &mut selector_conditions,
-                                    );
-                                }
-                                None => selector_conditions.push(SelectorCondition::HasTag(
-                                    inner_rule.as_span().as_str().to_owned(),
-                                )),
-                                _ => unreachable!(),
+                        match next_rule.map(|r| r.as_rule()) {
+                            Some(Rule::comparison) => {
+                                let operator = inner_rules.next().unwrap().as_span().as_str();
+
+                                operator_to_condition(
+                                    operator,
+                                    inner_rule,
+                                    inner_rules
+                                        .next()
+                                        .expect("Target required when doing an comparison!"),
+                                    &mut selector_conditions,
+                                );
+                            }
+                            None => selector_conditions.push(SelectorCondition::HasTag(
+                                inner_rule.as_span().as_str().to_owned(),
+                            )),
+                            _ => unreachable!(),
+                        }
+                    }
+                    Rule::selector_test_zoom_level => {
+                        let selector_test = inner_rule.into_inner().next().unwrap();
+                        let span = selector_test.as_span().as_str();
+
+                        match selector_test.as_rule() {
+                            Rule::selector_test_zoom_level_exact => {
+                                // "|z8"
+                                selector_conditions.push(SelectorCondition::ExactZoomLevel(
+                                    span[2..span.len()].parse::<u8>().unwrap(),
+                                ));
+                            }
+                            // use rfind because the minus is always located more towards the end
+                            Rule::selector_test_zoom_level_closed_range => {
+                                // "|z10-12"
+                                let minus_pos = span.rfind('-').unwrap();
+
+                                let min_level = &span[2..minus_pos].parse::<u8>().unwrap();
+                                // skip the minus itself
+                                let max_level =
+                                    &span[minus_pos + 1..span.len()].parse::<u8>().unwrap();
+
+                                // TODO: Throw error if it is invalid syntax
+                                assert!(max_level > min_level);
+
+                                selector_conditions.push(SelectorCondition::RangeZoomLevel(
+                                    *min_level, *max_level,
+                                ));
+                            }
+                            Rule::selector_test_zoom_level_open_right_range => {
+                                // "|z14-" or "|z4-"
+                                let zoom_level =
+                                    &span[2..span.rfind('-').unwrap()].parse::<u8>().unwrap();
+
+                                selector_conditions
+                                    .push(SelectorCondition::MinZoomLevel(*zoom_level));
+                            }
+                            _ => {
+                                dbg!(selector_test);
+                                todo!();
                             }
                         }
-                        Rule::selector_test_zoom_level => {
-                            let selector_test = inner_rule.into_inner().next().unwrap();
-                            let span = selector_test.as_span().as_str();
-
-                            match selector_test.as_rule() {
-                                Rule::selector_test_zoom_level_exact => {
-                                    // "|z8"
-                                    selector_conditions.push(SelectorCondition::ExactZoomLevel(
-                                        span[2..span.len()].parse::<u8>().unwrap(),
-                                    ));
-                                }
-                                // use rfind because the minus is always located more towards the end
-                                Rule::selector_test_zoom_level_closed_range => {
-                                    // "|z10-12"
-                                    let minus_pos = span.rfind('-').unwrap();
-
-                                    let min_level = &span[2..minus_pos].parse::<u8>().unwrap();
-                                    // skip the minus itself
-                                    let max_level =
-                                        &span[minus_pos + 1..span.len()].parse::<u8>().unwrap();
-
-                                    debug_assert!(max_level > min_level);
-
-                                    selector_conditions.push(SelectorCondition::RangeZoomLevel(
-                                        *min_level, *max_level,
-                                    ));
-                                }
-                                Rule::selector_test_zoom_level_open_right_range => {
-                                    // "|z14-" or "|z4-"
-                                    let zoom_level =
-                                        &span[2..span.rfind('-').unwrap()].parse::<u8>().unwrap();
-
-                                    selector_conditions
-                                        .push(SelectorCondition::MinZoomLevel(*zoom_level));
-                                }
-                                _ => {
-                                    dbg!(selector_test);
-                                    todo!();
-                                }
-                            }
-                        }
-                        _ => {
-                            dbg!(inner_rule);
-                            todo!();
-                        }
+                    }
+                    _ => {
+                        dbg!(inner_rule);
+                        todo!();
                     }
                 }
             }
