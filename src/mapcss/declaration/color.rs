@@ -381,4 +381,18 @@ mod tests {
         let float: [f32; 4] = rgba.into();
         assert_eq!([1.0, 1.0, 0.0, 1.0], float);
     }
+
+    #[test]
+    pub fn test_named_color_to_rgba() {
+        let aliceblue_parsed = RGBA {
+            red: 240,
+            green: 248,
+            blue: 255,
+            alpha: 255,
+        };
+
+        assert_eq!("aliceblue".parse::<RGBA>().unwrap(), aliceblue_parsed);
+        assert_eq!("ALICEBLUE".parse::<RGBA>().unwrap(), aliceblue_parsed);
+        assert_eq!("alICEblue".parse::<RGBA>().unwrap(), aliceblue_parsed);
+    }
 }
