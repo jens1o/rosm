@@ -6,7 +6,7 @@ use crate::mapcss::declaration::{
 };
 use crate::mapcss::parser::IntSize;
 use std::cmp;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::convert::TryInto;
 use std::num::NonZeroI64;
 use std::path::PathBuf;
@@ -150,7 +150,7 @@ impl Painter for PngPainter {
             let mut pixeled_max_x_coordinates: (u32, u32) = (u32::MIN, u32::MIN);
 
             // draw the outline of the way and remember it
-            let mut outline_pixels: HashMap<u32, Vec<u32>> = HashMap::new();
+            let mut outline_pixels: HashMap<u32, BTreeSet<u32>> = HashMap::new();
 
             assert!(!way_refs.is_empty());
 
@@ -183,7 +183,7 @@ impl Painter for PngPainter {
                         );
 
                         if is_closed_way {
-                            outline_pixels.entry(image_y).or_default().push(image_x);
+                            outline_pixels.entry(image_y).or_default().insert(image_x);
 
                             // speedup "are we inside the drawn way boundaries?"
                             if image_x > pixeled_max_x_coordinates.0 {
@@ -214,7 +214,7 @@ impl Painter for PngPainter {
                             );
 
                             if is_closed_way {
-                                outline_pixels.entry(image_y).or_default().push(x);
+                                outline_pixels.entry(image_y).or_default().insert(x);
 
                                 // speedup "are we inside the drawn way boundaries?"
                                 if image_x > pixeled_max_x_coordinates.0 {
@@ -267,7 +267,7 @@ impl Painter for PngPainter {
                     }
                 } else {
                     no_inside_count += 1;
-                    dbg!(pixeled_min_x_coordinates, pixeled_max_x_coordinates);
+                    // dbg!(pixeled_min_x_coordinates, pixeled_max_x_coordinates);
                 }
             }
         }
@@ -308,21 +308,28 @@ impl Painter for PngPainter {
     }
 }
 
-/// Determines whether the given point is inside the outline given by `outline_pixels`.
-fn is_inside(image_point: &(u32, u32), outline_pixels: &HashMap<u32, Vec<u32>>) -> bool {
-    if let Some(x_pixels) = outline_pixels.get(&image_point.1) {
-        if x_pixels.len() < 2 {
+/// Determines whether the given point is inside the outline given by `outline_pixels`,
+/// taking into consideration that there can be multiple outlines at the same level.
+fn is_inside(image_point: &(u32, u32), outline_pixels: &HashMap<u32, BTreeSet<u32>>) -> bool {
+    if let Some(outline_x_pixels) = outline_pixels.get(&image_point.1) {
+        // TODO: Clarify what happens if we have something like this:
+        // "x |", where x is the left-most pixel possible and hence the x is completely
+        // bordered by the outline
+        if outline_x_pixels.len() < 2 {
             return false;
         }
 
-        let mut x_pixels = x_pixels.clone();
-        x_pixels.sort_unstable();
-        x_pixels.dedup();
+        // Expected results:
+        // |   x  | => is inside
+        // |  x => is not inside (? see TODO above) - tbd
+        // x | => is not inside (? see TODO above) - tbd
+        // |  |  x => is not inside
+        // |  |   |  x  | => is inside
+        // |  | x |     | => is not inside
 
-        let partition_point = x_pixels.partition_point(|x| x < &image_point.0);
-        partition_point > 0
-            && partition_point < x_pixels.len()
-            && x_pixels[partition_point] != image_point.0
+        (outline_x_pixels.first().unwrap()..outline_x_pixels.last().unwrap())
+            .contains(&&image_point.0)
+            && !outline_x_pixels.contains(&image_point.0)
     } else {
         false
     }
@@ -341,7 +348,7 @@ fn are_image_coordinates_horizontally_next_to_each_other(a: (u32, u32), b: (u32,
 fn get_inside_point(
     min_y: u32,
     max_y: u32,
-    outline_pixels: &HashMap<u32, Vec<u32>>,
+    outline_pixels: &HashMap<u32, BTreeSet<u32>>,
 ) -> Option<(u32, u32)> {
     debug_assert!(min_y < max_y);
 
@@ -352,18 +359,15 @@ fn get_inside_point(
                 continue;
             }
 
-            let mut last_x = x_pixels[0];
+            let mut last_x = x_pixels.first().unwrap();
 
-            for x_pixel in &x_pixels[1..] {
-                let last_x_plus_one = last_x.checked_add(1);
-
-                if let Some(last_x_plus_one) = last_x_plus_one {
-                    if x_pixel != &last_x_plus_one {
-                        return Some((x_pixel + 1, y));
-                    }
-
-                    last_x = *x_pixel;
+            // Invariant: The iterator is sorted ascending.
+            for x_pixel in x_pixels.iter().skip(1) {
+                if x_pixel - last_x != 1 {
+                    return Some((last_x + 1, y));
                 }
+
+                last_x = x_pixel;
             }
         }
     }
@@ -375,8 +379,14 @@ fn get_inside_point(
 /// the outline everywhere
 fn get_flood_filled_pixels(
     (x, y): (u32, u32),
-    outline_pixels: &mut HashMap<u32, Vec<u32>>,
+    outline_pixels: &HashMap<u32, BTreeSet<u32>>,
 ) -> HashSet<(u32, u32)> {
+    // dbg!((x, y), &outline_pixels);
+
+    if !is_inside(&(x, y), outline_pixels) {
+        unreachable!("starting point must be inside");
+    }
+
     let mut flood_filled_pixels = HashSet::new();
 
     // we will put at least 4 more items on the stack during the first loop (assuming that we are inside the outline),
@@ -387,13 +397,22 @@ fn get_flood_filled_pixels(
     // use given point as a starting point for flood filling
     stack.push((x, y));
 
+    let mut iterations = 0;
+
     while let Some((x, y)) = stack.pop() {
-        if !is_inside(&(x, y), outline_pixels) {
+        iterations += 1;
+
+        if iterations == 100_000 {
+            // TODO: Check whether there is a logic error somewhere that may result into an infinite loop
+            warn!("Giving up flood filling to possibly prevent infinite loop");
+            return flood_filled_pixels;
+        }
+
+        if flood_filled_pixels.contains(&(x, y)) || !is_inside(&(x, y), outline_pixels) {
             continue;
         }
 
         flood_filled_pixels.insert((x, y));
-        outline_pixels.entry(y).or_default().push(x);
 
         stack.push((x, y + 1));
         stack.push((x, y - 1));
@@ -402,4 +421,61 @@ fn get_flood_filled_pixels(
     }
 
     flood_filled_pixels
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::{BTreeSet, HashMap};
+
+    use super::is_inside;
+
+    #[test]
+    fn test_is_inside_simple() {
+        // ^
+        // y
+        // 4
+        // 3
+        // 2   | p |
+        // 1
+        // 0 1 2 3 4 x ->
+        assert!(is_inside(
+            &(3, 2),                                       // = p
+            &HashMap::from([(2, BTreeSet::from([2, 4]))])  // = borders
+        ));
+
+        // ^
+        // y
+        // 4
+        // 3
+        // 2 p |   |
+        // 1
+        // 0 1 2 3 4 x ->
+        assert!(!is_inside(
+            &(1, 2),                                       // = p
+            &HashMap::from([(2, BTreeSet::from([2, 4]))])  // = borders
+        ));
+    }
+
+    #[test]
+    fn test_is_inside_complex() {
+        // ^
+        // y
+        // 4
+        // 3 |     |
+        // 2 q | p |
+        // 1 | o |   | |
+        // 0 1 2 3 4 5 6 x ->
+        let outline_representation = HashMap::from([
+            (1, BTreeSet::from([1, 3, 5, 6])),
+            (2, BTreeSet::from([2, 4])),
+            (3, BTreeSet::from([1, 4])),
+        ]);
+        let q = ((1, 2), false);
+        let p = ((3, 2), true);
+        let o = ((2, 1), true);
+
+        for (coords, expected) in [q, p, o] {
+            assert_eq!(is_inside(&coords, &outline_representation), expected);
+        }
+    }
 }
