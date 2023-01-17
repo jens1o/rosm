@@ -6,7 +6,7 @@ use crate::mapcss::declaration::{
 };
 use crate::mapcss::parser::IntSize;
 use std::cmp;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::num::NonZeroI64;
 use std::path::PathBuf;
@@ -253,6 +253,7 @@ impl Painter for PngPainter {
                         if flood_filled_pixel.0 >= image_buffer.width()
                             || flood_filled_pixel.1 >= image_buffer.height()
                         {
+                            warn!("Ignoring flood filled pixel that is out of the image canvas.");
                             continue;
                         }
 
@@ -375,8 +376,8 @@ fn get_inside_point(
 fn get_flood_filled_pixels(
     (x, y): (u32, u32),
     outline_pixels: &mut HashMap<u32, Vec<u32>>,
-) -> Vec<(u32, u32)> {
-    let mut flood_filled_pixels = Vec::new();
+) -> HashSet<(u32, u32)> {
+    let mut flood_filled_pixels = HashSet::new();
 
     // we will put at least 4 more items on the stack during the first loop (assuming that we are inside the outline),
     // take account for that
@@ -391,7 +392,7 @@ fn get_flood_filled_pixels(
             continue;
         }
 
-        flood_filled_pixels.push((x, y));
+        flood_filled_pixels.insert((x, y));
         outline_pixels.entry(y).or_default().push(x);
 
         stack.push((x, y + 1));
